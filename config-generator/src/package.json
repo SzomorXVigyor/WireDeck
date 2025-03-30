@@ -1,0 +1,16 @@
+{
+  "name": "config-generator",
+  "version": "1.0.0",
+  "description": "Simple config generator for WireGuard server-clients",
+  "main": "index.js",
+  "author": "Németh Bálint",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js start"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-basic-auth": "^1.2.1"
+  }
+}
