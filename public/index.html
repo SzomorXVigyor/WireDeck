@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WireGuard Instance Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .status-online {
+            animation: pulse-green 2s infinite;
+        }
+        
+        .status-offline {
+            animation: pulse-red 2s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes pulse-red {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        
+        .table tbody tr:hover {
+            background-color: var(--bs-secondary-bg);
+        }
+        
+        .name-preview {
+            font-family: monospace;
+            font-size: 0.9em;
+            color: var(--bs-secondary-color);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+        }
+
+        .docker-status {
+            position: fixed;
+            top: 20px;
+            right: 100px;
+            z-index: 1040;
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Dark theme specific styles */
+        [data-bs-theme="dark"] .card {
+            background-color: var(--bs-dark);
+            border-color: var(--bs-border-color);
+        }
+
+        [data-bs-theme="dark"] .table {
+            --bs-table-bg: var(--bs-dark);
+        }
+
+        [data-bs-theme="dark"] .modal-content {
+            background-color: var(--bs-dark);
+            border-color: var(--bs-border-color);
+        }
+
+        .action-buttons {
+            white-space: nowrap;
+        }
+
+        .action-buttons .btn {
+            margin-right: 0.25rem;
+        }
+
+        .action-buttons .btn:last-child {
+            margin-right: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Docker Status Indicator -->
+    <div class="docker-status btn-outline-secondary" id="dockerStatus">
+        <i class="fas fa-spinner fa-spin me-1"></i>Checking...
+    </div>
+
+    <!-- Theme Toggle Button -->
+    <button class="btn btn-outline-secondary theme-toggle" onclick="toggleTheme()" id="themeToggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center mb-4">
+                    <h1 class="display-5"><i class="fas fa-shield-alt me-2 text-primary"></i>WireGuard Instance Manager</h1>
+                    <p class="text-muted">Manage your WireGuard VPN instances</p>
+                </div>
+
+                <!-- Docker Connection Alert -->
+                <div id="dockerAlert" style="display: none;"></div>
+
+                <!-- Alert Container -->
+                <div id="alertContainer"></div>
+
+                <!-- Create Instance Form -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create New Instance</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="createForm">
+                            <div class="row g-3 align-items-top">
+                                <div class="col-md-8">
+                                    <label for="instanceName" class="form-label">Instance Name</label>
+                                    <input type="text" class="form-control" id="instanceName" name="name" placeholder="Enter instance name (e.g., my-vpn-server)" required>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Service name will be: <span class="name-preview" id="namePreview">wg-easy-[sanitized-name]</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary w-100 d-block" id="createBtn">
+                                        <i class="fas fa-plus me-1"></i>Create Instance
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Instances List -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Active Instances</h5>
+                        <button class="btn btn-sm btn-outline-light" onclick="loadInstances()">
+                            <i class="fas fa-refresh me-1"></i>Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="instancesContainer">
+                            <div class="text-center py-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Loading instances...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+                        <h5>Are you sure you want to delete this instance?</h5>
+                        <p class="text-muted mb-3">Instance: <strong id="deleteInstanceName"></strong></p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            This action cannot be undone. All data for this instance will be permanently removed.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="fas fa-trash me-1"></i>Delete Instance
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let instances = {};
+        let deleteModal;
+        let currentDeleteInstance = null;
+        let dockerConnected = false;
+
+        // Theme management
+        function getStoredTheme() {
+            return localStorage.getItem('theme') || 'light';
+        }
+
+        function setStoredTheme(theme) {
+            localStorage.setItem('theme', theme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            updateThemeToggleIcon(theme);
+        }
+
+        function updateThemeToggleIcon(theme) {
+            const themeToggle = document.getElementById('themeToggle');
+            if (theme === 'dark') {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                themeToggle.title = 'Switch to light theme';
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                themeToggle.title = 'Switch to dark theme';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+            setStoredTheme(newTheme);
+        }
+
+        // Docker status check
+        async function checkDockerStatus() {
+            try {
+                const response = await fetch('/docker/status');
+                const status = await response.json();
+                
+                const dockerStatus = document.getElementById('dockerStatus');
+                const dockerAlert = document.getElementById('dockerAlert');
+                const createBtn = document.getElementById('createBtn');
+                
+                if (status.connected) {
+                    dockerConnected = true;
+                    dockerStatus.className = 'docker-status btn-outline-success';
+                    dockerStatus.innerHTML = '<i class="fas fa-check me-1"></i>Docker Connected';
+                    dockerStatus.title = `Docker ${status.version} on ${status.os}`;
+                    dockerAlert.style.display = 'none';
+                    createBtn.disabled = false;
+                } else {
+                    dockerConnected = false;
+                    dockerStatus.className = 'docker-status btn-outline-danger';
+                    dockerStatus.innerHTML = '<i class="fas fa-times me-1"></i>Docker Disconnected';
+                    dockerStatus.title = status.error;
+                    
+                    dockerAlert.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Docker Connection Failed</h6>
+                            <p class="mb-2">Cannot connect to Docker daemon:</p>
+                            <ul class="mb-2">
+                                <li>Ensure Docker socket is mounted: <code>/var/run/docker.sock</code></li>
+                                <li>Verify container has Docker socket access</li>
+                                <li>Check if Docker daemon is running on host</li>
+                            </ul>
+                            <small class="text-muted">Error: ${status.error}</small>
+                        </div>
+                    `;
+                    dockerAlert.style.display = 'block';
+                    createBtn.disabled = true;
+                }
+            } catch (error) {
+                dockerConnected = false;
+                const dockerStatus = document.getElementById('dockerStatus');
+                dockerStatus.className = 'docker-status btn-outline-danger';
+                dockerStatus.innerHTML = '<i class="fas fa-times me-1"></i>Connection Error';
+                dockerStatus.title = error.message;
+                
+                document.getElementById('createBtn').disabled = true;
+            }
+        }
+
+        // Function to sanitize service names (same as backend)
+        function sanitizeServiceName(name) {
+            return name
+                .toLowerCase()
+                .replace(/[^a-z0-9-_]/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .replace(/-+/g, '-');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            setTheme(getStoredTheme());
+
+            // Check Docker status
+            checkDockerStatus();
+            setInterval(checkDockerStatus, 30000); // Check every 30 seconds
+
+            deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            loadInstances();
+            
+            // Setup delete confirmation
+            document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+                if (currentDeleteInstance) {
+                    await performDelete(currentDeleteInstance);
+                    deleteModal.hide();
+                    currentDeleteInstance = null;
+                }
+            });
+
+            // Setup name preview
+            document.getElementById('instanceName').addEventListener('input', function() {
+                const name = this.value;
+                const sanitized = sanitizeServiceName(name);
+                const preview = sanitized ? `wg-easy-${sanitized}` : 'wg-easy-[sanitized-name]';
+                document.getElementById('namePreview').textContent = preview;
+            });
+        });
+
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHtml = `
+                <div class="alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show" id="${alertId}" role="alert">
+                    <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            
+            alertContainer.insertAdjacentHTML('beforeend', alertHtml);
+            
+            setTimeout(() => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+
+        async function loadInstances() {
+            try {
+                const response = await fetch('/instances');
+                if (response.ok) {
+                    instances = await response.json();
+                    renderInstances();
+                } else {
+                    throw new Error('Failed to load instances');
+                }
+            } catch (error) {
+                console.error('Error loading instances:', error);
+                showAlert('Failed to load instances', 'error');
+                renderInstances();
+            }
+        }
+
+        function renderInstances() {
+            const container = document.getElementById('instancesContainer');
+            const instanceNames = Object.keys(instances).filter(key => key !== '_serverHost');
+
+            if (instanceNames.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No instances found</h5>
+                        <p class="text-muted">Create your first WireGuard instance using the form above</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let tableHtml = `
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th><i class="fas fa-tag me-1"></i>Name</th>
+                                <th><i class="fas fa-network-wired me-1"></i>IPv4 Address</th>
+                                <th><i class="fas fa-signal me-1"></i>Status</th>
+                                <th><i class="fas fa-plug me-1"></i>Ports</th>
+                                <th><i class="fas fa-link me-1"></i>Admin</th>
+                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            instanceNames.forEach(name => {
+                const instance = instances[name];
+                const isOnline = instance.status === 'online';
+                const statusClass = isOnline ? 'status-online' : 'status-offline';
+                const statusColor = isOnline ? 'success' : 'danger';
+                const statusIcon = isOnline ? 'check-circle' : 'times-circle';
+                const statusText = isOnline ? 'Online' : 'Offline';
+                const sanitizedName = sanitizeServiceName(name);
+                const serverHost = instances._serverHost || window.location.hostname;
+                
+                tableHtml += `
+                    <tr>
+                        <td>
+                            <strong>${name}</strong>
+                            <br><small class="text-muted">wg-easy-${sanitizedName}</small>
+                        </td>
+                        <td><code>${instance.ipv4}</code></td>
+                        <td>
+                            <span class="badge bg-${statusColor} ${statusClass}">
+                                <i class="fas fa-${statusIcon} me-1"></i>${statusText}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary me-1">UDP: ${instance.udp_port}</span>
+                            <span class="badge bg-info">TCP: ${instance.tcp_port}</span>
+                        </td>
+                        <td>
+                            ${isOnline ? 
+                                `<a href="http://${serverHost}:${instance.tcp_port}" target="_blank" class="btn btn-sm btn-success">
+                                    <i class="fas fa-external-link-alt me-1"></i>Admin Panel
+                                </a>` : 
+                                `<button class="btn btn-sm btn-secondary" disabled>
+                                    <i class="fas fa-times me-1"></i>Unavailable
+                                </button>`
+                            }
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                ${!isOnline ? 
+                                    `<button class="btn btn-sm btn-warning" onclick="restartInstance('${name}')" title="Restart instance">
+                                        <i class="fas fa-restart me-1"></i>Restart
+                                    </button>` : ''
+                                }
+                                <button class="btn btn-sm btn-danger" onclick="showDeleteModal('${name}')" title="Delete instance">
+                                    <i class="fas fa-trash me-1"></i>Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = tableHtml;
+        }
+
+        function showDeleteModal(name) {
+            currentDeleteInstance = name;
+            document.getElementById('deleteInstanceName').textContent = name;
+            deleteModal.show();
+        }
+
+        async function restartInstance(name) {
+            const submitBtn = event.target;
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Restarting...';
+
+            try {
+                const response = await fetch('/restart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name }),
+                });
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    showAlert(`Instance "${name}" restarted successfully!`);
+                    await loadInstances();
+                } else {
+                    throw new Error(result);
+                }
+            } catch (error) {
+                console.error('Error restarting instance:', error);
+                showAlert(`Failed to restart instance: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        async function createInstance(name) {
+            if (!dockerConnected) {
+                showAlert('Cannot create instance: Docker is not connected', 'error');
+                return;
+            }
+
+            const submitBtn = document.querySelector('#createForm button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
+
+            try {
+                const response = await fetch('/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name }),
+                });
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    showAlert(`Instance "${name}" created successfully!`);
+                    await loadInstances();
+                    document.getElementById('instanceName').value = '';
+                    document.getElementById('namePreview').textContent = 'wg-easy-[sanitized-name]';
+                } else {
+                    throw new Error(result);
+                }
+            } catch (error) {
+                console.error('Error creating instance:', error);
+                showAlert(`Failed to create instance: ${error.message}`, 'error');
+                // Reload instances to show if it was partially created
+                await loadInstances();
+            } finally {
+                submitBtn.disabled = !dockerConnected;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        async function performDelete(name) {
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            const originalText = confirmBtn.innerHTML;
+            
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+
+            try {
+                const response = await fetch('/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name }),
+                });
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    showAlert(`Instance "${name}" deleted successfully!`);
+                    await loadInstances();
+                } else {
+                    throw new Error(result);
+                }
+            } catch (error) {
+                console.error('Error deleting instance:', error);
+                showAlert(`Failed to delete instance: ${error.message}`, 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalText;
+            }
+        }
+
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('instanceName').value.trim();
+            
+            if (!name) {
+                showAlert('Please enter an instance name', 'error');
+                return;
+            }
+
+            const sanitized = sanitizeServiceName(name);
+            if (!sanitized) {
+                showAlert('Instance name contains only invalid characters', 'error');
+                return;
+            }
+
+            if (instances[name]) {
+                showAlert('An instance with this name already exists', 'error');
+                return;
+            }
+
+            await createInstance(name);
+        });
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadInstances, 30000);
+    </script>
+</body>
+</html>
