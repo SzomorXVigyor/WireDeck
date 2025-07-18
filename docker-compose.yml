@@ -26,7 +26,8 @@ services:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
     networks:
-      - wgnet
+      wgnet:
+        ipv4_address: 172.20.0.4
     environment:
       - DOMAIN=your-domain.com
       - EMAIL=your-email@domain.com
