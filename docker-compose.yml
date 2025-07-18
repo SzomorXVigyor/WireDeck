@@ -1,5 +1,4 @@
 services:
-  # WireGuard Manager Application
   wireguard-manager:
     build: .
     container_name: wireguard-manager
@@ -14,11 +13,27 @@ services:
     environment:
       - INIT_USERNAME=admin
       - INIT_PASSWORD=your-password
-      - INIT_HOST=your-vpn-server-ip
-      - WEBSERVER_HOST=your-web-server-ip
+      - INIT_HOST=your-server-ip
+      - INSECURE=true
+      - WEBSERVER_HOST=your-server-ip
     restart: unless-stopped
 
-  # Nginx Proxy
+  auth-setup:
+    image: httpd:alpine
+    container_name: auth-setup
+    volumes:
+      - ./.htpasswd:/tmp/.htpasswd
+    environment:
+      - AUTH_USERNAME=admin
+      - AUTH_PASSWORD=secure123
+    command: >
+      sh -c "
+        htpasswd -cb /tmp/.htpasswd $$AUTH_USERNAME $$AUTH_PASSWORD &&
+        echo 'Basic auth file created with user: $$AUTH_USERNAME' &&
+        tail -f /dev/null
+      "
+    restart: "no"
+
   nginx:
     image: nginx:alpine
     container_name: nginx-proxy
@@ -28,24 +43,26 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/.htpasswd:/etc/nginx/.htpasswd
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./default.conf.template:/etc/nginx/templates/default.conf.template
+      - ./.htpasswd:/etc/nginx/.htpasswd
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-      - ./nginx/logs:/var/log/nginx
+    environment:
+      - DOMAIN=your-server-ip
     depends_on:
       - wireguard-manager
+      - auth-setup
     restart: unless-stopped
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
-  # Certbot for SSL certificates
   certbot:
     image: certbot/certbot
-    container_name: certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
+    environment:
+      - DOMAIN=your-server-ip
+      - EMAIL=your-email@example.com
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     restart: unless-stopped
 
