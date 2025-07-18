@@ -396,7 +396,7 @@
                 const statusIcon = isOnline ? 'check-circle' : 'times-circle';
                 const statusText = isOnline ? 'Online' : 'Offline';
                 const sanitizedName = sanitizeServiceName(name);
-                const serverHost = instances._serverHost || window.location.hostname;
+                const serverHost = window.location.hostname;
                 
                 tableHtml += `
                     <tr>
