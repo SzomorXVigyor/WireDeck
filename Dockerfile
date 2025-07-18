@@ -3,7 +3,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install dependencies
-COPY package*.json ./
+COPY src/package*.json ./
 RUN yarn install --production
 
 # Copy application files

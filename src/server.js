@@ -180,6 +180,7 @@ async function createAndStartContainer(name, composeContent) {
         'INIT_PORT=51820',
         'INIT_DNS=1.1.1.1,8.8.8.8',
         'INIT_IPV4_CIDR=172.20.0.0/24',
+        'INIT_IPV6_CIDR=fd00:172:20::/64',
         'DISABLE_IPV6=true',
         'PORT=51821',
         'HOST=0.0.0.0',
@@ -368,7 +369,7 @@ app.get('/instances', async (req, res) => {
     }
     
     // Add server host info for frontend (will be the Docker host)
-    instancesWithStatus._serverHost = process.env.SERVER_HOST || 'localhost';
+    instancesWithStatus._serverHost = `${instance.tcpPort}.${process.env.WEBSERVER_HOST}` || 'localhost';
     
     res.json(instancesWithStatus);
   } catch (error) {
