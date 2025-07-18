@@ -42,6 +42,5 @@ docker run -d \
   -e INIT_PASSWORD=your-password \
   -e INIT_HOST=your-server-ip \
   -e INSECURE=true \
-  -e SERVER_HOST=10.101.2.7 \
   wireguard-manager
 ```

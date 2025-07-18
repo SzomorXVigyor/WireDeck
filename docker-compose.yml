@@ -1,6 +1,40 @@
+version: '3.8'
+
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    networks:
+      wgnet:
+        ipv4_address: 172.20.0.3
+    depends_on:
+      - wireguard-manager
+    restart: unless-stopped
+    environment:
+      - DOMAIN=${DOMAIN}
+    command: /bin/sh -c "envsubst '$$DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -g 'daemon off;' -c /tmp/nginx.conf"
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    environment:
+      - DOMAIN=${DOMAIN}
+      - EMAIL=${EMAIL}
+    command: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"
+    restart: unless-stopped
+
   wireguard-manager:
-    build: .
+    image: wireguard-manager
     container_name: wireguard-manager
     networks:
       wgnet:
@@ -11,59 +45,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./deployments:/app/deployments
     environment:
-      - INIT_USERNAME=admin
-      - INIT_PASSWORD=your-password
-      - INIT_HOST=your-server-ip
-      - INSECURE=true
-    restart: unless-stopped
-
-  auth-setup:
-    image: httpd:alpine
-    container_name: auth-setup
-    volumes:
-      - ./htpasswd:/tmp/.htpasswd
-    environment:
-      - AUTH_USERNAME=admin
-      - AUTH_PASSWORD=secure123
-    command: >
-      sh -c "
-        htpasswd -cb /tmp/.htpasswd $$AUTH_USERNAME $$AUTH_PASSWORD &&
-        echo 'Basic auth file created with user: $$AUTH_USERNAME' &&
-        tail -f /dev/null
-      "
-    restart: "no"
-
-  nginx:
-    image: nginx:alpine
-    container_name: nginx-proxy
-    networks:
-      - wgnet
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx:/etc/nginx/templates
-      - ./htpasswd:/etc/nginx/.htpasswd
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    environment:
-      - DOMAIN=your-server-ip
-      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
-    depends_on:
-      - wireguard-manager
-      - auth-setup
-    restart: unless-stopped
-
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    environment:
-      - DOMAIN=your-server-ip
-      - EMAIL=your-email@example.com
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+      - INIT_USERNAME=${INIT_USERNAME:-admin}
+      - INIT_PASSWORD=${INIT_PASSWORD}
+      - INIT_HOST=${DOMAIN}
+      - INSECURE=false
     restart: unless-stopped
 
 networks:

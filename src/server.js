@@ -184,7 +184,7 @@ async function createAndStartContainer(name, composeContent) {
         'DISABLE_IPV6=true',
         'PORT=51821',
         'HOST=0.0.0.0',
-        'INSECURE=true'
+        `INSECURE=${process.env.INSECURE || 'false'}`
       ],
       NetworkingConfig: {
         EndpointsConfig: {
@@ -367,9 +367,6 @@ app.get('/instances', async (req, res) => {
         status: isRunning ? 'online' : 'offline'
       };
     }
-    
-    // Add server host info for frontend (will be the Docker host)
-    instancesWithStatus._serverHost = `${instance.tcpPort}.${process.env.WEBSERVER_HOST}` || 'localhost';
     
     res.json(instancesWithStatus);
   } catch (error) {

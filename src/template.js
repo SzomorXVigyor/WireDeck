@@ -52,7 +52,7 @@ services:
       - DISABLE_IPV6=true
       - PORT=51821
       - HOST=0.0.0.0
-      - INSECURE=true
+      - INSECURE=${process.env.INSECURE}
     sysctls:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
