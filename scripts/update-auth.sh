@@ -16,9 +16,9 @@ htpasswd -cb nginx/.htpasswd "$USERNAME" "$PASSWORD"
 echo "Basic auth credentials updated!"
 
 # Reload nginx
-if docker-compose ps | grep -q "nginx.*Up"; then
+if docker compose ps | grep -q "nginx.*Up"; then
     echo "Reloading nginx..."
-    docker-compose exec nginx nginx -s reload
+    docker compose exec nginx nginx -s reload
     echo "Nginx reloaded. New credentials are now active."
 else
     echo "Nginx is not running. Start the services to apply changes."

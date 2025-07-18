@@ -7,19 +7,19 @@ cd "$(dirname "$0")/.."
 echo "Renewing SSL certificates..."
 
 # Check if containers are running
-if ! docker-compose ps | grep -q "Up"; then
-    echo "Docker containers are not running. Please start them first with: docker-compose up -d"
+if ! docker compose ps | grep -q "Up"; then
+    echo "Docker containers are not running. Please start them first with: docker compose up -d"
     exit 1
 fi
 
-docker-compose exec certbot certbot renew
+docker compose exec certbot certbot renew
 
 if [ $? -eq 0 ]; then
     echo "Certificates renewed successfully!"
     
     # Reload nginx after renewal
     echo "Reloading nginx..."
-    docker-compose exec nginx nginx -s reload
+    docker compose exec nginx nginx -s reload
     
     echo "Certificate renewal complete!"
 else
