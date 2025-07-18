@@ -47,8 +47,8 @@ services:
       - INIT_HOST=${process.env.INIT_HOST}
       - INIT_PORT=51820
       - INIT_DNS=1.1.1.1,8.8.8.8
-      - INIT_IPV4_CIDR=172.20.0.0/24
-      - INIT_IPV6_CIDR=fd00:172:20::/64
+      - INIT_IPV4_CIDR=172.21.0.0/24
+      - INIT_IPV6_CIDR=fd00:172:21::/64
       - DISABLE_IPV6=true
       - PORT=51821
       - HOST=0.0.0.0

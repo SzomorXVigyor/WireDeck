@@ -31,6 +31,20 @@ docker network create --driver bridge --subnet=172.20.0.0/24 wgnet
 ```
 
 ```sh
+mkdir -p certbot/conf certbot/www deployments
+```
+
+```sh
+docker run --rm -v $(pwd)/certbot/conf:/etc/letsencrypt -v $(pwd)/certbot/www:/var/www/certbot -p 80:80 certbot/certbot certonly --standalone --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
+```
+
+```sh
+docker-compose up -d
+```
+
+decreceted:
+
+```sh
 docker run -d \
   --name wireguard-manager \
   --network wgnet \
