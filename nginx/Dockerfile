@@ -15,11 +15,18 @@ RUN apk add --no-cache \
     perl-dev \
     linux-headers \
     bash \
-    tar
+    tar \
+    gettext \
+    git
 
-# Download and compile NGINX
+# Set NGINX version
 ENV NGINX_VERSION=1.25.2
+
+# Clone ngx_http_substitutions_filter_module
 WORKDIR /usr/src
+RUN git clone https://github.com/yaoweibin/ngx_http_substitutions_filter_module.git
+
+# Download and compile NGINX with the substitutions module
 RUN curl -L http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz | tar xz \
     && cd nginx-${NGINX_VERSION} \
     && ./configure --prefix=/usr/share/nginx \
@@ -30,7 +37,7 @@ RUN curl -L http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz | tar xz \
                    --http-log-path=/var/log/nginx/access.log \
                    --error-log-path=/var/log/nginx/error.log \
                    --with-http_ssl_module \
-                   --with-http_substitutions_filter_module \
+                   --add-module=/usr/src/ngx_http_substitutions_filter_module \
                    --with-http_gzip_static_module \
                    --with-http_stub_status_module \
                    --with-http_realip_module \
@@ -38,7 +45,7 @@ RUN curl -L http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz | tar xz \
                    --with-threads \
                    --with-stream \
     && make && make install \
-    && cd .. && rm -rf nginx-${NGINX_VERSION}
+    && cd .. && rm -rf nginx-${NGINX_VERSION} ngx_http_substitutions_filter_module
 
 # Create required directories
 RUN mkdir -p /var/www/certbot /etc/letsencrypt

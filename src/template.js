@@ -11,9 +11,10 @@ function sanitizeServiceName(name) {
 
 exports.generateComposeFile = (name, index) => {
 	const sanitizedName = sanitizeServiceName(name);
-	const ipLastOctet = 10 + index;
-	const ipv4Address = `172.20.0.${ipLastOctet}`;
-	const basePort = 51820 + index * 2;
+	const ipLastOctet = index;
+	const ipv4Address = `172.20.1.${ipLastOctet}`;
+	const vpnPort = 51820 + index;
+  const webPort = 52820 + index;
 
 	return `
 volumes:
@@ -34,8 +35,8 @@ services:
       - etc_wireguard_${sanitizedName}:/etc/wireguard
       - /lib/modules:/lib/modules:ro
     ports:
-      - "${basePort}:51820/udp"
-      - "${basePort + 1}:51821/tcp"
+      - "${vpnPort}:51820/udp"
+      - "${webPort}:51821/tcp"
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
