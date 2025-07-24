@@ -380,7 +380,7 @@
                                 <th><i class="fas fa-tag me-1"></i>Name</th>
                                 <th><i class="fas fa-network-wired me-1"></i>IPv4 Address</th>
                                 <th><i class="fas fa-signal me-1"></i>Status</th>
-                                <th><i class="fas fa-plug me-1"></i>Ports</th>
+                                <th><i class="fas fa-plug me-1"></i>VPN Port</th>
                                 <th><i class="fas fa-link me-1"></i>Admin</th>
                                 <th><i class="fas fa-cogs me-1"></i>Actions</th>
                             </tr>
@@ -411,12 +411,11 @@
                             </span>
                         </td>
                         <td>
-                            <span class="badge bg-primary me-1">UDP: ${instance.udp_port}</span>
-                            <span class="badge bg-info">TCP: ${instance.tcp_port}</span>
+                            <span class="badge bg-primary me-1">UDP: ${instance.udpPort}</span>
                         </td>
                         <td>
                             ${isOnline ? 
-                                `<a href="http://${serverHost}/instance/${instance.ipv4}/${instance.tcp_port}" target="_blank" class="btn btn-sm btn-success">
+                                `<a href="https://${name}.${serverHost}/" target="_blank" class="btn btn-sm btn-success">
                                     <i class="fas fa-external-link-alt me-1"></i>Admin Panel
                                 </a>` : 
                                 `<button class="btn btn-sm btn-secondary" disabled>
