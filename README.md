@@ -7,15 +7,23 @@
 <img alt="License" src="https://img.shields.io/github/license/SzomorXVigyor/WireDeck?color=56BEB8">
 </p>
 
-## Overview
+## 🌐 WireDeck
 
-This project uses **Node.js** with **Express** for VPN server managment. The solution includes a WEB UI to easily deploy multiple [**Easy-WireGuard VPN servers**](https://github.com/wg-easy/wg-easy), and manage them using **dockerode**. The deployment also includes an **NGINX reverse proxy** to handle the traffic routing for all VPN admin panel instances.
+**WireDeck** is a containerized platform for managing multiple **WireGuard VPN servers** using a clean, intuitive **Web UI**.
 
-The project require **Docker** on host to containerize the entire solution, allowing for easy setup and scalability.
+It leverages:
+
+- **Node.js + Express** for the core manager service
+- **Dockerode** for interacting with Docker
+- **NGINX** as a reverse proxy
+- **Certbot** for automatic HTTPS certificate issuance and renewal
+
+The platform makes deploying and managing multiple [wg-easy](https://github.com/wg-easy/wg-easy) instances secure, scalable, and centralized.
 
 
-
-## Deploy
+## 📦 Deploy
+> [!NOTE]
+> The project require **docker** and **docker compose** on host to containerize the entire solution, allowing for easy setup and scalability.
 
 #### 0. Clone the repo
 ```
@@ -52,15 +60,24 @@ docker network create --driver bridge --subnet=172.20.0.0/23 wgnet
 mkdir -p database nginx/sites
 ```
 
-#### 4. Obtain root certificate
+#### 4. DNS Configuration
+
+* Set A record for root domain points to server IP
+* Set wildcard DNS (*.example.com) for subdomains
+
+#### 5. Obtain root certificate
 It will automaticly renew by cert manager module.
 
 ```sh
 docker run --rm -v $(pwd)/certbot/conf:/etc/letsencrypt -v $(pwd)/certbot/www:/var/www/certbot -p 80:80 certbot/certbot certonly --standalone --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
 ```
 
-#### 5. Start the app
+#### 6. Start the app
 
 ```sh
 docker compose --env-file .env up -d
 ```
+
+## 📜 License
+
+This project is licensed under the **MIT License**. See [LICENSE](./LICENSE) for details.
