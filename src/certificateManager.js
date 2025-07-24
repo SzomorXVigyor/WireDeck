@@ -89,9 +89,6 @@ async function renewCertificate(domain) {
     
     await runCertbotContainer(command, domain);
     
-    // Reload nginx after renewal
-    await webProxyManager.reloadNginx();
-    
     console.log(`✅ Certificate renewed for: ${domain}`);
   } catch (error) {
     console.error(`❌ Certificate renewal failed for ${domain}:`, error.message);
@@ -100,15 +97,19 @@ async function renewCertificate(domain) {
 
 async function renewExistingCertificates() {
   const state = storageManager.loadState();
+
+  await renewCertificate(ROOT_DOMAIN);
   
   for (const [name] of Object.entries(state.instances)) {
     const domain = `${name}.${ROOT_DOMAIN}`;
     await renewCertificate(domain);
   }
+
+  // Reload nginx after renewal
+  webProxyManager.reloadNginx();
 }
 
 module.exports = {
   createCertificate,
-  renewCertificate,
   renewExistingCertificates
 };

@@ -17,7 +17,7 @@ The project uses Docker to containerize the entire solution, allowing for easy s
 ## Dev deploy
 
 ```sh
-docker network create --driver bridge --subnet=172.20.0.0/24 wgnet
+docker network create --driver bridge --subnet=172.20.0.0/23 wgnet
 ```
 
 ```sh

@@ -43,7 +43,7 @@ function allocate(name) {
     index = Object.keys(state.instances).length;
   }
 
-  const ipv4 = `172.20.0.${10 + index}`;
+  const ipv4 = `172.20.1.${index}`;
   const udpPort = 51820 + index;
 
   state.instances[name] = { 
