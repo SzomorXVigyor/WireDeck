@@ -28,129 +28,282 @@
         }
         
         .table tbody tr:hover {
-            background-color: var(--bs-secondary-bg);
+            background-color: var(--bs-light);
         }
         
-        .name-preview {
-            font-family: monospace;
-            font-size: 0.9em;
-            color: var(--bs-secondary-color);
+        .table td, .table th {
+            text-align: center;
+            vertical-align: middle;
         }
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-            border-radius: 50px;
-            padding: 0.5rem 1rem;
-        }
-
-        .docker-status {
-            position: fixed;
-            top: 20px;
-            right: 100px;
-            z-index: 1040;
-            border-radius: 50px;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-        }
-
-        /* Dark theme specific styles */
-        [data-bs-theme="dark"] .card {
-            background-color: var(--bs-dark);
-            border-color: var(--bs-border-color);
-        }
-
-        [data-bs-theme="dark"] .table {
-            --bs-table-bg: var(--bs-dark);
-        }
-
-        [data-bs-theme="dark"] .modal-content {
-            background-color: var(--bs-dark);
-            border-color: var(--bs-border-color);
+        .table .fw-bold {
+            text-align: center;
         }
 
         .action-buttons {
-            white-space: nowrap;
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .docker-status {
+            font-size: 0.875rem;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            cursor: default;
+            margin-right: 1rem;
+            border-radius: 20px;
+        }
+        
+        .docker-status:hover {
+            background: transparent !important;
+        }
+        
+        .docker-status.connected {
+            background-color: #198754 !important;
+            color: white !important;
+        }
+        
+        .docker-status.disconnected {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+        
+        .name-preview {
+            font-family: 'Courier New', monospace;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            border: 1px solid var(--bs-border-color);
+        }
+        
+        [data-bs-theme="light"] .name-preview {
+            background-color: #f8f9fa;
+            color: #495057;
+        }
+        
+        [data-bs-theme="dark"] .name-preview {
+            background-color: #495057;
+            color: #f8f9fa;
+        }
+        
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .main-app {
+            display: none;
+        }
+        
+        .theme-switcher {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #6c757d;
+            border-radius: 0.375rem;
+            background: transparent;
+            color: #f8f9fa;
+            text-decoration: none;
+        }
+
+        .user-info:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #f8f9fa;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
         }
 
         .action-buttons .btn {
-            margin-right: 0.25rem;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
         }
 
-        .action-buttons .btn:last-child {
-            margin-right: 0;
+        /* Toast container */
+        .toast-container {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1055;
+        }
+
+        .toast {
+            min-width: 300px;
         }
     </style>
 </head>
 <body>
-    <!-- Docker Status Indicator -->
-    <div class="docker-status btn-outline-secondary" id="dockerStatus">
-        <i class="fas fa-spinner fa-spin me-1"></i>Checking...
+    <!-- Theme Switcher for Login Screen -->
+    <div class="theme-switcher">
+        <button class="btn btn-outline-secondary btn-sm" onclick="toggleTheme()" id="loginThemeToggle">
+            <i class="fas fa-moon"></i>
+        </button>
     </div>
 
-    <!-- Theme Toggle Button -->
-    <button class="btn btn-outline-secondary theme-toggle" onclick="toggleTheme()" id="themeToggle">
-        <i class="fas fa-moon"></i>
-    </button>
-
-    <div class="container my-5">
-        <div class="row">
-            <div class="col-12">
-                <div class="text-center mb-4">
-                    <h1 class="display-5"><i class="fas fa-shield-alt me-2 text-primary"></i>WireGuard Instance Manager</h1>
-                    <p class="text-muted">Manage your WireGuard VPN instances</p>
-                </div>
-
-                <!-- Docker Connection Alert -->
-                <div id="dockerAlert" style="display: none;"></div>
-
-                <!-- Alert Container -->
-                <div id="alertContainer"></div>
-
-                <!-- Create Instance Form -->
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create New Instance</h5>
+    <!-- Login Form -->
+    <div id="loginContainer" class="login-container">
+        <div class="card" style="width: 400px;">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>WireGuard Manager</h4>
+            </div>
+            <div class="card-body">
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" required>
                     </div>
-                    <div class="card-body">
-                        <form id="createForm">
-                            <div class="row g-3 align-items-top">
-                                <div class="col-md-8">
-                                    <label for="instanceName" class="form-label">Instance Name</label>
-                                    <input type="text" class="form-control" id="instanceName" name="name" placeholder="Enter instance name (e.g., my-vpn-server)" required>
-                                    <div class="form-text">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Service name will be: <span class="name-preview" id="namePreview">wg-easy-[sanitized-name]</span>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    </button>
+                </form>
+                <div id="loginAlert" class="mt-3" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="main-app">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <span class="navbar-brand">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    WireGuard Instance Manager
+                </span>
+                
+                <div class="d-flex align-items-center">
+                    <div class="docker-status" id="dockerStatus">
+                        <i class="fas fa-spinner fa-spin me-1"></i>Checking...
+                    </div>
+                    
+                    <button class="btn btn-outline-light btn-sm me-3" onclick="toggleTheme()" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    
+                    <div class="user-dropdown">
+                        <a class="user-info" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-2"></i>
+                            <span id="currentUsername">User</span>
+                            <i class="fas fa-chevron-down ms-2"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showChangePasswordModal()">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid py-4">
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+                    <div class="text-center mb-4">
+                        <h1 class="display-6 fw-bold">WireGuard Instance Manager</h1>
+                        <p class="text-muted">Manage your WireGuard VPN instances</p>
+                    </div>
+
+                    <!-- Docker Connection Alert -->
+                    <div id="dockerAlert" style="display: none;"></div>
+
+                    <!-- Create Instance Form -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create New Instance</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="createForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="instanceName" class="form-label">Instance Name *</label>
+                                        <input type="text" class="form-control" id="instanceName" name="name" placeholder="Enter instance name (e.g., my-vpn-server)" required>
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Service name will be: <span class="name-preview" id="namePreview">wg-easy-[sanitized-name]</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="instanceCidr" class="form-label">IPv4 CIDR (Optional)</label>
+                                        <input type="text" class="form-control" id="instanceCidr" name="ipv4Cidr" placeholder="e.g., 172.21.0.0/24">
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Leave empty to use default: 172.21.0.0/24
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">&nbsp;</label>
-                                    <button type="submit" class="btn btn-primary w-100 d-block" id="createBtn">
-                                        <i class="fas fa-plus me-1"></i>Create Instance
-                                    </button>
+                                
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <label for="instanceUsername" class="form-label">Admin Username (Optional)</label>
+                                        <input type="text" class="form-control" id="instanceUsername" name="username" placeholder="Leave empty to use default">
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Leave empty to use environment default
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="instancePassword" class="form-label">Admin Password (Optional)</label>
+                                        <input type="password" class="form-control" id="instancePassword" name="password" placeholder="Leave empty to use default">
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Leave empty to use environment default
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </form>
+                                
+                                <div class="row g-3 mt-2">
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary" id="createBtn">
+                                            <i class="fas fa-plus me-1"></i>Create Instance
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Instances List -->
-                <div class="card">
-                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Active Instances</h5>
-                        <button class="btn btn-sm btn-outline-light" onclick="loadInstances()">
-                            <i class="fas fa-refresh me-1"></i>Refresh
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <div id="instancesContainer">
-                            <div class="text-center py-4">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
+                    <!-- Instances List -->
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Active Instances</h5>
+                            <button class="btn btn-sm btn-light" onclick="loadInstances()">
+                                <i class="fas fa-refresh me-1"></i>Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="instancesContainer">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading instances...</p>
                                 </div>
-                                <p class="mt-2 text-muted">Loading instances...</p>
                             </div>
                         </div>
                     </div>
@@ -159,31 +312,64 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer">
+        <!-- Toasts will be dynamically added here -->
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-key me-2"></i>Change Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="changePasswordForm">
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="currentPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" required minlength="6">
+                            <div class="form-text">Password must be at least 6 characters long</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmNewPassword" required>
+                        </div>
+                    </form>
+                    <div id="passwordChangeAlert" class="mt-3" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="confirmPasswordChangeBtn">
+                        <i class="fas fa-key me-1"></i>Change Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="deleteModalLabel">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title"><i class="fas fa-trash me-2"></i>Confirm Deletion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-                        <h5>Are you sure you want to delete this instance?</h5>
-                        <p class="text-muted mb-3">Instance: <strong id="deleteInstanceName"></strong></p>
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            This action cannot be undone. All data for this instance will be permanently removed.
-                        </div>
-                    </div>
+                    <p>Are you sure you want to delete the instance <strong id="deleteInstanceName"></strong>?</p>
+                    <p class="text-danger small mb-0">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        This action cannot be undone. All VPN configurations and data will be lost.
+                    </p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-1"></i>Cancel
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
                         <i class="fas fa-trash me-1"></i>Delete Instance
                     </button>
@@ -196,8 +382,185 @@
     <script>
         let instances = {};
         let deleteModal;
+        let changePasswordModal;
         let currentDeleteInstance = null;
         let dockerConnected = false;
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set theme before anything else
+            setTheme(getStoredTheme());
+            checkAuth();
+        });
+
+        // Check authentication on page load
+        function checkAuth() {
+            if (!authToken) {
+                showLogin();
+                return false;
+            }
+            
+            // Verify token is still valid
+            fetch('/instances', {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            }).then(response => {
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem('authToken');
+                    authToken = null;
+                    showLogin();
+                } else {
+                    showMainApp();
+                }
+            }).catch(() => {
+                showLogin();
+            });
+            
+            return true;
+        }
+
+        function showLogin() {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('mainApp').style.display = 'none';
+            // Update login theme toggle
+            updateLoginThemeToggleIcon(document.documentElement.getAttribute('data-bs-theme'));
+        }
+
+        function showMainApp() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            if (currentUser) {
+                document.getElementById('currentUsername').textContent = currentUser;
+            }
+            initializeApp();
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            showLogin();
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Logging in...';
+            
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    authToken = result.token;
+                    currentUser = result.username;
+                    localStorage.setItem('authToken', authToken);
+                    showMainApp();
+                } else {
+                    showLoginAlert(result.error || 'Login failed', 'danger');
+                }
+            } catch (error) {
+                showLoginAlert('Network error. Please try again.', 'danger');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+
+        function showLoginAlert(message, type = 'danger') {
+            const alertContainer = document.getElementById('loginAlert');
+            alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            alertContainer.style.display = 'block';
+            setTimeout(() => {
+                alertContainer.style.display = 'none';
+            }, 5000);
+        }
+
+        // Password change functionality
+        function showChangePasswordModal() {
+            changePasswordModal.show();
+        }
+
+        function showPasswordChangeAlert(message, type = 'danger') {
+            const alertContainer = document.getElementById('passwordChangeAlert');
+            alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            alertContainer.style.display = 'block';
+            setTimeout(() => {
+                alertContainer.style.display = 'none';
+            }, 5000);
+        }
+
+        document.getElementById('confirmPasswordChangeBtn').addEventListener('click', async () => {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+            
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                showPasswordChangeAlert('All fields are required', 'danger');
+                return;
+            }
+            
+            if (newPassword !== confirmNewPassword) {
+                showPasswordChangeAlert('New passwords do not match', 'danger');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showPasswordChangeAlert('New password must be at least 6 characters long', 'danger');
+                return;
+            }
+            
+            const confirmBtn = document.getElementById('confirmPasswordChangeBtn');
+            const originalText = confirmBtn.innerHTML;
+            
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Changing...';
+            
+            try {
+                const response = await fetch('/auth/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showPasswordChangeAlert(result.message, 'success');
+                    document.getElementById('changePasswordForm').reset();
+                    setTimeout(() => {
+                        changePasswordModal.hide();
+                    }, 2000);
+                } else {
+                    showPasswordChangeAlert(result.error || 'Password change failed', 'danger');
+                }
+            } catch (error) {
+                showPasswordChangeAlert('Network error. Please try again.', 'danger');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalText;
+            }
+        });
 
         // Theme management
         function getStoredTheme() {
@@ -211,16 +574,32 @@
         function setTheme(theme) {
             document.documentElement.setAttribute('data-bs-theme', theme);
             updateThemeToggleIcon(theme);
+            updateLoginThemeToggleIcon(theme);
         }
 
         function updateThemeToggleIcon(theme) {
             const themeToggle = document.getElementById('themeToggle');
-            if (theme === 'dark') {
-                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-                themeToggle.title = 'Switch to light theme';
-            } else {
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-                themeToggle.title = 'Switch to dark theme';
+            if (themeToggle) {
+                if (theme === 'dark') {
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    themeToggle.title = 'Switch to light theme';
+                } else {
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                    themeToggle.title = 'Switch to dark theme';
+                }
+            }
+        }
+
+        function updateLoginThemeToggleIcon(theme) {
+            const loginThemeToggle = document.getElementById('loginThemeToggle');
+            if (loginThemeToggle) {
+                if (theme === 'dark') {
+                    loginThemeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    loginThemeToggle.title = 'Switch to light theme';
+                } else {
+                    loginThemeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                    loginThemeToggle.title = 'Switch to dark theme';
+                }
             }
         }
 
@@ -231,10 +610,123 @@
             setStoredTheme(newTheme);
         }
 
+        // Toast functionality
+        function showToast(message, type = 'success', duration = 5000) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            const iconMap = {
+                success: 'check-circle',
+                error: 'exclamation-triangle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
+            
+            const bgMap = {
+                success: 'success',
+                error: 'danger',
+                warning: 'warning',
+                info: 'info'
+            };
+            
+            const icon = iconMap[type] || 'info-circle';
+            const bgClass = bgMap[type] || 'info';
+            
+            const toastHtml = `
+                <div class="toast align-items-center text-bg-${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-${icon} me-2"></i>${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                delay: duration
+            });
+            
+            toast.show();
+            
+            // Clean up after toast is hidden
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+
+        // Initialize app after successful login
+        function initializeApp() {
+            // Initialize modals
+            deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+            
+            // Check Docker status
+            checkDockerStatus();
+            
+            // Load instances
+            loadInstances();
+            
+            // Set up form handlers
+            setupFormHandlers();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadInstances, 30000);
+        }
+
+        function setupFormHandlers() {
+            // Create form handler
+            document.getElementById('createForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const name = formData.get('name').trim();
+                const ipv4Cidr = formData.get('ipv4Cidr').trim();
+                const username = formData.get('username').trim();
+                const password = formData.get('password').trim();
+                
+                if (!name) {
+                    showToast('Please enter an instance name', 'error');
+                    return;
+                }
+                
+                const sanitized = sanitizeServiceName(name);
+                if (!sanitized) {
+                    showToast('Instance name contains only invalid characters', 'error');
+                    return;
+                }
+                
+                if (instances[name]) {
+                    showToast('An instance with this name already exists', 'error');
+                    return;
+                }
+                
+                const requestBody = { name };
+                if (ipv4Cidr) requestBody.ipv4Cidr = ipv4Cidr;
+                if (username) requestBody.username = username;
+                if (password) requestBody.password = password;
+                
+                await createInstance(requestBody);
+            });
+            
+            // Name preview
+            document.getElementById('instanceName').addEventListener('input', (e) => {
+                const sanitized = sanitizeServiceName(e.target.value);
+                document.getElementById('namePreview').textContent = sanitized ? `wg-easy-${sanitized}` : 'wg-easy-[sanitized-name]';
+            });
+        }
+
         // Docker status check
         async function checkDockerStatus() {
             try {
-                const response = await fetch('/docker/status');
+                const response = await fetch('/docker/status', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
                 const status = await response.json();
                 
                 const dockerStatus = document.getElementById('dockerStatus');
@@ -243,17 +735,16 @@
                 
                 if (status.connected) {
                     dockerConnected = true;
-                    dockerStatus.className = 'docker-status btn-outline-success';
+                    dockerStatus.className = 'docker-status connected';
                     dockerStatus.innerHTML = '<i class="fas fa-check me-1"></i>Docker Connected';
                     dockerStatus.title = `Docker ${status.version} on ${status.os}`;
                     dockerAlert.style.display = 'none';
                     createBtn.disabled = false;
                 } else {
                     dockerConnected = false;
-                    dockerStatus.className = 'docker-status btn-outline-danger';
+                    dockerStatus.className = 'docker-status disconnected';
                     dockerStatus.innerHTML = '<i class="fas fa-times me-1"></i>Docker Disconnected';
                     dockerStatus.title = status.error;
-                    
                     dockerAlert.innerHTML = `
                         <div class="alert alert-danger">
                             <h6><i class="fas fa-exclamation-triangle me-2"></i>Docker Connection Failed</h6>
@@ -272,7 +763,7 @@
             } catch (error) {
                 dockerConnected = false;
                 const dockerStatus = document.getElementById('dockerStatus');
-                dockerStatus.className = 'docker-status btn-outline-danger';
+                dockerStatus.className = 'docker-status disconnected';
                 dockerStatus.innerHTML = '<i class="fas fa-times me-1"></i>Connection Error';
                 dockerStatus.title = error.message;
                 
@@ -280,79 +771,27 @@
             }
         }
 
-        // Function to sanitize service names (same as backend)
-        function sanitizeServiceName(name) {
-            return name
-                .toLowerCase()
-                .replace(/[^a-z0-9-_]/g, '-')
-                .replace(/^-+|-+$/g, '')
-                .replace(/-+/g, '-');
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize theme
-            setTheme(getStoredTheme());
-
-            // Check Docker status
-            checkDockerStatus();
-            setInterval(checkDockerStatus, 30000); // Check every 30 seconds
-
-            deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            loadInstances();
-            
-            // Setup delete confirmation
-            document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
-                if (currentDeleteInstance) {
-                    await performDelete(currentDeleteInstance);
-                    deleteModal.hide();
-                    currentDeleteInstance = null;
-                }
-            });
-
-            // Setup name preview
-            document.getElementById('instanceName').addEventListener('input', function() {
-                const name = this.value;
-                const sanitized = sanitizeServiceName(name);
-                const preview = sanitized ? `wg-easy-${sanitized}` : 'wg-easy-[sanitized-name]';
-                document.getElementById('namePreview').textContent = preview;
-            });
-        });
-
-        function showAlert(message, type = 'success') {
-            const alertContainer = document.getElementById('alertContainer');
-            const alertId = 'alert-' + Date.now();
-            
-            const alertHtml = `
-                <div class="alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show" id="${alertId}" role="alert">
-                    <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            
-            alertContainer.insertAdjacentHTML('beforeend', alertHtml);
-            
-            setTimeout(() => {
-                const alert = document.getElementById(alertId);
-                if (alert) {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
-                }
-            }, 5000);
-        }
-
         async function loadInstances() {
+            if (!authToken) return;
+            
             try {
-                const response = await fetch('/instances');
+                const response = await fetch('/instances', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
                 if (response.ok) {
                     instances = await response.json();
                     renderInstances();
+                } else if (response.status === 401 || response.status === 403) {
+                    logout();
                 } else {
                     throw new Error('Failed to load instances');
                 }
             } catch (error) {
                 console.error('Error loading instances:', error);
-                showAlert('Failed to load instances', 'error');
+                showToast('Failed to load instances', 'error');
                 renderInstances();
             }
         }
@@ -395,42 +834,37 @@
                 const statusColor = isOnline ? 'success' : 'danger';
                 const statusIcon = isOnline ? 'check-circle' : 'times-circle';
                 const statusText = isOnline ? 'Online' : 'Offline';
-                const sanitizedName = sanitizeServiceName(name);
-                const serverHost = window.location.hostname;
-                
+
                 tableHtml += `
                     <tr>
-                        <td>
-                            <strong>${name}</strong>
-                            <br><small class="text-muted">wg-easy-${sanitizedName}</small>
-                        </td>
+                        <td class="fw-bold">${name}</td>
                         <td><code>${instance.ipv4}</code></td>
                         <td>
                             <span class="badge bg-${statusColor} ${statusClass}">
                                 <i class="fas fa-${statusIcon} me-1"></i>${statusText}
                             </span>
                         </td>
+                        <td><code>${instance.udpPort}/udp</code></td>
                         <td>
-                            <span class="badge bg-primary me-1">UDP: ${instance.udpPort}</span>
-                        </td>
-                        <td>
-                            ${isOnline ? 
-                                `<a href="https://${name}.${serverHost}/" target="_blank" class="btn btn-sm btn-success">
-                                    <i class="fas fa-external-link-alt me-1"></i>Admin Panel
-                                </a>` : 
-                                `<button class="btn btn-sm btn-secondary" disabled>
-                                    <i class="fas fa-times me-1"></i>Unavailable
-                                </button>`
-                            }
+                            <a href="https://${instance.subdomain}" target="_blank" class="btn btn-sm ${isOnline ? 'btn-primary' : 'btn-outline-primary'}" ${!isOnline ? 'style="pointer-events: none;"' : ''}>
+                                <i class="fas fa-external-link-alt me-1"></i>Open
+                            </a>
                         </td>
                         <td>
                             <div class="action-buttons">
-                                ${!isOnline ? 
-                                    `<button class="btn btn-sm btn-warning" onclick="restartInstance('${name}')" title="Restart instance">
-                                        <i class="fas fa-restart me-1"></i>Restart
-                                    </button>` : ''
-                                }
-                                <button class="btn btn-sm btn-danger" onclick="showDeleteModal('${name}')" title="Delete instance">
+                                ${!isOnline ? `
+                                    <button class="btn btn-sm btn-success" onclick="startInstance('${name}')">
+                                        <i class="fas fa-play me-1"></i>Start
+                                    </button>
+                                ` : `
+                                    <button class="btn btn-sm btn-warning" onclick="stopInstance('${name}')">
+                                        <i class="fas fa-stop me-1"></i>Stop
+                                    </button>
+                                `}
+                                <button class="btn btn-sm ${isOnline ? 'btn-info' : 'btn-outline-info'}" onclick="restartInstance('${name}')" ${!isOnline ? 'disabled' : ''}>
+                                    <i class="fas fa-redo me-1"></i>Restart
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="confirmDelete('${name}')">
                                     <i class="fas fa-trash me-1"></i>Delete
                                 </button>
                             </div>
@@ -448,48 +882,9 @@
             container.innerHTML = tableHtml;
         }
 
-        function showDeleteModal(name) {
-            currentDeleteInstance = name;
-            document.getElementById('deleteInstanceName').textContent = name;
-            deleteModal.show();
-        }
-
-        async function restartInstance(name) {
-            const submitBtn = event.target;
-            const originalText = submitBtn.innerHTML;
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Restarting...';
-
-            try {
-                const response = await fetch('/restart', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name }),
-                });
-
-                const result = await response.text();
-
-                if (response.ok) {
-                    showAlert(`Instance "${name}" restarted successfully!`);
-                    await loadInstances();
-                } else {
-                    throw new Error(result);
-                }
-            } catch (error) {
-                console.error('Error restarting instance:', error);
-                showAlert(`Failed to restart instance: ${error.message}`, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
-        }
-
-        async function createInstance(name) {
+        async function createInstance(requestData) {
             if (!dockerConnected) {
-                showAlert('Cannot create instance: Docker is not connected', 'error');
+                showToast('Cannot create instance: Docker is not connected', 'error');
                 return;
             }
 
@@ -504,24 +899,24 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
                     },
-                    body: JSON.stringify({ name }),
+                    body: JSON.stringify(requestData),
                 });
 
-                const result = await response.text();
+                const result = await response.json();
 
                 if (response.ok) {
-                    showAlert(`Instance "${name}" created successfully!`);
+                    showToast(`Instance "${requestData.name}" created successfully!`, 'success');
                     await loadInstances();
-                    document.getElementById('instanceName').value = '';
+                    document.getElementById('createForm').reset();
                     document.getElementById('namePreview').textContent = 'wg-easy-[sanitized-name]';
                 } else {
-                    throw new Error(result);
+                    throw new Error(result.error || 'Creation failed');
                 }
             } catch (error) {
                 console.error('Error creating instance:', error);
-                showAlert(`Failed to create instance: ${error.message}`, 'error');
-                // Reload instances to show if it was partially created
+                showToast(`Failed to create instance: ${error.message}`, 'error');
                 await loadInstances();
             } finally {
                 submitBtn.disabled = !dockerConnected;
@@ -529,7 +924,61 @@
             }
         }
 
-        async function performDelete(name) {
+        async function containerAction(action, name) {
+            const submitBtn = event.target;
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>${action.charAt(0).toUpperCase() + action.slice(1)}ing...`;
+
+            try {
+                const response = await fetch(`/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ name }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showToast(`Instance "${name}" ${action}ed successfully!`, 'success');
+                    await loadInstances();
+                } else {
+                    throw new Error(result.error || `${action.charAt(0).toUpperCase() + action.slice(1)} failed`);
+                }
+            } catch (error) {
+                console.error(`Error ${action}ing instance:`, error);
+                showToast(`Failed to ${action} instance: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        async function startInstance(name) {
+            await containerAction('start', name);
+        }
+
+        async function stopInstance(name) {
+            await containerAction('stop', name);
+        }
+
+        async function restartInstance(name) {
+            await containerAction('restart', name);
+        }
+
+        function confirmDelete(name) {
+            currentDeleteInstance = name;
+            document.getElementById('deleteInstanceName').textContent = name;
+            deleteModal.show();
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            if (!currentDeleteInstance) return;
+            
             const confirmBtn = document.getElementById('confirmDeleteBtn');
             const originalText = confirmBtn.innerHTML;
             
@@ -541,52 +990,37 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
                     },
-                    body: JSON.stringify({ name }),
+                    body: JSON.stringify({ name: currentDeleteInstance }),
                 });
 
-                const result = await response.text();
+                const result = await response.json();
 
                 if (response.ok) {
-                    showAlert(`Instance "${name}" deleted successfully!`);
+                    showToast(`Instance "${currentDeleteInstance}" deleted successfully!`, 'success');
                     await loadInstances();
+                    deleteModal.hide();
                 } else {
-                    throw new Error(result);
+                    throw new Error(result.error || 'Deletion failed');
                 }
             } catch (error) {
                 console.error('Error deleting instance:', error);
-                showAlert(`Failed to delete instance: ${error.message}`, 'error');
+                showToast(`Failed to delete instance: ${error.message}`, 'error');
             } finally {
                 confirmBtn.disabled = false;
                 confirmBtn.innerHTML = originalText;
+                currentDeleteInstance = null;
             }
-        }
-
-        document.getElementById('createForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('instanceName').value.trim();
-            
-            if (!name) {
-                showAlert('Please enter an instance name', 'error');
-                return;
-            }
-
-            const sanitized = sanitizeServiceName(name);
-            if (!sanitized) {
-                showAlert('Instance name contains only invalid characters', 'error');
-                return;
-            }
-
-            if (instances[name]) {
-                showAlert('An instance with this name already exists', 'error');
-                return;
-            }
-
-            await createInstance(name);
         });
 
-        // Auto-refresh every 30 seconds
-        setInterval(loadInstances, 30000);
+        function sanitizeServiceName(name) {
+            return name
+                .toLowerCase()
+                .replace(/[^a-z0-9-_]/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .replace(/-+/g, "-");
+        }
     </script>
 </body>
 </html>
