@@ -12,10 +12,11 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt
       - /var/www/certbot:/var/www/certbot
     environment:
-      - ROOT_DOMAIN=example.com
-      - INIT_USERNAME=admin
-      - INIT_PASSWORD=your-password
-      - CERTBOT_EMAIL=email@example.com
+      - ROOT_DOMAIN=${ROOT_DOMAIN}
+      - INIT_USERNAME=${INIT_USERNAME}
+      - INIT_PASSWORD=${INIT_PASSWORD}
+      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+      - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
 
   nginx-proxy:
@@ -33,8 +34,8 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot
     environment:
-      - ROOT_DOMAIN=example.com
-    command: /bin/sh -c "envsubst '$$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -g 'daemon off;' -c /tmp/nginx.conf"
+      - ROOT_DOMAIN=${ROOT_DOMAIN}
+    command: /bin/sh -c "envsubst '\$${ROOT_DOMAIN}' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -g 'daemon off;' -c /tmp/nginx.conf"
     restart: unless-stopped
     depends_on:
       - wireguard-manager
