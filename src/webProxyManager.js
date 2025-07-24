@@ -32,38 +32,47 @@ async function removeSite(name) {
   }
 }
 
-function generateSiteConfig(domain, ipv4) {
-  return `
-server {
-    listen 80;
-    server_name ${domain};
-    
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-    
-    location / {
-        return 301 https://$server_name$request_uri;
-    }
-}
+function generateSiteConfig(domain, ipv4, fallback = ROOT_DOMAIN) {
+    return `
+  server {
+      listen 80;
+      server_name ${domain};
+  
+      location /.well-known/acme-challenge/ {
+          root /var/www/certbot;
+      }
+  
+      location / {
+          return 301 https://$server_name$request_uri;
+      }
+  }
+  
+  server {
+      listen 443 ssl;
+      http2 on;
+      server_name ${domain};
+  
+      ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;
+      ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
+  
+      location / {
+          proxy_pass http://${ipv4}:51821;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_buffering off;
 
-server {
-    listen 443 ssl http2;
-    server_name ${domain};
-    
-    ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
-    
-    location / {
-        proxy_pass http://${ipv4}:51821;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_buffering off;
-    }
-}
-`.trim();
+          proxy_read_timeout 10s;
+
+          error_page 502 504 = @fallback;
+      }
+  
+      location @fallback {
+          return 302 https://${fallback};
+      }
+  }
+  `.trim();
 }
 
 async function reloadNginx() {

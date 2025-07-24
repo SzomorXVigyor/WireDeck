@@ -5,14 +5,41 @@ const webProxyManager = require('./webProxyManager');
 
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
+const usedImage = 'ghcr.io/wg-easy/wg-easy:15.1';
+
+async function ensureImage(docker, imageName) {
+    const images = await docker.listImages();
+    const imageExists = images.some(img =>
+      img.RepoTags && img.RepoTags.includes(imageName)
+    );
+  
+    if (!imageExists) {
+      console.log(`Pulling image: ${imageName}`);
+      await new Promise((resolve, reject) => {
+        docker.pull(imageName, (err, stream) => {
+          if (err) return reject(err);
+          docker.modem.followProgress(stream, onFinished, onProgress);
+  
+          function onFinished(err, output) {
+            if (err) reject(err);
+            else resolve(output);
+          }
+  
+          function onProgress(event) {}
+        });
+      });
+    }
+  }
 
 async function createContainer(name, instanceData) {
   const sanitizedName = utils.sanitizeServiceName(name);
   const containerName = `wg-easy-${sanitizedName}`;
+
+  await ensureImage(docker, usedImage);
   
   try {
     const container = await docker.createContainer({
-      Image: 'ghcr.io/wg-easy/wg-easy:15',
+      Image: usedImage,
       name: containerName,
       NetworkingConfig: {
         EndpointsConfig: {
@@ -102,28 +129,39 @@ async function restartContainer(name) {
 }
 
 async function deleteContainer(name) {
-  const sanitizedName = utils.sanitizeServiceName(name);
-  const containerName = `wg-easy-${sanitizedName}`;
+    const sanitizedName = utils.sanitizeServiceName(name);
+    const containerName = `wg-easy-${sanitizedName}`;
   
-  try {
-    const container = docker.getContainer(containerName);
-    
-    // Try to stop the container first
     try {
-      await container.stop();
-      console.log(`🛑 Container stopped: ${containerName}`);
-    } catch (stopError) {
-      console.log(`⚠️ Container was already stopped: ${containerName}`);
+      const container = docker.getContainer(containerName);
+  
+      // Try to stop the container first
+      try {
+        await container.stop();
+        console.log(`🛑 Container stopped: ${containerName}`);
+      } catch (stopError) {
+        if (stopError.statusCode === 304) {
+          console.log(`⚠️ Container was already stopped: ${containerName}`);
+        } else if (stopError.statusCode === 404) {
+          console.log(`⚠️ Container not found (already deleted): ${containerName}`);
+          return; // Nothing to do
+        } else {
+          throw stopError;
+        }
+      }
+  
+      // Remove the container
+      await container.remove();
+      console.log(`🗑️ Container removed: ${containerName}`);
+    } catch (error) {
+      if (error.statusCode === 404 || /no such container/i.test(error.message)) {
+        console.log(`⚠️ Container not found: ${containerName} — nothing to delete`);
+        return;
+      }
+      console.error(`❌ Container deletion failed for ${containerName}:`, error.message);
+      throw error;
     }
-    
-    // Remove the container
-    await container.remove();
-    console.log(`🗑️ Container removed: ${containerName}`);
-  } catch (error) {
-    console.error(`❌ Container deletion failed for ${containerName}:`, error.message);
-    throw error;
   }
-}
 
 async function createInstance(name, options = {}) {
   const storageManager = require('./storageManager');
