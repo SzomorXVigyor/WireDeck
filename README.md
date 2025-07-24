@@ -1,4 +1,4 @@
-# MultiWireGuard Deployment
+# Wireguard-Instance-Manager 
 
 ## Overview
 
@@ -8,30 +8,20 @@ The project uses Docker to containerize the entire solution, allowing for easy s
 
 ## Features
 
-- **Node.js/Express/EJS** based configurator for VPN server instance configuration generation
+- **Node.js/Express** based configurator for VPN server instance configuration generation
 - Deploys multiple **Easy-WireGuard VPN servers** in Docker containers
 - **NGINX reverse proxy** to route traffic web traffic
 - Fully containerized deployment using **Docker Compose**
 - Easy-to-use web UI for configuration generation
-- Automated WireGuard docker compose configuration generation
-- Scalable setup with Docker
 
-## Requirements
-
-- Docker and Docker Compose (for containerized deployment)
-- Node.js 14.x or later and WireGuard (wg) (for the configurator server)
-- A Linux-based machine or compatible OS to run docker containers
-
-```sh
-docker build -t wireguard-manager .
-```
+## Dev deploy
 
 ```sh
 docker network create --driver bridge --subnet=172.20.0.0/24 wgnet
 ```
 
 ```sh
-mkdir -p certbot/conf certbot/www deployments
+mkdir -p database nginx/sites
 ```
 
 ```sh
@@ -39,22 +29,5 @@ docker run --rm -v $(pwd)/certbot/conf:/etc/letsencrypt -v $(pwd)/certbot/www:/v
 ```
 
 ```sh
-docker-compose up -d
-```
-
-decreceted:
-
-```sh
-docker run -d \
-  --name wireguard-manager \
-  --network wgnet \
-  --ip 172.20.0.2 \
-  -p 3000:3000 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v $(pwd)/deployments:/app/deployments \
-  -e INIT_USERNAME=admin \
-  -e INIT_PASSWORD=your-password \
-  -e INIT_HOST=your-server-ip \
-  -e INSECURE=true \
-  wireguard-manager
+docker-compose up -d --build
 ```

@@ -1,19 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-// State file is now in the deployments directory
-const DEPLOY_DIR = path.join(__dirname, 'deployments');
-const statePath = path.join(DEPLOY_DIR, 'state.json');
-
-// Ensure deployment directory exists
-if (!fs.existsSync(DEPLOY_DIR)) {
-  fs.mkdirSync(DEPLOY_DIR, { recursive: true });
-}
+const statePath = path.join(__dirname, 'database', 'db.json');
 
 function loadState() {
   try {
     if (!fs.existsSync(statePath)) {
-      // Create initial state file if it doesn't exist
       const initialState = {
         instances: {},
         availableIndices: []
@@ -24,7 +16,6 @@ function loadState() {
     return JSON.parse(fs.readFileSync(statePath));
   } catch (error) {
     console.error('Error loading state:', error);
-    // Return default state if file is corrupted
     return {
       instances: {},
       availableIndices: []
@@ -41,9 +32,7 @@ function saveState(state) {
   }
 }
 
-exports.loadState = loadState;
-
-exports.allocate = (name) => {
+function allocate(name) {
   const state = loadState();
   if (state.instances[name]) throw new Error('Instance already exists');
 
@@ -55,15 +44,20 @@ exports.allocate = (name) => {
   }
 
   const ipv4 = `172.20.0.${10 + index}`;
-  const udp_port = 51820 + index * 2;
-  const tcp_port = udp_port + 1;
+  const udpPort = 51820 + index;
 
-  state.instances[name] = { index, ipv4, udp_port, tcp_port };
+  state.instances[name] = { 
+    index, 
+    ipv4, 
+    udpPort, 
+    createdAt: new Date().toISOString()
+  };
+  
   saveState(state);
-  return { index, ipv4, udp_port, tcp_port };
-};
+  return state.instances[name];
+}
 
-exports.free = (name) => {
+function free(name) {
   const state = loadState();
   const entry = state.instances[name];
   if (!entry) return;
@@ -71,4 +65,11 @@ exports.free = (name) => {
   state.availableIndices.push(entry.index);
   delete state.instances[name];
   saveState(state);
+}
+
+module.exports = {
+  loadState,
+  saveState,
+  allocate,
+  free
 };

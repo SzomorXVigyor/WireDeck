@@ -11,8 +11,9 @@ RUN yarn install --production
 # Copy application files
 COPY ./src/ ./
 
-# Create deployments directory
-RUN mkdir -p deployments
+# Create used directory
+RUN mkdir -p database
+RUN mkdir -p nginx
 
 # Expose port
 EXPOSE 3000
