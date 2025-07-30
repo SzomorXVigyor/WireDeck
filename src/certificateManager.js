@@ -59,7 +59,7 @@ async function createCertificate(domain) {
     const command = [
       'certonly',
       '--webroot',
-	  '--non-interactive',
+      '--non-interactive',
       '--webroot-path=/var/www/certbot',
       '--email', CERTBOT_EMAIL,
       '--agree-tos',
