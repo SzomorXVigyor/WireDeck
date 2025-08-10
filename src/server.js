@@ -25,6 +25,12 @@ requiredEnvVars.forEach(envVar => {
   }
 });
 
+// Check default password length
+if (process.env.INIT_PASSWORD.length < 12) {
+  console.error('❌ Default ENV password must be at least 12 characters long');
+  process.exit(1);
+}
+
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 const JWT_SECRET = process.env.JWT_SECRET;
 const app = express();
@@ -179,6 +185,8 @@ app.post('/create', authenticateToken, async (req, res) => {
     if (username) options.username = username;
     if (password) options.password = password;
     if (ipv4Cidr) options.ipv4Cidr = ipv4Cidr;
+
+    if (password && password > 0 && password.length < 12) throw new Error('Password must be at least 12 characters long');
     
     const result = await containerManager.createInstance(name, options);
     res.json(result);

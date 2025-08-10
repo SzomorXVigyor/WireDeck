@@ -15,7 +15,7 @@ It leverages:
 
 - **Node.js + Express** for the core manager service
 - **Dockerode** for interacting with Docker
-- **NGINX** as a reverse proxy
+- **NGINX** for SSL and Proxy
 - **Certbot** for automatic HTTPS certificate issuance and renewal
 
 The platform makes deploying and managing multiple [wg-easy](https://github.com/wg-easy/wg-easy) (v15.1) instances secure, scalable, and centralized.
