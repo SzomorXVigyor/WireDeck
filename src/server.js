@@ -256,6 +256,11 @@ app.post('/delete', authenticateToken, async (req, res) => {
   }
 });
 
+app.get("*", (req, res) => {
+  // Redirect all requests to the root path "/"
+  res.redirect(301, "/");
+});
+
 // Schedule certificate renewal every week (Sundays at 2 AM)
 cron.schedule('0 2 * * 0', async () => {
   console.log('🕐 Running weekly certificate renewal...');
