@@ -44,7 +44,7 @@ async function ensureVolume(containerName) {
 	// Create volume if not found
 	console.log(`Creating new volume: ${volumeName}`);
 	const volume = await docker.createVolume({ Name: volumeName });
-	return volume.Name;
+	return volume.name;
 }
 
 async function createContainer(name, instanceData) {
