@@ -53,6 +53,8 @@ async function createContainer(name, instanceData) {
 
   const volumeName = await ensureVolume(containerName);
 
+  const portWithSuffix = instanceData.udpPort.toString() + "/udp";
+
 	await ensureImage(usedImage);
 
 	try {
@@ -69,11 +71,11 @@ async function createContainer(name, instanceData) {
 				},
 			},
 			ExposedPorts: {
-				"51820/udp": {},
+				[portWithSuffix]: {}
 			},
 			HostConfig: {
 				PortBindings: {
-					"51820/udp": [{ HostPort: instanceData.udpPort.toString() }],
+					[portWithSuffix]: [{ HostPort: instanceData.udpPort.toString() }],
 				},
 				Binds: [
           "/lib/modules:/lib/modules:ro",
@@ -87,12 +89,12 @@ async function createContainer(name, instanceData) {
 				`INIT_USERNAME=${instanceData.username}`,
 				`INIT_PASSWORD=${instanceData.password}`,
 				`INIT_HOST=${ROOT_DOMAIN}`,
-				"INIT_PORT=51820",
+				`INIT_PORT=${instanceData.udpPort.toString()}`,
 				"INIT_DNS=1.1.1.1,8.8.8.8",
 				`INIT_IPV4_CIDR=${instanceData.ipv4Cidr}`,
 				`INIT_IPV6_CIDR=${utils.ipv4ToIpv6Cidr(instanceData.ipv4Cidr)}`,
 				"DISABLE_IPV6=true",
-				"PORT=51821",
+				"PORT=80",
 				"HOST=0.0.0.0",
 				"INSECURE=false",
 			],
