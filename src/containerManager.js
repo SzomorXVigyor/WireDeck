@@ -51,7 +51,7 @@ async function createContainer(name, instanceData) {
 	const sanitizedName = utils.sanitizeServiceName(name);
 	const containerName = `wg-easy-${sanitizedName}`;
 
-  const volumeName = await ensureVolume(docker, containerName);
+  const volumeName = await ensureVolume(containerName);
 
 	await ensureImage(usedImage);
 
