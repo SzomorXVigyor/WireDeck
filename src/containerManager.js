@@ -7,7 +7,7 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 const usedImage = "ghcr.io/wg-easy/wg-easy:15.1";
 
-async function ensureImage(docker, imageName) {
+async function ensureImage(imageName) {
 	const images = await docker.listImages();
 	const imageExists = images.some((img) => img.RepoTags && img.RepoTags.includes(imageName));
 
@@ -44,7 +44,7 @@ async function ensureVolume(containerName) {
 	// Create volume if not found
 	console.log(`Creating new volume: ${volumeName}`);
 	const volume = await docker.createVolume({ Name: volumeName });
-	return volume.name;
+	return volume.Name;
 }
 
 async function createContainer(name, instanceData) {
@@ -53,7 +53,7 @@ async function createContainer(name, instanceData) {
 
   const volumeName = await ensureVolume(docker, containerName);
 
-	await ensureImage(docker, usedImage);
+	await ensureImage(usedImage);
 
 	try {
 		const container = await docker.createContainer({
