@@ -1,12 +1,9 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
 const cron = require("node-cron");
-const Docker = require("dockerode");
-const storageManager = require("./storageManager");
-const certificateManager = require("./certificateManager");
-const containerManager = require("./containerManager");
-const utils = require("./utils");
+const storageManager = require("./modules/storageManager");
+const certificateManager = require("./modules/certificateManager");
+const containerManager = require("./modules/container/containerManager");
 
 // Required environment variables
 const requiredEnvVars = ["ROOT_DOMAIN", "INIT_USERNAME", "INIT_PASSWORD", "CERTBOT_EMAIL", "JWT_SECRET"];
@@ -36,9 +33,8 @@ app.use(express.json());
 
 // Initialize default user
 function initializeDefaultUser() {
-	const existingUser = storageManager.getUser(process.env.INIT_USERNAME);
-	if (!existingUser) {
-		storageManager.createUser(process.env.INIT_USERNAME, process.env.INIT_PASSWORD);
+	if (storageManager.UserHandler.getAll().length === 0) {
+		storageManager.UserHandler.createUser(process.env.INIT_USERNAME, process.env.INIT_PASSWORD);
 		console.log(`✅ Default user created: ${process.env.INIT_USERNAME}`);
 	}
 }
@@ -70,7 +66,7 @@ app.post("/auth/login", async (req, res) => {
 	}
 
 	try {
-		const isValid = storageManager.validateUser(username, password);
+		const isValid = storageManager.UserHandler.validateUser(username, password);
 		if (!isValid) {
 			return res.status(401).json({ error: "Invalid credentials" });
 		}
@@ -97,12 +93,12 @@ app.post("/auth/change-password", authenticateToken, async (req, res) => {
 	}
 
 	try {
-		const isValidCurrent = storageManager.validateUser(username, currentPassword);
+		const isValidCurrent = storageManager.UserHandler.validateUser(username, currentPassword);
 		if (!isValidCurrent) {
 			return res.status(401).json({ error: "Current password is incorrect" });
 		}
 
-		storageManager.updateUserPassword(username, newPassword);
+		storageManager.UserHandler.updateUserPassword(username, newPassword);
 		res.json({ message: "Password changed successfully" });
 	} catch (error) {
 		console.error("Password change error:", error);
@@ -110,22 +106,10 @@ app.post("/auth/change-password", authenticateToken, async (req, res) => {
 	}
 });
 
-// Test Docker connection
-async function testDockerConnection() {
-	try {
-		await docker.info();
-		console.log("✅ Docker connection successful");
-		return true;
-	} catch (error) {
-		console.error("❌ Docker connection failed:", error.message);
-		process.exit(1);
-	}
-}
-
 // Docker status endpoint (protected)
 app.get("/docker/status", authenticateToken, async (req, res) => {
 	try {
-		const info = await docker.info();
+		const info = await containerManager.docker.info();
 		res.json({
 			connected: true,
 			version: info.ServerVersion,
@@ -145,19 +129,13 @@ app.get("/docker/status", authenticateToken, async (req, res) => {
 // Get all instances (protected)
 app.get("/instances", authenticateToken, async (req, res) => {
 	try {
-		const state = storageManager.loadState();
-		const instancesWithStatus = {};
-
-		for (const [name, instance] of Object.entries(state.instances)) {
-			const containerName = `wg-easy-${utils.sanitizeServiceName(name)}`;
-			const isRunning = await utils.checkContainerStatus(docker, containerName);
-
-			instancesWithStatus[name] = {
-				...instance,
-				status: isRunning ? "online" : "offline",
-				subdomain: `${name}.${ROOT_DOMAIN}`,
-			};
-		}
+		 const instances = serviceManager.WireguardServerService.listInstances();
+		 const instancesWithStatus = await Promise.all(
+			instances.map(async (name) => {
+				const status = await serviceManager.WireguardServerService.statusInstance(name);
+				return { name, status };
+			})
+		 );
 
 		res.json(instancesWithStatus);
 	} catch (error) {
@@ -182,7 +160,7 @@ app.post("/create", authenticateToken, async (req, res) => {
 
 		if (password && password > 0 && password.length < 12) throw new Error("Password must be at least 12 characters long");
 
-		const result = await containerManager.createInstance(name, options);
+		const result = await serviceManager.WireguardServerService.createInstance(name, options);
 		res.json(result);
 	} catch (error) {
 		console.error(`❌ Create instance error: ${error.message}`);
@@ -199,7 +177,10 @@ app.post("/start", authenticateToken, async (req, res) => {
 	}
 
 	try {
-		await containerManager.startContainer(name);
+		await serviceManager.WireguardServerService.startInstance(name);
+		if (storageManager.RemoteVNC.exists(name)) {
+			//await serviceManager.RemoteVNC.startInstance(name);
+		}
 		res.json({ message: "Instance started successfully" });
 	} catch (error) {
 		console.error(`❌ Start error: ${error.message}`);
@@ -216,7 +197,10 @@ app.post("/stop", authenticateToken, async (req, res) => {
 	}
 
 	try {
-		await containerManager.stopContainer(name);
+		await serviceManager.WireguardServerService.stopInstance(name);
+		if (storageManager.RemoteVNC.exists(name)) {
+			//await serviceManager.RemoteVNC.stopInstance(name);
+		}
 		res.json({ message: "Instance stopped successfully" });
 	} catch (error) {
 		console.error(`❌ Stop error: ${error.message}`);
@@ -233,7 +217,10 @@ app.post("/restart", authenticateToken, async (req, res) => {
 	}
 
 	try {
-		await containerManager.restartContainer(name);
+		await serviceManager.WireguardServerService.restartInstance(name);
+		if (storageManager.RemoteVNC.exists(name)) {
+			//await serviceManager.RemoteVNC.restartInstance(name);
+		}
 		res.json({ message: "Instance restarted successfully" });
 	} catch (error) {
 		console.error(`❌ Restart error: ${error.message}`);
@@ -250,7 +237,10 @@ app.post("/delete", authenticateToken, async (req, res) => {
 	}
 
 	try {
-		await containerManager.deleteInstance(name);
+		await serviceManager.WireguardServerService.deleteInstance(name);
+		if (storageManager.RemoteVNC.exists(name)) {
+			//await serviceManager.RemoteVNC.deleteInstance(name);
+		}
 		res.json({ message: "Instance deleted successfully" });
 	} catch (error) {
 		console.error(`❌ Delete error: ${error.message}`);
@@ -273,6 +263,21 @@ cron.schedule("0 2 * * 0", async () => {
 		console.error("❌ Weekly certificate renewal failed:", error.message);
 	}
 });
+
+// Test Docker connection
+async function testDockerConnection() {
+	try {
+		const info = await containerManager.docker.info();
+		if (!info || !info.ServerVersion) {
+			throw new Error("Invalid Docker response");
+		}
+		console.log("✅ Docker connection successful");
+		return true;
+	} catch (error) {
+		console.error("❌ Docker connection failed:", error.message);
+		process.exit(1);
+	}
+}
 
 // Start server
 async function startServer() {

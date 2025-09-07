@@ -51,7 +51,7 @@ JWT_SECRET=your-jwt-secret
 #### 2. Create docker network
 
 ```sh
-docker network create --driver bridge --subnet=172.20.0.0/23 wgnet
+docker network create --driver bridge --subnet=172.20.0.0/22 wgnet
 ```
 
 #### 3. Create work directories

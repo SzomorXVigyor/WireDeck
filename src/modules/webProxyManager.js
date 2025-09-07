@@ -3,7 +3,7 @@ const path = require("path");
 const Docker = require("dockerode");
 
 const docker = new Docker();
-const SITES_DIR = path.join(__dirname, "nginx", "sites");
+const SITES_DIR = path.join("../", "nginx", "sites");
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 
 // Ensure sites directory exists
