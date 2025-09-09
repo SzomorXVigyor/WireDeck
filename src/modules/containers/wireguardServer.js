@@ -1,6 +1,6 @@
 const Docker = require("dockerode");
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
-const containerManager = require("../serviceManager");
+const containerManager = require("./containerManager");
 const utils = require("../utils");
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
@@ -14,9 +14,9 @@ class WireguardServerContainer {
 	}
 
 	async createContainer() {
-		const volumeName = await containerManager.ensureVolume(containerName);
-		await ensureImage(usedImage);
-		const portWithSuffix = options.udpPort.toString() + "/udp";
+		const volumeName = await containerManager.ensureVolume(this.containerName);
+		await containerManager.ensureImage(usedImage);
+		const portWithSuffix = this.options.udpPort.toString() + "/udp";
 
 		try {
 			const container = await docker.createContainer({

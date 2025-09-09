@@ -1,6 +1,6 @@
 const Docker = require("dockerode");
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
-const containerManager = require("../serviceManager");
+const containerManager = require("./containerManager");
 const utils = require("../utils");
 
 const usedImage = "webvnc:latest";
@@ -13,7 +13,7 @@ class WebVNCContainer {
 	}
 
 	async createContainer() {
-		await ensureImage(usedImage);
+		await containerManager.ensureImage(usedImage);
 
 		try {
 			const container = await docker.createContainer({
@@ -32,8 +32,18 @@ class WebVNCContainer {
 					Binds: ["/lib/modules:/lib/modules:ro"],
 					CapAdd: ["NET_ADMIN", "SYS_MODULE"],
 					RestartPolicy: { Name: "unless-stopped" },
+					Sysctls: {
+						"net.ipv6.conf.all.disable_ipv6": "1",
+						"net.ipv6.conf.default.disable_ipv6": "1",
+						"net.ipv6.conf.lo.disable_ipv6": "1",
+					},
+					Dns: ["1.1.1.1", "8.8.8.8"],
 				},
-				Env: ["USERS=", "VNC_TARGETS=", "WIREGUARD_CONF_STR="],
+				Env: [
+                    `USERS=${JSON.stringify(this.options.loginUsers)}`,
+                    `VNC_TARGETS=${JSON.stringify(this.options.vncDevices)}`,
+                    `WIREGUARD_CONF_STR=${this.options.wireguard.config}`,
+                ],
 			});
 
 			await container.start();
@@ -59,6 +69,10 @@ class WebVNCContainer {
 
 	async delete() {
 		return containerManager.deleteContainer(this.containerName);
+	}
+
+	async getStatus() {
+		return containerManager.getContainerStatus(this.containerName);
 	}
 }
 

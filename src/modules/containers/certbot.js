@@ -7,9 +7,9 @@ const CERTBOT_EMAIL = process.env.CERTBOT_EMAIL;
 const usedImage = "certbot/certbot";
 
 class CertbotContainer {
-    constructor(name) {
-        this.name = utils.sanitizeServiceName(name);
-        this.containerName = `certbot-${this.name}`;
+    constructor(domain) {
+        this.domain = domain;
+        this.containerName = `certbot-${utils.sanitizeServiceName(this.domain)}`;
         this.createCMD = [
 			"certonly",
 			"--webroot",
@@ -20,14 +20,14 @@ class CertbotContainer {
 			"--agree-tos",
 			"--no-eff-email",
 			"-d",
-			containerName,
+			domain,
 		];
         this.renewCMD = [
             "renew",
             "--webroot",
             "--webroot-path=/var/www/certbot",
             "--cert-name",
-            containerName,
+            domain,
         ];
 
     }
@@ -65,31 +65,31 @@ class CertbotContainer {
                 throw new Error(`Container exited with status code: ${result.StatusCode}`);
             }
 
-            console.log(`✅ Certbot container completed successfully for: ${domain}`);
+            console.log(`✅ Certbot container completed successfully for: ${this.domain}`);
         } catch (error) {
-            console.error(`❌ Certbot container failed for ${domain}:`, error.message);
+            console.error(`❌ Certbot container failed for ${this.domain}:`, error.message);
             throw error;
         }
     }
 
     async createCertificate() {
         try {
-            console.log(`🔒 Creating certificate for: ${this.name}`);
-            this.#runCertbotContainer(this.createCMD);
-            console.log(`✅ Certificate created for: ${domain}`);
+            console.log(`🔒 Creating certificate for: ${this.domain}`);
+            await this.#runCertbotContainer(this.createCMD);
+            console.log(`✅ Certificate created for: ${this.domain}`);
         } catch (error) {
-            console.error(`❌ Certificate creation failed for ${domain}:`, error.message);
+            console.error(`❌ Certificate creation failed for ${this.domain}:`, error.message);
             throw error;
         }
     }
 
     async renewCertificate() {
         try {
-            console.log(`🔄 Renewing certificate for: ${this.name}`);
-            this.#runCertbotContainer(this.renewCMD);
-            console.log(`✅ Certificate renewed for: ${domain}`);
+            console.log(`🔄 Renewing certificate for: ${this.domain}`);
+            await this.#runCertbotContainer(this.renewCMD);
+            console.log(`✅ Certificate renewed for: ${this.domain}`);
         } catch (error) {
-            console.error(`❌ Certificate renewal failed for ${domain}:`, error.message);
+            console.error(`❌ Certificate renewal failed for ${this.domain}:`, error.message);
         }
     }
 }

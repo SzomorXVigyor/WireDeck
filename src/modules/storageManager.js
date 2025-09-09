@@ -1,7 +1,7 @@
 const fs = require("fs").promises;
 const path = require("path");
 
-const statePath = path.join(__dirname, "database", "db.json");
+const statePath = path.join(__dirname, "../", "database", "db.json");
 
 // ============================================================================
 // ASYNC LOCK AND IN-MEMORY CACHE MANAGEMENT
@@ -198,7 +198,7 @@ const WireguardServer = {
 // ============================================================================
 
 const RemoteVNC = {
-	async initialize(instanceName, loginUsers = []) {
+	async initialize(instanceName, wireguardConfig, loginUsers = [], vncDevices = []) {
 		await _modifyState((state) => {
 			if (!state.instances[instanceName]) {
 				throw new Error("WireGuard server instance not found");
@@ -215,10 +215,10 @@ const RemoteVNC = {
 			state.instances[instanceName].remoteVNC = {
 				ipv4: vncIpv4,
 				wireguard: {
-					config: ""
+					config: wireguardConfig || "",
 				},
 				loginUsers: loginUsers, // Array of {username, password} objects for the entire remoteVNC instance
-				vncDevices: [],
+				vncDevices: vncDevices, // Array of {name, ip, port, password, path} objects
 				updatedAt: new Date().toISOString()
 			};
 		});
@@ -383,26 +383,6 @@ const RemoteVNC = {
 		});
 	},
 
-	async updateLoginUserPassword(instanceName, username, newPassword) {
-		await _modifyState((state) => {
-			if (!state.instances[instanceName]) {
-				throw new Error("WireGuard server instance not found");
-			}
-
-			if (!state.instances[instanceName].remoteVNC) {
-				throw new Error("RemoteVNC module not initialized");
-			}
-
-			const user = state.instances[instanceName].remoteVNC.loginUsers.find(user => user.username === username);
-			if (!user) {
-				throw new Error("User not found for this remoteVNC instance");
-			}
-
-			user.password = newPassword;
-			state.instances[instanceName].remoteVNC.updatedAt = new Date().toISOString();
-		});
-	},
-
 	async getLoginUsers(instanceName) {
 		const state = await _readState();
 		if (!state.instances[instanceName]) {
@@ -483,7 +463,7 @@ const UserHandler = {
 		return !!state.users.find(user => user.username === username);
 	},
 
-	async validate(username, password) {
+	async validateUser(username, password) {
 		const user = await this.getByUsername(username);
 		if (!user) return false;
 

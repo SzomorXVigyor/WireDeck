@@ -3,7 +3,7 @@ const path = require("path");
 const Docker = require("dockerode");
 
 const docker = new Docker();
-const SITES_DIR = path.join("../", "nginx", "sites");
+const SITES_DIR = path.join(__dirname, "../", "nginx", "sites");
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 
 // Ensure sites directory exists
@@ -57,13 +57,16 @@ function generateSiteConfig(domain, ipv4, fallback = ROOT_DOMAIN) {
   
       location / {
           proxy_pass http://${ipv4}:80;
+          proxy_http_version 1.1;
+          proxy_set_header Upgrade $http_upgrade;
+          proxy_set_header Connection "upgrade";
           proxy_set_header Host $host;
           proxy_set_header X-Real-IP $remote_addr;
           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
           proxy_set_header X-Forwarded-Proto $scheme;
           proxy_buffering off;
-
-          proxy_read_timeout 10s;
+          proxy_read_timeout 1h;
+          proxy_send_timeout 1h;
 
           error_page 502 504 = @fallback;
       }

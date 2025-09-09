@@ -1,5 +1,4 @@
 const Docker = require("dockerode");
-
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
 async function dockerInfo() {
@@ -54,7 +53,7 @@ async function ensureVolume(containerName) {
 
 async function startContainer(containerName) {
 	try {
-		const container = docker.getContainer(nacontainerNameme);
+		const container = docker.getContainer(containerName);
 		await container.start();
 		console.log(`▶️ Container started: ${containerName}`);
 	} catch (error) {

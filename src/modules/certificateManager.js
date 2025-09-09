@@ -1,30 +1,41 @@
-const certbotContainer = require("./containers/certbot");
+const CertbotContainer = require("./containers/certbot");
 const { WireguardServer: WireguardServerStorage, RemoteVNC: RemoteVNCStorage } = require("./storageManager");
 const webProxyManager = require("./webProxyManager");
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 
-async function createCertificate(domain) {
-	const certbot = new certbotContainer(domain);
+async function createCertificate(subDomain) {
+	let domain;
+	if (subDomain) {
+		domain = `${subDomain}.${ROOT_DOMAIN}`;
+	} else {
+		domain = ROOT_DOMAIN;
+	}
+	const certbot = new CertbotContainer(domain);
 	await certbot.createCertificate();
 }
 
-async function renewCertificate(domain) {
-	const certbot = new certbotContainer(domain);
+async function renewCertificate(subDomain) {
+	let domain;
+	if (subDomain) {
+		domain = `${subDomain}.${ROOT_DOMAIN}`;
+	} else {
+		domain = ROOT_DOMAIN;
+	}
+	const certbot = new CertbotContainer(domain);
 	await certbot.renewCertificate();
 }
 
 async function renewExistingCertificates() {
-	const services = WireguardServerStorage.getAll();
+	const instances = await WireguardServerStorage.getAll();
 
-	await renewCertificate(ROOT_DOMAIN);
+	await renewCertificate();
 
-	for (const [name] of Object.entries(services.instances)) {
-		const domain = `${name}.${ROOT_DOMAIN}`;
-		await renewCertificate(domain);
+	for (const [name] of Object.entries(instances)) {
+		await renewCertificate(name);
 
-		if(RemoteVNCStorage.exists(name)) {
-			await renewCertificate(`vnc.${domain}`);
+		if(await RemoteVNCStorage.exists(name)) {
+			await renewCertificate(`vnc.${name}`);
 		}
 	}
 
