@@ -1,1065 +1,385 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
-
+<html data-bs-theme="light" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WireDeck</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <style>
-    .status-online {
-      animation: pulse-green 2s infinite;
-    }
-
-    .status-offline {
-      animation: pulse-red 2s infinite;
-    }
-
-    @keyframes pulse-green {
-      0% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.6;
-      }
-
-      100% {
-        opacity: 1;
-      }
-    }
-
-    @keyframes pulse-red {
-      0% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0.6;
-      }
-
-      100% {
-        opacity: 1;
-      }
-    }
-
-    .table tbody tr:hover {
-      background-color: var(--bs-light);
-    }
-
-    .table td,
-    .table th {
-      text-align: center;
-      vertical-align: middle;
-    }
-
-    .table .fw-bold {
-      text-align: center;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 0.25rem;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .docker-status {
-      font-size: 0.875rem;
-      border: none;
-      padding: 0.25rem 0.75rem;
-      cursor: default;
-      margin-right: 1rem;
-      border-radius: 20px;
-    }
-
-    .docker-status:hover {
-      background: transparent !important;
-    }
-
-    .docker-status.connected {
-      background-color: #198754 !important;
-      color: white !important;
-    }
-
-    .docker-status.disconnected {
-      background-color: #dc3545 !important;
-      color: white !important;
-    }
-
-    .name-preview {
-      font-family: 'Courier New', monospace;
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-size: 0.9em;
-      border: 1px solid var(--bs-border-color);
-    }
-
-    [data-bs-theme="light"] .name-preview {
-      background-color: #f8f9fa;
-      color: #495057;
-    }
-
-    [data-bs-theme="dark"] .name-preview {
-      background-color: #495057;
-      color: #f8f9fa;
-    }
-
-    .login-container {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .main-app {
-      display: none;
-    }
-
-    .theme-switcher {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-    }
-
-    .user-dropdown {
-      position: relative;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      padding: 0.375rem 0.75rem;
-      border: 1px solid #6c757d;
-      border-radius: 0.375rem;
-      background: transparent;
-      color: #f8f9fa;
-      text-decoration: none;
-    }
-
-    .user-info:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      color: #f8f9fa;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 0.25rem;
-      flex-wrap: wrap;
-    }
-
-    .action-buttons .btn {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.5rem;
-    }
-
-    /* Toast container */
-    .toast-container {
-      position: fixed;
-      bottom: 1rem;
-      right: 1rem;
-      z-index: 1055;
-    }
-
-    .toast {
-      min-width: 300px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta content="width=device-width,initial-scale=1" name="viewport">
+    <title>WireDeck</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="css/animations.css" rel="stylesheet">
+    <link href="css/components.css" rel="stylesheet">
+    <link href="css/modals.css" rel="stylesheet">
 </head>
-
 <body>
-  <!-- Theme Switcher for Login Screen -->
-  <div class="theme-switcher">
-    <button class="btn btn-outline-secondary btn-sm" onclick="toggleTheme()" id="loginThemeToggle">
-      <i class="fas fa-moon"></i>
-    </button>
-  </div>
-
-  <!-- Login Form -->
-  <div id="loginContainer" class="login-container">
-    <div class="card" style="width: 400px;">
-      <div class="card-header bg-primary text-white text-center">
-        <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>WireDeck</h4>
-      </div>
-      <div class="card-body">
-        <form id="loginForm" autocomplete="off">
-          <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" required>
-          </div>
-          <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" required>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">
-            <i class="fas fa-sign-in-alt me-1"></i>Login
-          </button>
-        </form>
-        <div id="loginAlert" class="mt-3" style="display: none;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Application -->
-  <div id="mainApp" class="main-app">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container-fluid">
-        <span class="navbar-brand">
-          <i class="fas fa-shield-alt me-2"></i>
-          WireDeck
-        </span>
-
-        <div class="d-flex align-items-center">
-          <div class="docker-status" id="dockerStatus">
-            <i class="fas fa-spinner fa-spin me-1"></i>Checking...
-          </div>
-
-          <button class="btn btn-outline-light btn-sm me-3" onclick="toggleTheme()" id="themeToggle">
+    <div class="theme-switcher">
+        <button class="btn btn-sm btn-outline-secondary" id="loginThemeToggle" onclick="toggleTheme()">
             <i class="fas fa-moon"></i>
-          </button>
+        </button>
+    </div>
 
-          <div class="user-dropdown">
-            <a class="user-info" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fas fa-user me-2"></i>
-              <span id="currentUsername">User</span>
-              <i class="fas fa-chevron-down ms-2"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="#" onclick="showChangePasswordModal()">
-                  <i class="fas fa-key me-2"></i>Change Password
-                </a></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
-                  <i class="fas fa-sign-out-alt me-2"></i>Logout
-                </a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </nav>
-
-    <div class="container-fluid py-4">
-      <div class="row justify-content-center">
-        <div class="col-12 col-xl-10">
-          <div class="text-center mb-4">
-            <h1 class="display-6 fw-bold">WireGuard Multi-Instance Manager</h1>
-            <p class="text-muted">Manage your WireGuard VPN instances</p>
-          </div>
-
-          <!-- Docker Connection Alert -->
-          <div id="dockerAlert" style="display: none;"></div>
-
-          <!-- Create Instance Form -->
-          <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-              <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Create New Instance</h5>
+    <!-- Login Container -->
+    <div class="login-container" id="loginContainer">
+        <div class="card" style="width:400px">
+            <div class="text-white card-header bg-primary text-center">
+                <h4 class="mb-0"><i class="fas me-2 fa-shield-alt"></i>WireDeck</h4>
             </div>
             <div class="card-body">
-              <form id="createForm" autocomplete="off">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label for="instanceName" class="form-label">Instance Name *</label>
-                    <input type="text" class="form-control" id="instanceName" name="name" placeholder="Enter instance name (e.g., my-vpn-server)" required>
-                    <div class="form-text">
-                      <i class="fas fa-info-circle me-1"></i>
-                      Service name will be: <span class="name-preview" id="namePreview">wg-easy-[sanitized-name]</span>
+                <form autocomplete="off" id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Username</label>
+                        <input class="form-control" id="username" required>
                     </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label for="instanceCidr" class="form-label">IPv4 CIDR (Optional)</label>
-                    <input type="text" class="form-control" id="instanceCidr" name="ipv4Cidr" placeholder="e.g., 172.21.0.0/24">
-                    <div class="form-text">
-                      <i class="fas fa-info-circle me-1"></i>
-                      Leave empty to use default: 172.21.0.0/24
+                    <div class="mb-3">
+                        <label class="form-label" for="password">Password</label>
+                        <input class="form-control" id="password" required type="password">
                     </div>
-                  </div>
-                </div>
-
-                <div class="row g-3 mt-2">
-                  <div class="col-md-6">
-                    <label for="instanceUsername" class="form-label">Admin Username (Optional)</label>
-                    <input type="text" class="form-control" id="instanceUsername" name="username" placeholder="Leave empty to use default">
-                    <div class="form-text">
-                      <i class="fas fa-info-circle me-1"></i>
-                      Leave empty to use environment default
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <label for="instancePassword" class="form-label">Admin Password (Optional)</label>
-                    <input type="password" class="form-control" id="instancePassword" name="password" minlength="12" placeholder="Leave empty to use default">
-                    <div class="form-text">
-                      <i class="fas fa-info-circle me-1"></i>
-                      Leave empty to use environment default
-                    </div>
-                  </div>
-                </div>
-
-                <div class="row g-3 mt-2">
-                  <div class="col-12">
-                    <button type="submit" class="btn btn-primary" id="createBtn">
-                      <i class="fas fa-plus me-1"></i>Create Instance
+                    <button class="btn btn-primary w-100" type="submit">
+                        <i class="fas me-1 fa-sign-in-alt"></i>Login
                     </button>
-                  </div>
-                </div>
-              </form>
+                </form>
+                <div class="mt-3" id="loginAlert" style="display:none"></div>
             </div>
-          </div>
-
-          <!-- Instances List -->
-          <div class="card">
-            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-              <h5 class="mb-0"><i class="fas fa-list me-2"></i>Active Instances</h5>
-              <button class="btn btn-sm btn-light" onclick="loadInstances()">
-                <i class="fas fa-refresh me-1"></i>Refresh
-              </button>
-            </div>
-            <div class="card-body">
-              <div id="instancesContainer">
-                <div class="text-center py-4">
-                  <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  <p class="mt-2 text-muted">Loading instances...</p>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer">
-    <!-- Toasts will be dynamically added here -->
-  </div>
-
-  <!-- Change Password Modal -->
-  <div class="modal fade" id="changePasswordModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-warning text-dark">
-          <h5 class="modal-title"><i class="fas fa-key me-2"></i>Change Password</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form id="changePasswordForm" autocomplete="off">
-            <div class="mb-3">
-              <label for="currentPassword" class="form-label">Current Password</label>
-              <input type="password" class="form-control" id="currentPassword" required>
-            </div>
-            <div class="mb-3">
-              <label for="newPassword" class="form-label">New Password</label>
-              <input type="password" class="form-control" id="newPassword" required minlength="12">
-              <div class="form-text">Password must be at least 12 characters long</div>
-            </div>
-            <div class="mb-3">
-              <label for="confirmNewPassword" class="form-label">Confirm New Password</label>
-              <input type="password" class="form-control" id="confirmNewPassword" required>
-            </div>
-          </form>
-          <div id="passwordChangeAlert" class="mt-3" style="display: none;"></div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-warning" id="confirmPasswordChangeBtn">
-            <i class="fas fa-key me-1"></i>Change Password
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Delete Modal -->
-  <div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-danger text-white">
-          <h5 class="modal-title"><i class="fas fa-trash me-2"></i>Confirm Deletion</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <p>Are you sure you want to delete the instance <strong id="deleteInstanceName"></strong>?</p>
-          <p class="text-danger small mb-0">
-            <i class="fas fa-exclamation-triangle me-1"></i>
-            This action cannot be undone. All VPN configurations and data will be lost.
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-            <i class="fas fa-trash me-1"></i>Delete Instance
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    let instances = {};
-    let deleteModal;
-    let changePasswordModal;
-    let currentDeleteInstance = null;
-    let dockerConnected = false;
-    let authToken = localStorage.getItem('authToken');
-    let currentUser = localStorage.getItem('currentUser');
-
-    // Initialize theme on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      // Set theme before anything else
-      setTheme(getStoredTheme());
-      checkAuth();
-    });
-
-    // Check authentication on page load
-    function checkAuth() {
-      if (!authToken) {
-        showLogin();
-        return false;
-      }
-
-      // Verify token is still valid
-      fetch('/instances', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      }).then(response => {
-        if (response.status === 401 || response.status === 403) {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('currentUser');
-          authToken = null;
-          showLogin();
-        } else {
-          showMainApp();
-        }
-      }).catch(() => {
-        showLogin();
-      });
-
-      return true;
-    }
-
-    function showLogin() {
-      document.getElementById('loginContainer').style.display = 'flex';
-      document.getElementById('mainApp').style.display = 'none';
-      // Update login theme toggle
-      updateLoginThemeToggleIcon(document.documentElement.getAttribute('data-bs-theme'));
-    }
-
-    function showMainApp() {
-      document.getElementById('loginContainer').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'block';
-      if (currentUser) {
-        document.getElementById('currentUsername').textContent = currentUser;
-      }
-      initializeApp();
-    }
-
-    function logout() {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('currentUser');
-      authToken = null;
-      currentUser = null;
-      showLogin();
-    }
-
-    // Login form handler
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
-
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Logging in...';
-
-      try {
-        const response = await fetch('/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username,
-            password
-          })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          authToken = result.token;
-          currentUser = result.username;
-          localStorage.setItem('authToken', authToken);
-          localStorage.setItem('currentUser', currentUser);
-          document.getElementById('username').value = '';
-          document.getElementById('password').value = '';
-          showMainApp();
-        } else {
-          showLoginAlert(result.error || 'Login failed', 'danger');
-        }
-      } catch (error) {
-        showLoginAlert('Network error. Please try again.', 'danger');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-      }
-    });
-
-    function showLoginAlert(message, type = 'danger') {
-      const alertContainer = document.getElementById('loginAlert');
-      alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-      alertContainer.style.display = 'block';
-      setTimeout(() => {
-        alertContainer.style.display = 'none';
-      }, 5000);
-    }
-
-    // Password change functionality
-    function showChangePasswordModal() {
-      changePasswordModal.show();
-    }
-
-    function showPasswordChangeAlert(message, type = 'danger') {
-      const alertContainer = document.getElementById('passwordChangeAlert');
-      alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-      alertContainer.style.display = 'block';
-      setTimeout(() => {
-        alertContainer.style.display = 'none';
-      }, 5000);
-    }
-
-    document.getElementById('confirmPasswordChangeBtn').addEventListener('click', async () => {
-      const currentPassword = document.getElementById('currentPassword').value;
-      const newPassword = document.getElementById('newPassword').value;
-      const confirmNewPassword = document.getElementById('confirmNewPassword').value;
-
-      if (!currentPassword || !newPassword || !confirmNewPassword) {
-        showPasswordChangeAlert('All fields are required', 'danger');
-        return;
-      }
-
-      if (newPassword !== confirmNewPassword) {
-        showPasswordChangeAlert('New passwords do not match', 'danger');
-        return;
-      }
-
-      if (newPassword.length < 6) {
-        showPasswordChangeAlert('New password must be at least 6 characters long', 'danger');
-        return;
-      }
-
-      const confirmBtn = document.getElementById('confirmPasswordChangeBtn');
-      const originalText = confirmBtn.innerHTML;
-
-      confirmBtn.disabled = true;
-      confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Changing...';
-
-      try {
-        const response = await fetch('/auth/change-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            currentPassword,
-            newPassword
-          })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showPasswordChangeAlert(result.message, 'success');
-          document.getElementById('changePasswordForm').reset();
-          setTimeout(() => {
-            changePasswordModal.hide();
-          }, 2000);
-        } else {
-          showPasswordChangeAlert(result.error || 'Password change failed', 'danger');
-        }
-      } catch (error) {
-        showPasswordChangeAlert('Network error. Please try again.', 'danger');
-      } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = originalText;
-      }
-    });
-
-    // Theme management
-    function getStoredTheme() {
-      return localStorage.getItem('theme') || 'light';
-    }
-
-    function setStoredTheme(theme) {
-      localStorage.setItem('theme', theme);
-    }
-
-    function setTheme(theme) {
-      document.documentElement.setAttribute('data-bs-theme', theme);
-      updateThemeToggleIcon(theme);
-      updateLoginThemeToggleIcon(theme);
-    }
-
-    function updateThemeToggleIcon(theme) {
-      const themeToggle = document.getElementById('themeToggle');
-      if (themeToggle) {
-        if (theme === 'dark') {
-          themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-          themeToggle.title = 'Switch to light theme';
-        } else {
-          themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-          themeToggle.title = 'Switch to dark theme';
-        }
-      }
-    }
-
-    function updateLoginThemeToggleIcon(theme) {
-      const loginThemeToggle = document.getElementById('loginThemeToggle');
-      if (loginThemeToggle) {
-        if (theme === 'dark') {
-          loginThemeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-          loginThemeToggle.title = 'Switch to light theme';
-        } else {
-          loginThemeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-          loginThemeToggle.title = 'Switch to dark theme';
-        }
-      }
-    }
-
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      setTheme(newTheme);
-      setStoredTheme(newTheme);
-    }
-
-    // Toast functionality
-    function showToast(message, type = 'success', duration = 5000) {
-      const toastContainer = document.getElementById('toastContainer');
-      const toastId = 'toast-' + Date.now();
-
-      const iconMap = {
-        success: 'check-circle',
-        error: 'exclamation-triangle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-      };
-
-      const bgMap = {
-        success: 'success',
-        error: 'danger',
-        warning: 'warning',
-        info: 'info'
-      };
-
-      const icon = iconMap[type] || 'info-circle';
-      const bgClass = bgMap[type] || 'info';
-
-      const toastHtml = `
-                <div class="toast align-items-center text-bg-${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <i class="fas fa-${icon} me-2"></i>${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    <!-- Main Application -->
+    <div class="main-app" id="mainApp">
+        <nav class="bg-dark navbar navbar-dark navbar-expand-lg">
+            <div class="container-fluid">
+                <span class="navbar-brand">
+                    <i class="fas me-2 fa-shield-alt"></i> WireDeck
+                </span>
+                <div class="align-items-center d-flex">
+                    <div class="docker-status" id="dockerStatus">
+                        <i class="fas me-1 fa-spin fa-spinner"></i>Checking...
+                    </div>
+                    <button class="btn btn-sm btn-outline-light me-3" id="themeToggle" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="user-dropdown">
+                        <a class="user-info" href="#" aria-expanded="false" data-bs-toggle="dropdown">
+                            <i class="fas me-2 fa-user"></i>
+                            <span id="currentUsername">User</span>
+                            <i class="fas fa-chevron-down ms-2"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="showChangePasswordModal()">
+                                <i class="fas me-2 fa-key"></i>Change Password</a>
+                            <li><hr class="dropdown-divider">
+                            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
+                                <i class="fas me-2 fa-sign-out-alt"></i>Logout</a>
+                        </ul>
                     </div>
                 </div>
-            `;
+            </div>
+        </nav>
 
-      toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-
-      const toastElement = document.getElementById(toastId);
-      const toast = new bootstrap.Toast(toastElement, {
-        delay: duration
-      });
-
-      toast.show();
-
-      // Clean up after toast is hidden
-      toastElement.addEventListener('hidden.bs.toast', () => {
-        toastElement.remove();
-      });
-    }
-
-    // Initialize app after successful login
-    function initializeApp() {
-      // Initialize modals
-      deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-      changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
-
-      // Check Docker status
-      checkDockerStatus();
-
-      // Load instances
-      loadInstances();
-
-      // Set up form handlers
-      setupFormHandlers();
-
-      // Auto-refresh every 30 seconds
-      setInterval(loadInstances, 30000);
-    }
-
-    function setupFormHandlers() {
-      // Create form handler
-      document.getElementById('createForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData(e.target);
-        const name = formData.get('name').trim();
-        const ipv4Cidr = formData.get('ipv4Cidr').trim();
-        const username = formData.get('username').trim();
-        const password = formData.get('password').trim();
-
-        if (!name) {
-          showToast('Please enter an instance name', 'error');
-          return;
-        }
-
-        const sanitized = sanitizeServiceName(name);
-        if (!sanitized) {
-          showToast('Instance name contains only invalid characters', 'error');
-          return;
-        }
-
-        if (instances[name]) {
-          showToast('An instance with this name already exists', 'error');
-          return;
-        }
-
-        const requestBody = {
-          name
-        };
-        if (ipv4Cidr) requestBody.ipv4Cidr = ipv4Cidr;
-        if (username) requestBody.username = username;
-        if (password) requestBody.password = password;
-
-        await createInstance(requestBody);
-      });
-
-      // Name preview
-      document.getElementById('instanceName').addEventListener('input', (e) => {
-        const sanitized = sanitizeServiceName(e.target.value);
-        document.getElementById('namePreview').textContent = sanitized ? `wg-easy-${sanitized}` : 'wg-easy-[sanitized-name]';
-      });
-    }
-
-    // Docker status check
-    async function checkDockerStatus() {
-      try {
-        const response = await fetch('/docker/status', {
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
-        const status = await response.json();
-
-        const dockerStatus = document.getElementById('dockerStatus');
-        const dockerAlert = document.getElementById('dockerAlert');
-        const createBtn = document.getElementById('createBtn');
-
-        if (status.connected) {
-          dockerConnected = true;
-          dockerStatus.className = 'docker-status connected';
-          dockerStatus.innerHTML = '<i class="fas fa-check me-1"></i>Docker Connected';
-          dockerStatus.title = `Docker ${status.version} on ${status.os}`;
-          dockerAlert.style.display = 'none';
-          createBtn.disabled = false;
-        } else {
-          dockerConnected = false;
-          dockerStatus.className = 'docker-status disconnected';
-          dockerStatus.innerHTML = '<i class="fas fa-times me-1"></i>Docker Disconnected';
-          dockerStatus.title = status.error;
-          dockerAlert.innerHTML = `
-                        <div class="alert alert-danger">
-                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Docker Connection Failed</h6>
-                            <p class="mb-2">Cannot connect to Docker daemon:</p>
-                            <ul class="mb-2">
-                                <li>Ensure Docker socket is mounted: <code>/var/run/docker.sock</code></li>
-                                <li>Verify container has Docker socket access</li>
-                                <li>Check if Docker daemon is running on host</li>
-                            </ul>
-                            <small class="text-muted">Error: ${status.error}</small>
-                        </div>
-                    `;
-          dockerAlert.style.display = 'block';
-          createBtn.disabled = true;
-        }
-      } catch (error) {
-        dockerConnected = false;
-        const dockerStatus = document.getElementById('dockerStatus');
-        dockerStatus.className = 'docker-status disconnected';
-        dockerStatus.innerHTML = '<i class="fas fa-times me-1"></i>Connection Error';
-        dockerStatus.title = error.message;
-
-        document.getElementById('createBtn').disabled = true;
-      }
-    }
-
-    async function loadInstances() {
-      if (!authToken) return;
-
-      try {
-        const response = await fetch('/instances', {
-          headers: {
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
-
-        if (response.ok) {
-          instances = await response.json();
-          renderInstances();
-        } else if (response.status === 401 || response.status === 403) {
-          logout();
-        } else {
-          throw new Error('Failed to load instances');
-        }
-      } catch (error) {
-        console.error('Error loading instances:', error);
-        showToast('Failed to load instances', 'error');
-        renderInstances();
-      }
-    }
-
-    function renderInstances() {
-      const container = document.getElementById('instancesContainer');
-      const instanceNames = Object.keys(instances);
-
-      if (instanceNames.length === 0) {
-        container.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No instances found</h5>
-                        <p class="text-muted">Create your first WireGuard instance using the form above</p>
+        <div class="container-fluid py-4">
+            <div class="row justify-content-center">
+                <div class="col-12 col-xl-10">
+                    <div class="text-center mb-4">
+                        <h1 class="display-6 fw-bold">WireGuard Multi-Instance Manager</h1>
+                        <p class="text-muted">Manage your WireGuard VPN instances and WebVNC services</p>
                     </div>
-                `;
-        return;
-      }
 
-      let tableHtml = `
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th><i class="fas fa-tag me-1"></i>Name</th>
-                                <th><i class="fas fa-network-wired me-1"></i>IPv4 Address</th>
-                                <th><i class="fas fa-signal me-1"></i>Status</th>
-                                <th><i class="fas fa-plug me-1"></i>VPN Port</th>
-                                <th><i class="fas fa-link me-1"></i>Admin</th>
-                                <th><i class="fas fa-cogs me-1"></i>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
+                    <div id="dockerAlert" style="display:none"></div>
 
-      instanceNames.forEach(name => {
-        const instance = instances[name];
-        const isOnline = instance.status === 'online';
-        const statusClass = isOnline ? 'status-online' : 'status-offline';
-        const statusColor = isOnline ? 'success' : 'danger';
-        const statusIcon = isOnline ? 'check-circle' : 'times-circle';
-        const statusText = isOnline ? 'Online' : 'Offline';
+                    <!-- Create New Instance -->
+                    <div class="card mb-4">
+                        <div class="text-white card-header bg-primary">
+                            <h5 class="mb-0"><i class="fas me-2 fa-plus"></i>Create New WireGuard Instance</h5>
+                        </div>
+                        <div class="card-body">
+                            <form autocomplete="off" id="createForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="instanceName">Instance Name *</label>
+                                        <input class="form-control" id="instanceName" required name="name" placeholder="Enter instance name (e.g., my-vpn-server)">
+                                        <div class="form-text">
+                                            <i class="fas me-1 fa-info-circle"></i> Service name will be: <span class="name-preview" id="namePreview">wg-easy-[sanitized-name]</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="instanceCidr">IPv4 CIDR (Optional)</label>
+                                        <input class="form-control" id="instanceCidr" name="ipv4Cidr" placeholder="e.g., 172.21.0.0/24">
+                                        <div class="form-text">
+                                            <i class="fas me-1 fa-info-circle"></i> Leave empty to use default: 172.21.0.0/24
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="instanceUsername">Admin Username (Optional)</label>
+                                        <input class="form-control" id="instanceUsername" name="username" placeholder="Leave empty to use default">
+                                        <div class="form-text">
+                                            <i class="fas me-1 fa-info-circle"></i> Leave empty to use environment default
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="instancePassword">Admin Password (Optional)</label>
+                                        <input class="form-control" id="instancePassword" type="password" minlength="12" name="password" placeholder="Leave empty to use default">
+                                        <div class="form-text">
+                                            <i class="fas me-1 fa-info-circle"></i> Leave empty to use environment default
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-2">
+                                    <div class="col-12">
+                                        <button class="btn btn-primary" type="submit" id="createBtn">
+                                            <i class="fas me-1 fa-plus"></i>Create Instance
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
-        tableHtml += `
-                    <tr>
-                        <td class="fw-bold">${name}</td>
-                        <td><code>${instance.ipv4}</code></td>
-                        <td>
-                            <span class="badge bg-${statusColor} ${statusClass}">
-                                <i class="fas fa-${statusIcon} me-1"></i>${statusText}
-                            </span>
-                        </td>
-                        <td><code>${instance.udpPort}/udp</code></td>
-                        <td>
-                            <a href="https://${instance.subdomain}" target="_blank" class="btn btn-sm ${isOnline ? 'btn-primary' : 'btn-outline-primary'}" ${!isOnline ? 'style="pointer-events: none;"' : ''}>
-                                <i class="fas fa-external-link-alt me-1"></i>Open
-                            </a>
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                ${!isOnline ? `
-                                    <button class="btn btn-sm btn-success" onclick="startInstance('${name}')">
-                                        <i class="fas fa-play me-1"></i>Start
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-sm btn-warning" onclick="stopInstance('${name}')">
-                                        <i class="fas fa-stop me-1"></i>Stop
-                                    </button>
-                                `}
-                                <button class="btn btn-sm ${isOnline ? 'btn-info' : 'btn-outline-info'}" onclick="restartInstance('${name}')" ${!isOnline ? 'disabled' : ''}>
-                                    <i class="fas fa-redo me-1"></i>Restart
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="confirmDelete('${name}')">
-                                    <i class="fas fa-trash me-1"></i>Delete
+                    <!-- Active Instances -->
+                    <div class="card">
+                        <div class="text-white card-header align-items-center bg-secondary d-flex justify-content-between">
+                            <h5 class="mb-0"><i class="fas me-2 fa-list"></i>Active Instances</h5>
+                            <button class="btn btn-sm btn-light" onclick="loadInstances()">
+                                <i class="fas me-1 fa-refresh"></i>Refresh
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="instancesContainer">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading instances...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Change Password Modal -->
+    <div class="fade modal" id="changePasswordModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas me-2 fa-key"></i>Change Password</h5>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form autocomplete="off" id="changePasswordForm">
+                        <div class="mb-3">
+                            <label class="form-label" for="currentPassword">Current Password</label>
+                            <input class="form-control" id="currentPassword" required type="password">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="newPassword">New Password</label>
+                            <input class="form-control" id="newPassword" required type="password" minlength="12">
+                            <div class="form-text">Password must be at least 12 characters long</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="confirmNewPassword">Confirm New Password</label>
+                            <input class="form-control" id="confirmNewPassword" required type="password">
+                        </div>
+                    </form>
+                    <div class="mt-3" id="passwordChangeAlert" style="display:none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-warning" type="button" id="confirmPasswordChangeBtn">
+                        <i class="fas me-1 fa-key"></i>Change Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Instance Modal -->
+    <div class="fade modal" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="text-white bg-danger modal-header">
+                    <h5 class="modal-title"><i class="fas me-2 fa-trash"></i>Confirm Deletion</h5>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the instance <strong id="deleteInstanceName"></strong>?</p>
+                    <p class="mb-0 small text-danger">
+                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone. All VPN configurations and WebVNC data will be lost.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger" type="button" id="confirmDeleteBtn">
+                        <i class="fas me-1 fa-trash"></i>Delete Instance
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WebVNC Modal -->
+    <div class="fade modal modal-lg" id="webvncModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="text-white bg-info modal-header">
+                    <h5 class="modal-title"><i class="fas me-2 fa-desktop"></i>WebVNC Manager - <span id="webvncInstanceName"></span></h5>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="webvncContent">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create WebVNC Modal -->
+    <div class="fade modal modal-lg" id="createWebvncModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="text-white bg-success modal-header">
+                    <h5 class="modal-title"><i class="fas me-2 fa-plus"></i>Create WebVNC - <span id="createWebvncInstanceName"></span></h5>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createWebvncForm">
+                        <!-- WireGuard Config Upload -->
+                        <div class="mb-4">
+                            <label class="form-label">WireGuard Configuration File *</label>
+                            <div class="file-upload-area" id="configUploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                <p class="mb-2">Click to select or drag & drop your .conf file</p>
+                                <small class="text-muted">Only .conf files are accepted</small>
+                                <input type="file" id="configFileInput" accept=".conf" style="display: none;">
+                            </div>
+                            <div class="mt-2" id="configPreview" style="display: none;">
+                                <label class="form-label">Configuration Preview:</label>
+                                <div class="config-preview border rounded p-2" id="configContent"></div>
+                            </div>
+                        </div>
+
+                        <!-- Login Users -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">Login Users</label>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLoginUserField()">
+                                    <i class="fas fa-plus me-1"></i>Add User
                                 </button>
                             </div>
-                        </td>
-                    </tr>
-                `;
-      });
+                            <div id="loginUsersContainer">
+                                <!-- User fields will be added dynamically -->
+                            </div>
+                        </div>
 
-      tableHtml += `
-                        </tbody>
-                    </table>
+                        <!-- VNC Devices -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">VNC Target Devices</label>
+                                <button type="button" class="btn btn-sm btn-outline-success" onclick="addVncDeviceField()">
+                                    <i class="fas fa-plus me-1"></i>Add Device
+                                </button>
+                            </div>
+                            <div id="vncDevicesContainer">
+                                <!-- Device fields will be added dynamically -->
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            `;
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-success" type="button" id="confirmCreateWebvncBtn">
+                        <i class="fas me-1 fa-plus"></i>Create WebVNC
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-      container.innerHTML = tableHtml;
-    }
+    <!-- WebVNC User Delete Modal -->
+    <div class="fade modal" id="deleteWebVNCUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="text-white bg-danger modal-header">
+                    <h5 class="modal-title"><i class="fas me-2 fa-user-times"></i>Remove User</h5>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to remove user <strong id="deleteWebVNCUserName"></strong> from WebVNC instance <strong id="deleteWebVNCUserInstance"></strong>?</p>
+                    <p class="mb-0 small text-danger">
+                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCUserBtn">
+                        <i class="fas me-1 fa-user-times"></i>Remove User
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    async function createInstance(requestData) {
-      if (!dockerConnected) {
-        showToast('Cannot create instance: Docker is not connected', 'error');
-        return;
-      }
+    <!-- WebVNC Device Delete Modal -->
+    <div class="fade modal" id="deleteWebVNCDeviceModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="text-white bg-danger modal-header">
+                    <h5 class="modal-title"><i class="fas me-2 fa-desktop"></i>Remove Device</h5>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to remove device <strong id="deleteWebVNCDeviceName"></strong> from WebVNC instance <strong id="deleteWebVNCDeviceInstance"></strong>?</p>
+                    <p class="mb-0 small text-danger">
+                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCDeviceBtn">
+                        <i class="fas me-1 fa-desktop"></i>Remove Device
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-      const submitBtn = document.querySelector('#createForm button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
+    <!-- WebVNC Instance Delete Modal -->
+    <div class="fade modal" id="deleteWebVNCModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="text-white bg-danger modal-header">
+                    <h5 class="modal-title"><i class="fas me-2 fa-trash"></i>Delete WebVNC Instance</h5>
+                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the WebVNC instance for <strong id="deleteWebVNCInstanceName"></strong>?</p>
+                    <p class="mb-0 small text-danger">
+                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone. All WebVNC configurations and data will be lost.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+                    <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCBtn">
+                        <i class="fas me-1 fa-trash"></i>Delete WebVNC
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
-
-      try {
-        const response = await fetch('/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify(requestData),
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showToast(`Instance "${requestData.name}" created successfully!`, 'success');
-          await loadInstances();
-          document.getElementById('createForm').reset();
-          document.getElementById('namePreview').textContent = 'wg-easy-[sanitized-name]';
-        } else {
-          throw new Error(result.error || 'Creation failed');
-        }
-      } catch (error) {
-        console.error('Error creating instance:', error);
-        showToast(`Failed to create instance: ${error.message}`, 'error');
-        await loadInstances();
-      } finally {
-        submitBtn.disabled = !dockerConnected;
-        submitBtn.innerHTML = originalText;
-      }
-    }
-
-    async function containerAction(action, name) {
-      const submitBtn = event.target;
-      const originalText = submitBtn.innerHTML;
-
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>${action.charAt(0).toUpperCase() + action.slice(1)}ing...`;
-
-      try {
-        const response = await fetch(`/${action}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            name
-          }),
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showToast(`Instance "${name}" ${action}ed successfully!`, 'success');
-          await loadInstances();
-        } else {
-          throw new Error(result.error || `${action.charAt(0).toUpperCase() + action.slice(1)} failed`);
-        }
-      } catch (error) {
-        console.error(`Error ${action}ing instance:`, error);
-        showToast(`Failed to ${action} instance: ${error.message}`, 'error');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-      }
-    }
-
-    async function startInstance(name) {
-      await containerAction('start', name);
-    }
-
-    async function stopInstance(name) {
-      await containerAction('stop', name);
-    }
-
-    async function restartInstance(name) {
-      await containerAction('restart', name);
-    }
-
-    function confirmDelete(name) {
-      currentDeleteInstance = name;
-      document.getElementById('deleteInstanceName').textContent = name;
-      deleteModal.show();
-    }
-
-    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
-      if (!currentDeleteInstance) return;
-
-      const confirmBtn = document.getElementById('confirmDeleteBtn');
-      const originalText = confirmBtn.innerHTML;
-
-      confirmBtn.disabled = true;
-      confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
-
-      try {
-        const response = await fetch('/delete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          },
-          body: JSON.stringify({
-            name: currentDeleteInstance
-          }),
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          showToast(`Instance "${currentDeleteInstance}" deleted successfully!`, 'success');
-          await loadInstances();
-          deleteModal.hide();
-        } else {
-          throw new Error(result.error || 'Deletion failed');
-        }
-      } catch (error) {
-        console.error('Error deleting instance:', error);
-        showToast(`Failed to delete instance: ${error.message}`, 'error');
-      } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = originalText;
-        currentDeleteInstance = null;
-      }
-    });
-
-    function sanitizeServiceName(name) {
-      return name
-        .toLowerCase()
-        .replace(/[^a-z0-9-_]/g, "-")
-        .replace(/^-+|-+$/g, "")
-        .replace(/-+/g, "-");
-    }
-  </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/toast.js"></script>
+    <script src="js/docker.js"></script>
+    <script src="js/instances.js"></script>
+    <script src="js/webvnc.js"></script>
+    <script src="js/app.js"></script>
 </body>
-
 </html>
