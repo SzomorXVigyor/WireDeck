@@ -315,7 +315,7 @@ async function getVncDevices(req, res) {
 */
 
 module.exports = {
-	getWebVNCInstance,
+	//getWebVNCInstance,
 	createWebVNCInstance,
 	startWebVNCInstance,
 	stopWebVNCInstance,

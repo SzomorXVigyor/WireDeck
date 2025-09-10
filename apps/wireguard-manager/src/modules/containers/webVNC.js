@@ -43,6 +43,9 @@ class WebVNCContainer {
                     `USERS=${JSON.stringify(this.options.loginUsers)}`,
                     `VNC_TARGETS=${JSON.stringify(this.options.vncDevices)}`,
                     `WIREGUARD_CONF_STR=${this.options.wireguard.config}`,
+                    `JWT_SECRET=${process.env.JWT_SECRET || utils.generateRandomString(16)}`,
+                    `FRONTEND_PORT=8080`,
+                    `FRONTEND_URL=vnc.${this.name}.${process.env.ROOT_DOMAIN}`,
                 ],
 			});
 
