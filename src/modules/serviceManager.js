@@ -106,8 +106,12 @@ WireguardServerService = {
 			console.log(`🗑️ Deleting instance: ${name}`);
 
 			// Step 1: Stop and remove container
-			await this.wireguardServerInstances.get(name).delete();
-			this.wireguardServerInstances.delete(name);
+			try {
+				await this.wireguardServerInstances.get(name).delete();
+				this.wireguardServerInstances.delete(name);
+			} catch (error) {
+				console.warn(`⚠️ Warning: Failed to delete docker container for ${name}:`, error.message);
+			}
 
 			// Step 2: Remove nginx site
 			await webProxyManager.removeSite(name);
@@ -129,7 +133,21 @@ WireguardServerService = {
 		if (!this.wireguardServerInstances.has(name)) {
 			throw new Error(`Instance not found: ${name}`);
 		}
-		return this.wireguardServerInstances.get(name).start();
+
+		try {
+			return await this.wireguardServerInstances.get(name).start();
+		} catch (error) {
+			if (error.reason && error.reason.includes("no such container")) {
+				// Try to recreate the container from storage data
+				const instanceData = await WireguardServerStorage.get(name);
+				if (!instanceData) {
+					throw new Error(`Instance data not found in storage: ${name}`);
+				}
+				const wgContainer = new WireguardContainer(name, instanceData);
+				this.wireguardServerInstances.set(name, wgContainer);
+				return await wgContainer.createContainer();
+			}
+		}
 	},
 
 	async stopInstance(rawName) {
@@ -252,8 +270,12 @@ WebVNCService = {
 			}
 
 			// Step 1: Stop and remove existing container
-			await this.vncServices.get(name).delete();
-			this.vncServices.delete(name);
+			try {
+				await this.vncServices.get(name).delete();
+				this.vncServices.delete(name);
+			} catch (error) {
+				console.warn(`⚠️ Warning: Failed to delete existing docker container for ${name}:`, error.message);
+			}
 
 			// Step 2: Recreate container from storage data
 			const instanceData = await WebVNCStorage.get(name);
@@ -281,8 +303,12 @@ WebVNCService = {
 			}
 		
 			// Step 1: Stop and remove container
-			await this.vncServices.get(name).delete();
-			this.vncServices.delete(name);
+			try {
+				await this.vncServices.get(name).delete();
+				this.vncServices.delete(name);
+			} catch (error) {
+				console.warn(`⚠️ Warning: Failed to delete docker container for ${name}:`, error.message);
+			}
 
 			// Step 2: Remove nginx site
 			await webProxyManager.removeSite(`vnc.${name}`);
@@ -305,7 +331,21 @@ WebVNCService = {
 		if (!this.vncServices.has(name)) {
 			throw new Error(`Instance not found: ${name}`);
 		}
-		return this.vncServices.get(name).start();
+
+		try {
+			return await this.vncServices.get(name).start();
+		} catch (error) {
+			if (error.reason && error.reason.includes("no such container")) {
+				// Try to recreate the container from storage data
+				const instanceData = await WebVNCStorage.get(name);
+				if (!instanceData) {
+					throw new Error(`Instance data not found in storage: ${name}`);
+				}
+				const vncContainer = new WebVNCContainer(name, instanceData);
+				this.vncServices.set(name, vncContainer);
+				return await vncContainer.createContainer();
+			}
+		}
 	},
 
 	async stopInstance(rawName) {
