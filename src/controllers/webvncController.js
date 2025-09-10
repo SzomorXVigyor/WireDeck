@@ -62,9 +62,32 @@ async function createWebVNCInstance(req, res) {
 			return res.status(404).json({ error: "WireGuard instance not found" });
 		}
 
+		// Validate WireGuard config
+		if (!wireguardConfig || typeof wireguardConfig !== "string") {
+			return res.status(400).json({ error: "Invalid WireGuard config" });
+		}
+
 		// Check if WebVNC already exists for this instance
 		if (wireguardInstance.remoteVNC) {
 			return res.status(400).json({ error: "WebVNC already exists for this instance" });
+		}
+
+		// Validate login users
+		if(loginUsers) {
+			for (const user of loginUsers) {
+				if (!user.username || !user.password) {
+					return res.status(400).json({ error: "Each login user must have username and password" });
+				}
+			}
+		}
+
+		// Validate VNC devices and sanitize paths
+		if(vncDevices) {
+			for (const device of vncDevices) {
+				if (!device.name || !device.ip || !device.port) {
+					return res.status(400).json({ error: "Each VNC device must have name, ip, and port" });
+				}
+			}
 		}
 
 		const options = {

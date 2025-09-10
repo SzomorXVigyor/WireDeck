@@ -193,14 +193,13 @@ async function createWebVNC() {
     deviceContainers.forEach(container => {
         const name = container.querySelector('[data-field="name"]').value;
         const ip = container.querySelector('[data-field="ip"]').value;
-        const port = container.querySelector('[data-field="port"]').value;
+        const port = container.querySelector('[data-field="port"]').value || 5900;
         
         if (name && ip && port) {
             vncDevices.push({ 
                 name, 
                 ip, 
                 port: parseInt(port)
-                // Removed path - will be auto-calculated on backend
             });
         }
     });
