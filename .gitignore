@@ -1,6 +1,3 @@
-node_modules
-yarn.lock
-.env
-/database
-/nginx/sites
 /.vscode
+/database/
+/nginx/

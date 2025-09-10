@@ -56,7 +56,7 @@ function generateSiteConfig(domain, ipv4, fallback = ROOT_DOMAIN) {
       ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
   
       location / {
-          proxy_pass http://${ipv4}:80;
+          proxy_pass http://${ipv4}:8080;
           proxy_http_version 1.1;
           proxy_set_header Upgrade $http_upgrade;
           proxy_set_header Connection "upgrade";

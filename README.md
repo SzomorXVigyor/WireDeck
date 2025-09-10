@@ -75,7 +75,7 @@ docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/ww
 #### 6. Start the app
 
 ```sh
-docker compose --env-file .env up -d
+docker compose --env-file ./apps/wireguard-manager/.env up -d
 ```
 
 ## 📜 License

@@ -5,6 +5,7 @@ const utils = require("../modules/utils");
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 
 // Get single WebVNC instance
+/*
 async function getWebVNCInstance(req, res) {
 	const { name } = req.params;
 
@@ -46,6 +47,7 @@ async function getWebVNCInstance(req, res) {
 		res.status(500).json({ error: "Failed to read WebVNC instance" });
 	}
 }
+*/
 
 // Create new WebVNC instance
 async function createWebVNCInstance(req, res) {
@@ -173,6 +175,7 @@ async function deleteWebVNCInstance(req, res) {
 }
 
 // Update WireGuard config
+/*
 async function updateWireguardConfig(req, res) {
 	const { name, config } = req.body;
 
@@ -193,6 +196,7 @@ async function updateWireguardConfig(req, res) {
 		res.status(500).json({ error: error.message });
 	}
 }
+*/
 
 // Add login user
 async function addLoginUser(req, res) {
@@ -231,6 +235,7 @@ async function removeLoginUser(req, res) {
 }
 
 // Get login users
+/*
 async function getLoginUsers(req, res) {
 	const { name } = req.params;
 
@@ -246,6 +251,7 @@ async function getLoginUsers(req, res) {
 		res.status(500).json({ error: error.message });
 	}
 }
+*/
 
 // Add VNC device
 async function addVncDevice(req, res) {
@@ -290,6 +296,7 @@ async function removeVncDevice(req, res) {
 }
 
 // Get VNC devices
+/*
 async function getVncDevices(req, res) {
 	const { name } = req.params;
 
@@ -305,6 +312,7 @@ async function getVncDevices(req, res) {
 		res.status(500).json({ error: error.message });
 	}
 }
+*/
 
 module.exports = {
 	getWebVNCInstance,
@@ -313,11 +321,11 @@ module.exports = {
 	stopWebVNCInstance,
 	restartWebVNCInstance,
 	deleteWebVNCInstance,
-	updateWireguardConfig,
+	//updateWireguardConfig,
 	addLoginUser,
 	removeLoginUser,
-	getLoginUsers,
+	//getLoginUsers,
 	addVncDevice,
 	removeVncDevice,
-	getVncDevices
+	//getVncDevices
 };

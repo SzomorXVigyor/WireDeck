@@ -1,8 +1,8 @@
 {
-  "name": "wireguard-instance-manager",
+  "name": "wiredeck",
   "version": "1.0.0",
   "main": "server.js",
-  "repository": "https://github.com/SzomorXVigyor/MultiWireGuard-Deployment.git",
+  "repository": "https://github.com/SzomorXVigyor/WireDeck.git",
   "author": "Aranyalma2 <40268481+Aranyalma2@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
