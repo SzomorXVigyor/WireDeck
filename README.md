@@ -72,7 +72,13 @@ It will automaticly renew by cert manager module.
 docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot -p 80:80 certbot/certbot certonly --standalone --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
 ```
 
-#### 6. Start the app
+#### 6. Build the webvnc container
+
+```sh
+cd apps/webvnc && docker build -t webvnc .
+```
+
+#### 7. Start the app (from root)
 
 ```sh
 docker compose --env-file ./apps/wireguard-manager/.env up -d

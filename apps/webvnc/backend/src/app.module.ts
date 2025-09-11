@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { AuthModule } from './auth/auth.module';
+import { NoVncModule } from './novnc/novnc.module';
 import { VncModule } from './vnc/vnc.module';
 import { UsersModule } from './users/users.module';
 import { HealthController } from './health/health.controller';
@@ -25,29 +26,21 @@ import { JWT_SECRET } from './utils/env';
       inject: [ConfigService],
       global: true,
     }),
-    // Simple static file serving
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public', 'novnc'),
-      serveRoot: '/novnc',
-      serveStaticOptions: {
-        setHeaders: (res, path) => {
-          res.setHeader('Cache-Control', 'no-cache');
-        },
-      },
-    }),
+    // API modules first
+    AuthModule,
+    VncModule,
+    UsersModule,
+    NoVncModule,
     // Frontend static files
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public', 'frontend'),
       serveRoot: '/',
       exclude: ['/api/{*path}', '/novnc/{*path}'],
       serveStaticOptions: {
-        index: 'index.html',
-        fallthrough: false,
+        index: true,
+        fallthrough: true,
       },
     }),
-    AuthModule,
-    VncModule,
-    UsersModule,
   ],
   controllers: [HealthController],
 })

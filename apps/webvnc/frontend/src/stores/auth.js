@@ -24,19 +24,27 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (credentials) => {
     loading.value = true
     error.value = null
-    
+
     try {
-      const response = await api.post('/auth/login', credentials)
-      const { access_token, user: userData } = response.data
-      
-      token.value = access_token
-      user.value = userData
-      
-      localStorage.setItem('auth_token', access_token)
-      
-      return { success: true }
+      // Prevent Axios from throwing on 4xx/5xx
+      const response = await api.post('/auth/login', credentials, {
+        validateStatus: () => true
+      })
+
+      if (response.status === 201 && response.data.access_token) {
+        const { access_token, user: userData } = response.data
+        token.value = access_token
+        user.value = userData
+        localStorage.setItem('auth_token', access_token)
+
+        return { success: true }
+      } else {
+        // Handle failed login gracefully without reload
+        error.value = response.data.message || 'Invalid credentials'
+        return { success: false, error: error.value }
+      }
     } catch (err) {
-      error.value = err.response?.data?.message || 'Login failed'
+      error.value = err.response?.data?.message || err.message || 'Login failed'
       return { success: false, error: error.value }
     } finally {
       loading.value = false
@@ -49,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       // Ignore logout errors
     }
-    
+
     token.value = null
     user.value = null
     localStorage.removeItem('auth_token')
