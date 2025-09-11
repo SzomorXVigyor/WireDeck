@@ -46,14 +46,6 @@ export class VncController {
     );
 
     const vncParams = new URLSearchParams({
-      autoconnect: '1',
-      reconnect: '1',
-      reconnect_delay: '2000',
-      resize: 'scale',
-      quality: '6',
-      compression: '2',
-      view_only: '0',
-      shared: '1',
       path: `/api/vnc/connect?wss_identifier=${this.vncService.sanitizePath(target.name)}`,
       token: shortToken,
     });

@@ -67,7 +67,7 @@ RUN wget -O novnc.zip "https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC
 # Clean up unnecessary files to reduce image size
 RUN rm -rf \
     .github docs tests utils/websockify utils/launch.sh utils/novnc_proxy \
-    package.json karma.conf.js .eslintrc.js *.md
+    karma.conf.js .eslintrc.js *.md
 
 
 # --------------------
@@ -93,6 +93,7 @@ COPY --from=frontend-builder /app/frontend/dist ./public/frontend
 
 # Copy noVNC files
 COPY --from=novnc-downloader /novnc ./public/novnc
+COPY novnc_defaults.json ./public/novnc/defaults.json
 
 # Create required directories
 RUN mkdir -p /etc/wireguard /var/log/supervisor

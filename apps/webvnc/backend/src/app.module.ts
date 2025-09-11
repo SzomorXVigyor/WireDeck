@@ -37,7 +37,7 @@ import { JWT_SECRET } from './utils/env';
       serveRoot: '/',
       exclude: ['/api/{*path}', '/novnc/{*path}'],
       serveStaticOptions: {
-        index: true,
+        index: 'index.html',
         fallthrough: true,
       },
     }),
