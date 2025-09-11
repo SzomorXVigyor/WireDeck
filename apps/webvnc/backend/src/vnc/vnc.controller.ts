@@ -1,7 +1,8 @@
-import { Controller, Get, UseGuards, Param, Query, Res, Req } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Controller, Get, UseGuards, Param, Req, Res } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { VncService } from './vnc.service';
+import { Response } from 'express';
+import * as jwt from 'jsonwebtoken';
 
 @Controller('vnc')
 @UseGuards(JwtAuthGuard)
@@ -23,42 +24,46 @@ export class VncController {
   }
 
   @Get('connect/:deviceName')
-  connectToDevice(
+  @UseGuards(JwtAuthGuard)
+  async connectToDevice(
     @Param('deviceName') deviceName: string,
-    @Query('autoconnect') autoconnect: string = '1',
-    @Query('reconnect') reconnect: string = '1',
-    @Query('resize') resize: string = 'scale',
-    @Req() req: Request,
-    @Res() res: Response
+    @Res() res: Response,
+    @Req() req
   ) {
-
     const target = this.vncService.getTargetByName(deviceName);
-    
     if (!target) {
       return res.status(404).json({ error: 'Device not found' });
     }
 
-    // Build simple noVNC URL with parameters
+    // Create short-lived token (1 min)
+    const shortToken = jwt.sign(
+      {
+        sub: req.user.id,         // authenticated user
+        device: deviceName,
+      },
+      process.env.VNC_SECRET || process.env.JWT_SECRET,
+      { expiresIn: '60s' }
+    );
+
     const vncParams = new URLSearchParams({
-      autoconnect,
-      reconnect,
+      autoconnect: '1',
+      reconnect: '1',
       reconnect_delay: '2000',
-      resize,
+      resize: 'scale',
       quality: '6',
       compression: '2',
       view_only: '0',
       shared: '1',
       path: `/api/vnc/connect?wss_identifier=${this.vncService.sanitizePath(target.name)}`,
+      token: shortToken,
     });
 
     if (target.password) {
       vncParams.set('password', target.password);
     }
 
-    // Redirect to static noVNC
-    const vncUrl = `/novnc/vnc.html?${vncParams.toString()}`;
-    console.log(`Redirecting to: ${vncUrl}`);
-    
-    res.redirect(vncUrl);
+    return res.json({
+      url: `/novnc/vnc.html?${vncParams.toString()}`,
+    });
   }
 }

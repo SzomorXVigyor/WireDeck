@@ -148,11 +148,17 @@ const handleLogout = async () => {
   router.push('/login')
 }
 
-const connectToDevice = (device) => {
-  // Include the JWT token in the URL as a query parameter for authentication
-  const vncUrl = `/api/vnc/connect/${device.path}?autoconnect=1&reconnect=1&resize=scale&token=${authStore.token}`
-  window.open(vncUrl, '_blank')
-}
+const connectToDevice = async (device) => {
+  const response = await fetch(`/api/vnc/connect/${device.path}`, {
+    headers: { Authorization: `Bearer ${authStore.token}` },
+  });
+
+  if (!response.ok) return;
+  
+  const data = await response.json();
+  window.open(data.url, '_blank');
+};
+
 
 onMounted(() => {
   devicesStore.fetchDevices()
