@@ -2,3 +2,4 @@
 /database/
 /nginx/
 .env
+/apps/webvnc/backend/public

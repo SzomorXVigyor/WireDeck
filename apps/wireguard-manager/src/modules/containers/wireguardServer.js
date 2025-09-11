@@ -52,7 +52,7 @@ class WireguardServerContainer {
 					`INIT_IPV4_CIDR=${this.options.ipv4Cidr}`,
 					`INIT_IPV6_CIDR=${utils.ipv4ToIpv6Cidr(this.options.ipv4Cidr)}`,
 					"DISABLE_IPV6=true",
-					"PORT=80",
+					"PORT=8080",
 					"HOST=0.0.0.0",
 					"INSECURE=false",
 				],
