@@ -18,6 +18,8 @@ services:
       - CERTBOT_EMAIL=${CERTBOT_EMAIL}
       - JWT_SECRET=${JWT_SECRET}
     restart: unless-stopped
+    depends_on:
+      - nginx-proxy
 
   nginx-proxy:
     image: nginx:alpine
@@ -37,8 +39,6 @@ services:
       - ROOT_DOMAIN=${ROOT_DOMAIN}
     command: /bin/sh -c "envsubst '\$${ROOT_DOMAIN}' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -g 'daemon off;' -c /tmp/nginx.conf"
     restart: unless-stopped
-    depends_on:
-      - wireguard-manager
 
 networks:
   wgnet:
