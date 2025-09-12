@@ -17,7 +17,7 @@ export class UsersService {
   }
 
   async findOne(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+    return this.users.find((user) => user.username === username);
   }
 
   async validateUser(username: string, password: string): Promise<boolean> {
@@ -32,6 +32,6 @@ export class UsersService {
   }
 
   async getAllUsers(): Promise<Omit<User, 'password'>[]> {
-    return this.users.map(user => ({ username: user.username }));
+    return this.users.map((user) => ({ username: user.username }));
   }
 }

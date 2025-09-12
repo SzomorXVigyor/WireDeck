@@ -17,21 +17,25 @@
                 WireGuard {{ wireguardStatus }}
               </span>
             </div>
-            
+
             <span :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
               Welcome, {{ authStore.user?.username }}
             </span>
-            
+
             <!-- Theme Toggle -->
             <button
               @click="themeStore.toggleTheme"
               class="p-2 rounded-lg transition-colors"
-              :class="themeStore.isDark ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'"
+              :class="
+                themeStore.isDark
+                  ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              "
             >
               <SunIcon v-if="themeStore.isDark" class="w-5 h-5" />
               <MoonIcon v-else class="w-5 h-5" />
             </button>
-            
+
             <button @click="handleLogout" class="btn-secondary flex items-center">
               <ArrowRightOnRectangleIcon class="w-4 h-4 mr-2" />
               Logout
@@ -55,11 +59,12 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="devicesStore.error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 dark:bg-red-900/20 dark:border-red-800">
+      <div
+        v-else-if="devicesStore.error"
+        class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 dark:bg-red-900/20 dark:border-red-800"
+      >
         <p class="text-red-600 dark:text-red-400">{{ devicesStore.error }}</p>
-        <button @click="devicesStore.fetchDevices" class="btn-primary mt-2">
-          Try Again
-        </button>
+        <button @click="devicesStore.fetchDevices" class="btn-primary mt-2">Try Again</button>
       </div>
 
       <!-- Devices Grid -->
@@ -84,69 +89,68 @@
             </div>
             <ArrowTopRightOnSquareIcon class="w-5 h-5" :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'" />
           </div>
-          
+
           <div class="mt-4 pt-4 border-t" :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'">
-            <button class="w-full btn-primary">
-              Connect
-            </button>
+            <button class="w-full btn-primary">Connect</button>
           </div>
         </div>
       </div>
 
       <!-- Empty State -->
       <div v-else class="text-center py-12">
-        <ComputerDesktopIcon class="w-12 h-12 mx-auto mb-4" :class="themeStore.isDark ? 'text-gray-600' : 'text-gray-400'" />
+        <ComputerDesktopIcon
+          class="w-12 h-12 mx-auto mb-4"
+          :class="themeStore.isDark ? 'text-gray-600' : 'text-gray-400'"
+        />
         <h3 class="text-lg font-medium mb-2" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
           No devices available
         </h3>
-        <p :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">
-          No VNC devices are currently configured.
-        </p>
+        <p :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-600'">No VNC devices are currently configured.</p>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { useDevicesStore } from '../stores/devices'
-import { useThemeStore } from '../stores/theme'
-import { useHealthStore } from '../stores/health'
+import { onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+import { useDevicesStore } from '../stores/devices';
+import { useThemeStore } from '../stores/theme';
+import { useHealthStore } from '../stores/health';
 import {
   ComputerDesktopIcon,
   ArrowTopRightOnSquareIcon,
   ArrowRightOnRectangleIcon,
   SunIcon,
-  MoonIcon
-} from '@heroicons/vue/24/outline'
+  MoonIcon,
+} from '@heroicons/vue/24/outline';
 
-const router = useRouter()
-const authStore = useAuthStore()
-const devicesStore = useDevicesStore()
-const themeStore = useThemeStore()
-const healthStore = useHealthStore()
+const router = useRouter();
+const authStore = useAuthStore();
+const devicesStore = useDevicesStore();
+const themeStore = useThemeStore();
+const healthStore = useHealthStore();
 
 const wireguardStatus = computed(() => {
-  return healthStore.health?.environment?.wireguard?.status || 'unknown'
-})
+  return healthStore.health?.environment?.wireguard?.status || 'unknown';
+});
 
 const wireguardStatusClass = computed(() => {
   switch (wireguardStatus.value) {
     case 'connected':
-      return 'bg-green-500'
+      return 'bg-green-500';
     case 'disconnected':
-      return 'bg-red-500'
+      return 'bg-red-500';
     default:
-      return 'bg-gray-500'
+      return 'bg-gray-500';
   }
-})
+});
 
 const handleLogout = async () => {
-  await authStore.logout()
-  router.push('/login')
-}
+  await authStore.logout();
+  router.push('/login');
+};
 
 const connectToDevice = async (device) => {
   const response = await fetch(`/api/vnc/connect/${device.path}`, {
@@ -154,14 +158,13 @@ const connectToDevice = async (device) => {
   });
 
   if (!response.ok) return;
-  
+
   const data = await response.json();
   window.open(data.url, '_blank');
 };
 
-
 onMounted(() => {
-  devicesStore.fetchDevices()
-  healthStore.fetchHealth()
-})
+  devicesStore.fetchDevices();
+  healthStore.fetchHealth();
+});
 </script>

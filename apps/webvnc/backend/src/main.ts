@@ -28,7 +28,7 @@ async function bootstrap() {
   });
 
   await await app.listen(PORT);
-  
+
   console.log(`🚀 WireGuard VNC Proxy Backend listening on port ${PORT}`);
   console.log(`📋 Available endpoints:`);
   console.log(`   Health: http://0.0.0.0:${PORT}/api/health`);

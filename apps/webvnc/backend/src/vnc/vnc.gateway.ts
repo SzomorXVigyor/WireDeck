@@ -32,9 +32,6 @@ export class VncGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const url = new URL(urlStr, 'ws://localhost'); // base doesn't matter
     const targetName = url.searchParams.get('wss_identifier');
 
-    console.log(req)
-    console.log(urlStr)
-
     if (!targetName) {
       console.log('❌ No target provided in query param');
       client.close();

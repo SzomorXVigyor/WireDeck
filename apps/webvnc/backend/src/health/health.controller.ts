@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { execSync } from 'child_process';
 
 @Controller('health')
 export class HealthController {
@@ -9,7 +10,7 @@ export class HealthController {
   getHealth() {
     const vncTargets = this.configService.get('VNC_TARGETS') || [];
     const users = this.configService.get('USERS') || [];
-    
+
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
@@ -23,7 +24,6 @@ export class HealthController {
 
   private checkWireGuardStatus() {
     try {
-      const { execSync } = require('child_process');
       let output = execSync('wg show wg0', { encoding: 'utf8' });
       if (!output || output.trim() === '') {
         return { status: 'disconnected', details: 'Wireguard not responding' };

@@ -15,7 +15,7 @@ export class VncService {
   constructor(private configService: ConfigService) {
     this.vncTargets = this.configService.get<VncTarget[]>('VNC_TARGETS') || [];
     console.log(`🖥️ Loaded ${this.vncTargets.length} VNC targets from configuration`);
-    this.vncTargets.forEach(target => {
+    this.vncTargets.forEach((target) => {
       console.log(`   - ${target.name}: ${target.ip}:${target.port}`);
     });
   }
@@ -25,14 +25,14 @@ export class VncService {
   }
 
   getTargetByName(name: string): VncTarget | undefined {
-    return this.vncTargets.find(target => this.sanitizePath(target.name) === this.sanitizePath(name));
+    return this.vncTargets.find((target) => this.sanitizePath(target.name) === this.sanitizePath(name));
   }
 
   sanitizePath(name: string): string {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9-_]/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .replace(/-+/g, "-");
+      .replace(/[^a-z0-9-_]/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-+/g, '-');
   }
 }

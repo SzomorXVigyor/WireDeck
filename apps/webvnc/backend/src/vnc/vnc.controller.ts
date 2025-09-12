@@ -13,7 +13,7 @@ export class VncController {
   getDevices() {
     const targets = this.vncService.getAllTargets();
     return {
-      devices: targets.map(target => ({
+      devices: targets.map((target) => ({
         name: target.name,
         ip: target.ip,
         port: target.port,
@@ -25,11 +25,7 @@ export class VncController {
 
   @Get('connect/:deviceName')
   @UseGuards(JwtAuthGuard)
-  async connectToDevice(
-    @Param('deviceName') deviceName: string,
-    @Res() res: Response,
-    @Req() req
-  ) {
+  async connectToDevice(@Param('deviceName') deviceName: string, @Res() res: Response, @Req() req) {
     const target = this.vncService.getTargetByName(deviceName);
     if (!target) {
       return res.status(404).json({ error: 'Device not found' });
@@ -38,7 +34,7 @@ export class VncController {
     // Create short-lived token (1 min)
     const shortToken = jwt.sign(
       {
-        sub: req.user.id,         // authenticated user
+        sub: req.user.id, // authenticated user
         device: deviceName,
       },
       process.env.VNC_SECRET || process.env.JWT_SECRET,
