@@ -34,6 +34,11 @@ git clone https://github.com/SzomorXVigyor/WireDeck.git
 Create .env configuration from .env.example
 
 ```sh
+cp .env.example .env
+nano .env
+```
+
+```sh
 # Domain of the application
 ROOT_DOMAIN=example.com
 
@@ -51,7 +56,7 @@ JWT_SECRET=your-jwt-secret
 #### 2. Create docker network
 
 ```sh
-docker network create --driver bridge --subnet=172.20.0.0/23 wgnet
+docker network create --driver bridge --subnet=172.20.0.0/22 --ipv6=false wgnet
 ```
 
 #### 3. Create work directories
@@ -72,7 +77,13 @@ It will automaticly renew by cert manager module.
 docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot -p 80:80 certbot/certbot certonly --standalone --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
 ```
 
-#### 6. Start the app
+#### 6. Build the webvnc container
+
+```sh
+cd apps/webvnc && docker build -t webvnc .
+```
+
+#### 7. Start the app (from root)
 
 ```sh
 docker compose --env-file .env up -d

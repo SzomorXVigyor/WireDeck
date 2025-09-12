@@ -1,6 +1,6 @@
 services:
   wireguard-manager:
-    build: .
+    build: ./apps/wireguard-manager
     container_name: wireguard-manager
     networks:
       wgnet:

@@ -1,6 +1,5 @@
-node_modules
-yarn.lock
-.env
-/database
-/nginx/sites
 /.vscode
+/database/
+/nginx/sites/
+.env
+/apps/webvnc/backend/public
