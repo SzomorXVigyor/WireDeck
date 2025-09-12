@@ -1,161 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html data-bs-theme="light" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta content="width=device-width,initial-scale=1" name="viewport">
+  <head>
+    <meta charset="UTF-8" />
+    <meta content="width=device-width,initial-scale=1" name="viewport" />
     <title>WireDeck</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="css/animations.css" rel="stylesheet">
-    <link href="css/components.css" rel="stylesheet">
-    <link href="css/modals.css" rel="stylesheet">
-</head>
-<body>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="css/animations.css" rel="stylesheet" />
+    <link href="css/components.css" rel="stylesheet" />
+    <link href="css/modals.css" rel="stylesheet" />
+  </head>
+  <body>
     <div class="theme-switcher">
-        <button class="btn btn-sm btn-outline-secondary" id="loginThemeToggle" onclick="toggleTheme()">
-            <i class="fas fa-moon"></i>
-        </button>
+      <button class="btn btn-sm btn-outline-secondary" id="loginThemeToggle" onclick="toggleTheme()">
+        <i class="fas fa-moon"></i>
+      </button>
     </div>
 
     <!-- Login Container -->
     <div class="login-container" id="loginContainer">
-        <div class="card" style="width:400px">
-            <div class="text-white card-header bg-primary text-center">
-                <h4 class="mb-0"><i class="fas me-2 fa-shield-alt"></i>WireDeck</h4>
-            </div>
-            <div class="card-body">
-                <form autocomplete="off" id="loginForm">
-                    <div class="mb-3">
-                        <label class="form-label" for="username">Username</label>
-                        <input class="form-control" id="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="password">Password</label>
-                        <input class="form-control" id="password" required type="password">
-                    </div>
-                    <button class="btn btn-primary w-100" type="submit">
-                        <i class="fas me-1 fa-sign-in-alt"></i>Login
-                    </button>
-                </form>
-                <div class="mt-3" id="loginAlert" style="display:none"></div>
-            </div>
+      <div class="card" style="width: 400px">
+        <div class="text-white card-header bg-primary text-center">
+          <h4 class="mb-0"><i class="fas me-2 fa-shield-alt"></i>WireDeck</h4>
         </div>
+        <div class="card-body">
+          <form autocomplete="off" id="loginForm">
+            <div class="mb-3">
+              <label class="form-label" for="username">Username</label>
+              <input class="form-control" id="username" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="password">Password</label>
+              <input class="form-control" id="password" required type="password" />
+            </div>
+            <button class="btn btn-primary w-100" type="submit"><i class="fas me-1 fa-sign-in-alt"></i>Login</button>
+          </form>
+          <div class="mt-3" id="loginAlert" style="display: none"></div>
+        </div>
+      </div>
     </div>
 
     <!-- Main Application -->
     <div class="main-app" id="mainApp">
-        <nav class="bg-dark navbar navbar-dark navbar-expand-lg">
-            <div class="container-fluid">
-                <span class="navbar-brand">
-                    <i class="fas me-2 fa-shield-alt"></i> WireDeck
-                </span>
-                <div class="align-items-center d-flex">
-                    <div class="docker-status" id="dockerStatus">
-                        <i class="fas me-1 fa-spin fa-spinner"></i>Checking...
-                    </div>
-                    <button class="btn btn-sm btn-outline-light me-3" id="themeToggle" onclick="toggleTheme()">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    <div class="user-dropdown">
-                        <a class="user-info" href="#" aria-expanded="false" data-bs-toggle="dropdown">
-                            <i class="fas me-2 fa-user"></i>
-                            <span id="currentUsername">User</span>
-                            <i class="fas fa-chevron-down ms-2"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="showChangePasswordModal()">
-                                <i class="fas me-2 fa-key"></i>Change Password</a>
-                            <li><hr class="dropdown-divider">
-                            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">
-                                <i class="fas me-2 fa-sign-out-alt"></i>Logout</a>
-                        </ul>
-                    </div>
-                </div>
+      <nav class="bg-dark navbar navbar-dark navbar-expand-lg">
+        <div class="container-fluid">
+          <span class="navbar-brand"> <i class="fas me-2 fa-shield-alt"></i> WireDeck </span>
+          <div class="align-items-center d-flex">
+            <div class="docker-status" id="dockerStatus"><i class="fas me-1 fa-spin fa-spinner"></i>Checking...</div>
+            <button class="btn btn-sm btn-outline-light me-3" id="themeToggle" onclick="toggleTheme()">
+              <i class="fas fa-moon"></i>
+            </button>
+            <div class="user-dropdown">
+              <a class="user-info" href="#" aria-expanded="false" data-bs-toggle="dropdown">
+                <i class="fas me-2 fa-user"></i>
+                <span id="currentUsername">User</span>
+                <i class="fas fa-chevron-down ms-2"></i>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="#" onclick="showChangePasswordModal()"> <i class="fas me-2 fa-key"></i>Change Password</a>
+                </li>
+
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item text-danger" href="#" onclick="logout()"> <i class="fas me-2 fa-sign-out-alt"></i>Logout</a>
+                </li>
+              </ul>
             </div>
-        </nav>
-
-        <div class="container-fluid py-4">
-            <div class="row justify-content-center">
-                <div class="col-12 col-xl-10">
-                    <div class="text-center mb-4">
-                        <h1 class="display-6 fw-bold">WireGuard Multi-Instance Manager</h1>
-                        <p class="text-muted">Manage your WireGuard VPN instances and WebVNC services</p>
-                    </div>
-
-                    <div id="dockerAlert" style="display:none"></div>
-
-                    <!-- Create New Instance -->
-                    <div class="card mb-4">
-                        <div class="text-white card-header bg-primary">
-                            <h5 class="mb-0"><i class="fas me-2 fa-plus"></i>Create New WireGuard Instance</h5>
-                        </div>
-                        <div class="card-body">
-                            <form autocomplete="off" id="createForm">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label" for="instanceName">Instance Name *</label>
-                                        <input class="form-control" id="instanceName" required name="name" placeholder="Enter instance name (e.g., my-vpn-server)">
-                                        <div class="form-text">
-                                            <i class="fas me-1 fa-info-circle"></i> Service name will be: <span class="name-preview" id="namePreview">wg-easy-[sanitized-name]</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label" for="instanceCidr">IPv4 CIDR (Optional)</label>
-                                        <input class="form-control" id="instanceCidr" name="ipv4Cidr" placeholder="e.g., 172.21.0.0/24">
-                                        <div class="form-text">
-                                            <i class="fas me-1 fa-info-circle"></i> Leave empty to use default: 172.21.0.0/24
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-3 mt-2">
-                                    <div class="col-md-6">
-                                        <label class="form-label" for="instanceUsername">Admin Username (Optional)</label>
-                                        <input class="form-control" id="instanceUsername" name="username" placeholder="Leave empty to use default">
-                                        <div class="form-text">
-                                            <i class="fas me-1 fa-info-circle"></i> Leave empty to use environment default
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label" for="instancePassword">Admin Password (Optional)</label>
-                                        <input class="form-control" id="instancePassword" type="password" minlength="12" name="password" placeholder="Leave empty to use default">
-                                        <div class="form-text">
-                                            <i class="fas me-1 fa-info-circle"></i> Leave empty to use environment default
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-3 mt-2">
-                                    <div class="col-12">
-                                        <button class="btn btn-primary" type="submit" id="createBtn">
-                                            <i class="fas me-1 fa-plus"></i>Create Instance
-                                        </button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Active Instances -->
-                    <div class="card">
-                        <div class="text-white card-header align-items-center bg-secondary d-flex justify-content-between">
-                            <h5 class="mb-0"><i class="fas me-2 fa-list"></i>Active Instances</h5>
-                            <button class="btn btn-sm btn-light" onclick="loadInstances()">
-                                <i class="fas me-1 fa-refresh"></i>Refresh
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div id="instancesContainer">
-                                <div class="text-center py-4">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                    <p class="mt-2 text-muted">Loading instances...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
+      </nav>
+
+      <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+          <div class="col-12 col-xl-10">
+            <div class="text-center mb-4">
+              <h1 class="display-6 fw-bold">WireGuard Multi-Instance Manager</h1>
+              <p class="text-muted">Manage your WireGuard VPN instances and WebVNC services</p>
+            </div>
+
+            <div id="dockerAlert" style="display: none"></div>
+
+            <!-- Create New Instance -->
+            <div class="card mb-4">
+              <div class="text-white card-header bg-primary">
+                <h5 class="mb-0"><i class="fas me-2 fa-plus"></i>Create New WireGuard Instance</h5>
+              </div>
+              <div class="card-body">
+                <form autocomplete="off" id="createForm">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label" for="instanceName">Instance Name *</label>
+                      <input class="form-control" id="instanceName" required name="name" placeholder="Enter instance name (e.g., my-vpn-server)" />
+                      <div class="form-text">
+                        <i class="fas me-1 fa-info-circle"></i> Service name will be:
+                        <span class="name-preview" id="namePreview">wg-easy-[sanitized-name]</span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="instanceCidr">IPv4 CIDR (Optional)</label>
+                      <input class="form-control" id="instanceCidr" name="ipv4Cidr" placeholder="e.g., 172.21.0.0/24" />
+                      <div class="form-text"><i class="fas me-1 fa-info-circle"></i> Leave empty to use default: 172.21.0.0/24</div>
+                    </div>
+                  </div>
+                  <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                      <label class="form-label" for="instanceUsername">Admin Username (Optional)</label>
+                      <input class="form-control" id="instanceUsername" name="username" placeholder="Leave empty to use default" />
+                      <div class="form-text"><i class="fas me-1 fa-info-circle"></i> Leave empty to use environment default</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label" for="instancePassword">Admin Password (Optional)</label>
+                      <input class="form-control" id="instancePassword" type="password" minlength="12" name="password" placeholder="Leave empty to use default" />
+                      <div class="form-text"><i class="fas me-1 fa-info-circle"></i> Leave empty to use environment default</div>
+                    </div>
+                  </div>
+                  <div class="row g-3 mt-2">
+                    <div class="col-12">
+                      <button class="btn btn-primary" type="submit" id="createBtn"><i class="fas me-1 fa-plus"></i>Create Instance</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Active Instances -->
+            <div class="card">
+              <div class="text-white card-header align-items-center bg-secondary d-flex justify-content-between">
+                <h5 class="mb-0"><i class="fas me-2 fa-list"></i>Active Instances</h5>
+                <button class="btn btn-sm btn-light" onclick="loadInstances()"><i class="fas me-1 fa-refresh"></i>Refresh</button>
+              </div>
+              <div class="card-body">
+                <div id="instancesContainer">
+                  <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading instances...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Toast Container -->
@@ -163,213 +151,191 @@
 
     <!-- Change Password Modal -->
     <div class="fade modal" id="changePasswordModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fas me-2 fa-key"></i>Change Password</h5>
-                    <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form autocomplete="off" id="changePasswordForm">
-                        <div class="mb-3">
-                            <label class="form-label" for="currentPassword">Current Password</label>
-                            <input class="form-control" id="currentPassword" required type="password">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="newPassword">New Password</label>
-                            <input class="form-control" id="newPassword" required type="password" minlength="12">
-                            <div class="form-text">Password must be at least 12 characters long</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="confirmNewPassword">Confirm New Password</label>
-                            <input class="form-control" id="confirmNewPassword" required type="password">
-                        </div>
-                    </form>
-                    <div class="mt-3" id="passwordChangeAlert" style="display:none"></div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-warning" type="button" id="confirmPasswordChangeBtn">
-                        <i class="fas me-1 fa-key"></i>Change Password
-                    </button>
-                </div>
-            </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title"><i class="fas me-2 fa-key"></i>Change Password</h5>
+            <button class="btn-close" type="button" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form autocomplete="off" id="changePasswordForm">
+              <div class="mb-3">
+                <label class="form-label" for="currentPassword">Current Password</label>
+                <input class="form-control" id="currentPassword" required type="password" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="newPassword">New Password</label>
+                <input class="form-control" id="newPassword" required type="password" minlength="12" />
+                <div class="form-text">Password must be at least 12 characters long</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="confirmNewPassword">Confirm New Password</label>
+                <input class="form-control" id="confirmNewPassword" required type="password" />
+              </div>
+            </form>
+            <div class="mt-3" id="passwordChangeAlert" style="display: none"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-warning" type="button" id="confirmPasswordChangeBtn"><i class="fas me-1 fa-key"></i>Change Password</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Delete Instance Modal -->
     <div class="fade modal" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="text-white bg-danger modal-header">
-                    <h5 class="modal-title"><i class="fas me-2 fa-trash"></i>Confirm Deletion</h5>
-                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete the instance <strong id="deleteInstanceName"></strong>?</p>
-                    <p class="mb-0 small text-danger">
-                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone. All VPN configurations and WebVNC data will be lost.
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-danger" type="button" id="confirmDeleteBtn">
-                        <i class="fas me-1 fa-trash"></i>Delete Instance
-                    </button>
-                </div>
-            </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="text-white bg-danger modal-header">
+            <h5 class="modal-title"><i class="fas me-2 fa-trash"></i>Confirm Deletion</h5>
+            <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete the instance <strong id="deleteInstanceName"></strong>?</p>
+            <p class="mb-0 small text-danger">
+              <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone. All VPN configurations and WebVNC data will be lost.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" type="button" id="confirmDeleteBtn"><i class="fas me-1 fa-trash"></i>Delete Instance</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- WebVNC Modal -->
     <div class="fade modal modal-lg" id="webvncModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="text-white bg-info modal-header">
-                    <h5 class="modal-title"><i class="fas me-2 fa-desktop"></i>WebVNC Manager - <span id="webvncInstanceName"></span></h5>
-                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="webvncContent">
-                        <!-- Content will be loaded dynamically -->
-                    </div>
-                </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="text-white bg-info modal-header">
+            <h5 class="modal-title"><i class="fas me-2 fa-desktop"></i>WebVNC Manager - <span id="webvncInstanceName"></span></h5>
+            <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="webvncContent">
+              <!-- Content will be loaded dynamically -->
             </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Create WebVNC Modal -->
     <div class="fade modal modal-lg" id="createWebvncModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="text-white bg-success modal-header">
-                    <h5 class="modal-title"><i class="fas me-2 fa-plus"></i>Create WebVNC - <span id="createWebvncInstanceName"></span></h5>
-                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="text-white bg-success modal-header">
+            <h5 class="modal-title"><i class="fas me-2 fa-plus"></i>Create WebVNC - <span id="createWebvncInstanceName"></span></h5>
+            <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="createWebvncForm">
+              <!-- WireGuard Config Upload -->
+              <div class="mb-4">
+                <label class="form-label">WireGuard Configuration File *</label>
+                <div class="file-upload-area" id="configUploadArea">
+                  <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                  <p class="mb-2">Click to select or drag & drop your .conf file</p>
+                  <small class="text-muted">Only .conf files are accepted</small>
+                  <input type="file" id="configFileInput" accept=".conf" style="display: none" />
                 </div>
-                <div class="modal-body">
-                    <form id="createWebvncForm">
-                        <!-- WireGuard Config Upload -->
-                        <div class="mb-4">
-                            <label class="form-label">WireGuard Configuration File *</label>
-                            <div class="file-upload-area" id="configUploadArea">
-                                <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
-                                <p class="mb-2">Click to select or drag & drop your .conf file</p>
-                                <small class="text-muted">Only .conf files are accepted</small>
-                                <input type="file" id="configFileInput" accept=".conf" style="display: none;">
-                            </div>
-                            <div class="mt-2" id="configPreview" style="display: none;">
-                                <label class="form-label">Configuration Preview:</label>
-                                <div class="config-preview border rounded p-2" id="configContent"></div>
-                            </div>
-                        </div>
+                <div class="mt-2" id="configPreview" style="display: none">
+                  <label class="form-label">Configuration Preview:</label>
+                  <div class="config-preview border rounded p-2" id="configContent"></div>
+                </div>
+              </div>
 
-                        <!-- Login Users -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0">Login Users</label>
-                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLoginUserField()">
-                                    <i class="fas fa-plus me-1"></i>Add User
-                                </button>
-                            </div>
-                            <div id="loginUsersContainer">
-                                <!-- User fields will be added dynamically -->
-                            </div>
-                        </div>
+              <!-- Login Users -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label mb-0">Login Users</label>
+                  <button type="button" class="btn btn-sm btn-outline-primary" onclick="addLoginUserField()"><i class="fas fa-plus me-1"></i>Add User</button>
+                </div>
+                <div id="loginUsersContainer">
+                  <!-- User fields will be added dynamically -->
+                </div>
+              </div>
 
-                        <!-- VNC Devices -->
-                        <div class="mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label mb-0">VNC Target Devices</label>
-                                <button type="button" class="btn btn-sm btn-outline-success" onclick="addVncDeviceField()">
-                                    <i class="fas fa-plus me-1"></i>Add Device
-                                </button>
-                            </div>
-                            <div id="vncDevicesContainer">
-                                <!-- Device fields will be added dynamically -->
-                            </div>
-                        </div>
-                    </form>
+              <!-- VNC Devices -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <label class="form-label mb-0">VNC Target Devices</label>
+                  <button type="button" class="btn btn-sm btn-outline-success" onclick="addVncDeviceField()"><i class="fas fa-plus me-1"></i>Add Device</button>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-success" type="button" id="confirmCreateWebvncBtn">
-                        <i class="fas me-1 fa-plus"></i>Create WebVNC
-                    </button>
+                <div id="vncDevicesContainer">
+                  <!-- Device fields will be added dynamically -->
                 </div>
-            </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-success" type="button" id="confirmCreateWebvncBtn"><i class="fas me-1 fa-plus"></i>Create WebVNC</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- WebVNC User Delete Modal -->
     <div class="fade modal" id="deleteWebVNCUserModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="text-white bg-danger modal-header">
-                    <h5 class="modal-title"><i class="fas me-2 fa-user-times"></i>Remove User</h5>
-                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to remove user <strong id="deleteWebVNCUserName"></strong> from WebVNC instance <strong id="deleteWebVNCUserInstance"></strong>?</p>
-                    <p class="mb-0 small text-danger">
-                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone.
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCUserBtn">
-                        <i class="fas me-1 fa-user-times"></i>Remove User
-                    </button>
-                </div>
-            </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="text-white bg-danger modal-header">
+            <h5 class="modal-title"><i class="fas me-2 fa-user-times"></i>Remove User</h5>
+            <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to remove user <strong id="deleteWebVNCUserName"></strong> from WebVNC instance <strong id="deleteWebVNCUserInstance"></strong>?</p>
+            <p class="mb-0 small text-danger"><i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCUserBtn"><i class="fas me-1 fa-user-times"></i>Remove User</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- WebVNC Device Delete Modal -->
     <div class="fade modal" id="deleteWebVNCDeviceModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="text-white bg-danger modal-header">
-                    <h5 class="modal-title"><i class="fas me-2 fa-desktop"></i>Remove Device</h5>
-                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to remove device <strong id="deleteWebVNCDeviceName"></strong> from WebVNC instance <strong id="deleteWebVNCDeviceInstance"></strong>?</p>
-                    <p class="mb-0 small text-danger">
-                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone.
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCDeviceBtn">
-                        <i class="fas me-1 fa-desktop"></i>Remove Device
-                    </button>
-                </div>
-            </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="text-white bg-danger modal-header">
+            <h5 class="modal-title"><i class="fas me-2 fa-desktop"></i>Remove Device</h5>
+            <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to remove device <strong id="deleteWebVNCDeviceName"></strong> from WebVNC instance <strong id="deleteWebVNCDeviceInstance"></strong>?</p>
+            <p class="mb-0 small text-danger"><i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCDeviceBtn"><i class="fas me-1 fa-desktop"></i>Remove Device</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- WebVNC Instance Delete Modal -->
     <div class="fade modal" id="deleteWebVNCModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="text-white bg-danger modal-header">
-                    <h5 class="modal-title"><i class="fas me-2 fa-trash"></i>Delete WebVNC Instance</h5>
-                    <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete the WebVNC instance for <strong id="deleteWebVNCInstanceName"></strong>?</p>
-                    <p class="mb-0 small text-danger">
-                        <i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone. All WebVNC configurations and data will be lost.
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
-                    <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCBtn">
-                        <i class="fas me-1 fa-trash"></i>Delete WebVNC
-                    </button>
-                </div>
-            </div>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="text-white bg-danger modal-header">
+            <h5 class="modal-title"><i class="fas me-2 fa-trash"></i>Delete WebVNC Instance</h5>
+            <button class="btn-close btn-close-white" type="button" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p>Are you sure you want to delete the WebVNC instance for <strong id="deleteWebVNCInstanceName"></strong>?</p>
+            <p class="mb-0 small text-danger"><i class="fas me-1 fa-exclamation-triangle"></i> This action cannot be undone. All WebVNC configurations and data will be lost.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn btn-danger" type="button" id="confirmDeleteWebVNCBtn"><i class="fas me-1 fa-trash"></i>Delete WebVNC</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -381,5 +347,5 @@
     <script src="js/instances.js"></script>
     <script src="js/webvnc.js"></script>
     <script src="js/app.js"></script>
-</body>
+  </body>
 </html>

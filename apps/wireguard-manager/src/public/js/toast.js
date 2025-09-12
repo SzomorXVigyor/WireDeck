@@ -1,26 +1,26 @@
 // Toast Functionality
 function showToast(message, type = 'success', duration = 5000) {
-    const toastContainer = document.getElementById('toastContainer');
-    const toastId = 'toast-' + Date.now();
+  const toastContainer = document.getElementById('toastContainer');
+  const toastId = 'toast-' + Date.now();
 
-    const iconMap = {
-        success: 'check-circle',
-        error: 'exclamation-triangle',
-        warning: 'exclamation-triangle',
-        info: 'info-circle'
-    };
+  const iconMap = {
+    success: 'check-circle',
+    error: 'exclamation-triangle',
+    warning: 'exclamation-triangle',
+    info: 'info-circle',
+  };
 
-    const bgMap = {
-        success: 'success',
-        error: 'danger',
-        warning: 'warning',
-        info: 'info'
-    };
+  const bgMap = {
+    success: 'success',
+    error: 'danger',
+    warning: 'warning',
+    info: 'info',
+  };
 
-    const icon = iconMap[type] || 'info-circle';
-    const bgClass = bgMap[type] || 'info';
+  const icon = iconMap[type] || 'info-circle';
+  const bgClass = bgMap[type] || 'info';
 
-    const toastHtml = `
+  const toastHtml = `
         <div class="toast align-items-center text-bg-${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" id="${toastId}">
             <div class="d-flex">
                 <div class="toast-body">
@@ -31,14 +31,14 @@ function showToast(message, type = 'success', duration = 5000) {
         </div>
     `;
 
-    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+  toastContainer.insertAdjacentHTML('beforeend', toastHtml);
 
-    const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement, { delay: duration });
+  const toastElement = document.getElementById(toastId);
+  const toast = new bootstrap.Toast(toastElement, { delay: duration });
 
-    toast.show();
+  toast.show();
 
-    toastElement.addEventListener('hidden.bs.toast', () => {
-        toastElement.remove();
-    });
+  toastElement.addEventListener('hidden.bs.toast', () => {
+    toastElement.remove();
+  });
 }

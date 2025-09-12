@@ -22,35 +22,35 @@ let wireguardConfig = '';
 
 // API Endpoints
 const API_ENDPOINTS = {
-    auth: {
-        login: '/auth/login',
-        changePassword: '/auth/change-password'
+  auth: {
+    login: '/auth/login',
+    changePassword: '/auth/change-password',
+  },
+  docker: {
+    status: '/docker/status',
+  },
+  wireguard: {
+    instances: '/wireguard/instances',
+    create: '/wireguard/create',
+    start: '/wireguard/start',
+    stop: '/wireguard/stop',
+    restart: '/wireguard/restart',
+    delete: '/wireguard/delete',
+  },
+  webvnc: {
+    instance: '/webvnc/instance',
+    create: '/webvnc/create',
+    start: '/webvnc/start',
+    stop: '/webvnc/stop',
+    restart: '/webvnc/restart',
+    delete: '/webvnc/delete',
+    users: {
+      add: '/webvnc/users/add',
+      remove: '/webvnc/users/remove',
     },
-    docker: {
-        status: '/docker/status'
+    devices: {
+      add: '/webvnc/devices/add',
+      remove: '/webvnc/devices/remove',
     },
-    wireguard: {
-        instances: '/wireguard/instances',
-        create: '/wireguard/create',
-        start: '/wireguard/start',
-        stop: '/wireguard/stop',
-        restart: '/wireguard/restart',
-        delete: '/wireguard/delete'
-    },
-    webvnc: {
-        instance: '/webvnc/instance',
-        create: '/webvnc/create',
-        start: '/webvnc/start',
-        stop: '/webvnc/stop',
-        restart: '/webvnc/restart',
-        delete: '/webvnc/delete',
-        users: {
-            add: '/webvnc/users/add',
-            remove: '/webvnc/users/remove'
-        },
-        devices: {
-            add: '/webvnc/devices/add',
-            remove: '/webvnc/devices/remove'
-        }
-    }
+  },
 };
