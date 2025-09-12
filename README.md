@@ -34,6 +34,11 @@ git clone https://github.com/SzomorXVigyor/WireDeck.git
 Create .env configuration from .env.example
 
 ```sh
+cp .env.example .env
+nano .env
+```
+
+```sh
 # Domain of the application
 ROOT_DOMAIN=example.com
 
@@ -81,7 +86,7 @@ cd apps/webvnc && docker build -t webvnc .
 #### 7. Start the app (from root)
 
 ```sh
-docker compose --env-file ./apps/wireguard-manager/.env up -d
+docker compose --env-file .env up -d
 ```
 
 ## 📜 License

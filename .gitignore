@@ -1,5 +1,5 @@
 /.vscode
 /database/
-/nginx/
+/nginx/sites/
 .env
 /apps/webvnc/backend/public
