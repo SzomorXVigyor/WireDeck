@@ -1,5 +1,6 @@
 const storageManager = require("../modules/storageManager");
 const serviceManager = require("../modules/serviceManager");
+const logger = require("../modules/logger");
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 
@@ -23,28 +24,24 @@ async function getAllInstances(req, res) {
 			if (remoteVNC) {
 				const isVncRunning = await serviceManager.WebVNCService.statusInstance(name) === "running";
 
-				remoteVNC.loginUsers.forEach(element => {
-					delete element.password;
-				});
-
-				remoteVNC.vncDevices.forEach(element => {
-					delete element.password;
-				});
+				remoteVNC.loginUsers.forEach(element => delete element.password);
+				remoteVNC.vncDevices.forEach(element => delete element.password);
 
 				const { wireguard, ...safeVncInstance } = remoteVNC;
 
-				instancesWithStatus[name].remoteVNC = { 
+				instancesWithStatus[name].remoteVNC = {
 					...safeVncInstance,
 					status: isVncRunning ? "online" : "offline",
 					subdomain: `vnc.${name}.${ROOT_DOMAIN}`
-				}
+				};
 			}
 		}
 
+		logger.silly("[WireguardController] Instances fetched successfully");
 		res.json(instancesWithStatus);
 	} catch (error) {
-		console.error("❌ Error reading instances:", error.message);
-		res.status(500).json({ error: "Failed to read instances" });
+		logger.error("[WireguardController] Failed to fetch instances: " + error.message);
+		res.status(500).json({ error: "Failed to fetch instances" });
 	}
 }
 
@@ -53,23 +50,28 @@ async function createInstance(req, res) {
 	const { name, username, password, ipv4Cidr } = req.body;
 
 	if (!name || typeof name !== "string") {
+		logger.warn("[WireguardController] Create instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WireguardController] Creating instance: " + name + "...");
 		const options = {};
 		if (username) options.username = username;
 		if (password) options.password = password;
 		if (ipv4Cidr) options.ipv4Cidr = ipv4Cidr;
 
-		if (password && password > 0 && password.length < 12) {
+		if (password && password.length < 12) {
+			logger.warn("[WireguardController] Create instance failed: Password must be at least 12 characters long");
 			throw new Error("Password must be at least 12 characters long");
 		}
 
 		const result = await serviceManager.WireguardServerService.createInstance(name, options);
+
+		logger.info("[WireguardController] Instance created successfully: " + name);
 		res.json(result);
 	} catch (error) {
-		console.error(`❌ Create instance error: ${error.message}`);
+		logger.error("[WireguardController] Failed to create instance '" + req.body.name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -79,17 +81,23 @@ async function startInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WireguardController] Start instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WireguardController] Starting instance: " + name + "...");
 		await serviceManager.WireguardServerService.startInstance(name);
+
 		if (await storageManager.RemoteVNC.exists(name)) {
+			logger.info("[WireguardController] Starting associated VNC service for: " + name);
 			await serviceManager.WebVNCService.startInstance(name);
 		}
+
+		logger.info("[WireguardController] Instance started successfully: " + name);
 		res.json({ message: "Instance started successfully" });
 	} catch (error) {
-		console.error(`❌ Start error: ${error.message}`);
+		logger.error("[WireguardController] Failed to start instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -99,17 +107,23 @@ async function stopInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WireguardController] Stop instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WireguardController] Stopping instance: " + name + "...");
 		await serviceManager.WireguardServerService.stopInstance(name);
+
 		if (await storageManager.RemoteVNC.exists(name)) {
+			logger.info("[WireguardController] Stopping associated VNC service for: " + name);
 			await serviceManager.WebVNCService.stopInstance(name);
 		}
+
+		logger.info("[WireguardController] Instance stopped successfully: " + name);
 		res.json({ message: "Instance stopped successfully" });
 	} catch (error) {
-		console.error(`❌ Stop error: ${error.message}`);
+		logger.error("[WireguardController] Failed to stop instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -119,17 +133,23 @@ async function restartInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WireguardController] Restart instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WireguardController] Restarting instance: " + name + "...");
 		await serviceManager.WireguardServerService.restartInstance(name);
+
 		if (await storageManager.RemoteVNC.exists(name)) {
+			logger.info("[WireguardController] Restarting associated VNC service for: " + name);
 			await serviceManager.WebVNCService.restartInstance(name);
 		}
+
+		logger.info("[WireguardController] Instance restarted successfully: " + name);
 		res.json({ message: "Instance restarted successfully" });
 	} catch (error) {
-		console.error(`❌ Restart error: ${error.message}`);
+		logger.error("[WireguardController] Failed to restart instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -139,17 +159,23 @@ async function deleteInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WireguardController] Delete instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WireguardController] Deleting instance: " + name + "...");
 		await serviceManager.WireguardServerService.deleteInstance(name);
+
 		if (await storageManager.RemoteVNC.exists(name)) {
+			logger.info("[WireguardController] Deleting associated VNC service for: " + name);
 			await serviceManager.WebVNCService.deleteInstance(name);
 		}
+
+		logger.info("[WireguardController] Instance deleted successfully: " + name);
 		res.json({ message: "Instance deleted successfully" });
 	} catch (error) {
-		console.error(`❌ Delete error: ${error.message}`);
+		logger.error("[WireguardController] Failed to delete instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }

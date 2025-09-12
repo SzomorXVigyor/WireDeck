@@ -1,92 +1,49 @@
 const storageManager = require("../modules/storageManager");
 const serviceManager = require("../modules/serviceManager");
 const utils = require("../modules/utils");
-
-const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
-
-// Get single WebVNC instance
-/*
-async function getWebVNCInstance(req, res) {
-	const { name } = req.params;
-
-	if (!name) {
-		return res.status(400).json({ error: "Invalid instance name" });
-	}
-
-	try {
-		const instance = await storageManager.WireguardServer.get(name);
-		if (!instance) {
-			return res.status(404).json({ error: "WireGuard instance not found" });
-		}
-
-		if (!instance.remoteVNC) {
-			return res.status(404).json({ error: "WebVNC not configured for this instance" });
-		}
-
-		const isRunning = await serviceManager.WebVNCService.statusInstance(name) === "running";
-
-		instance.remoteVNC.loginUsers.forEach(element => {
-			delete element.password;
-		});
-
-		instance.remoteVNC.vncDevices.forEach(element => {
-			delete element.password;
-		});
-
-		const { wireguard, ...safeVncInstance } = instance.remoteVNC;
-		
-		const webvncInstance = {
-			...safeVncInstance,
-			status: isRunning ? "online" : "offline",
-			subdomain: `vnc.${name}.${ROOT_DOMAIN}`,
-		};
-
-		res.json(webvncInstance);
-	} catch (error) {
-		console.error("❌ Error reading WebVNC instance:", error.message);
-		res.status(500).json({ error: "Failed to read WebVNC instance" });
-	}
-}
-*/
+const logger = require("../modules/logger");
 
 // Create new WebVNC instance
 async function createWebVNCInstance(req, res) {
 	const { name, wireguardConfig, loginUsers, vncDevices } = req.body;
 
 	if (!name || typeof name !== "string") {
+		logger.warn("[WebVNCController] Create instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
-		// Check if WireGuard instance exists
+		logger.info("[WebVNCController] Creating instance: " + name + "...");
+
 		const wireguardInstance = await storageManager.WireguardServer.get(name);
 		if (!wireguardInstance) {
+			logger.warn("[WebVNCController] Create instance failed: WireGuard '" + name + "' not found");
 			return res.status(404).json({ error: "WireGuard instance not found" });
 		}
 
-		// Validate WireGuard config
 		if (!wireguardConfig || typeof wireguardConfig !== "string") {
+			logger.warn("[WebVNCController] Create instance failed: Invalid WireGuard config for '" + name + "'");
 			return res.status(400).json({ error: "Invalid WireGuard config" });
 		}
 
-		// Check if WebVNC already exists for this instance
 		if (wireguardInstance.remoteVNC) {
+			logger.warn("[WebVNCController] Create instance failed: Already exists for '" + name + "'");
 			return res.status(400).json({ error: "WebVNC already exists for this instance" });
 		}
 
-		// Validate login users
-		if(loginUsers) {
+		if (loginUsers) {
 			for (const user of loginUsers) {
 				if (!user.username || !user.password) {
+					logger.warn("[WebVNCController] Create instance failed: Invalid login user -> " + JSON.stringify(user));
 					return res.status(400).json({ error: "Each login user must have username and password" });
 				}
 			}
 		}
 
-		// Validate VNC devices and sanitize paths
-		if(vncDevices) {
+		if (vncDevices) {
 			for (const device of vncDevices) {
 				if (!device.name || !device.ip || !device.port) {
+					logger.warn("[WebVNCController] Create instance failed: Invalid VNC device -> " + JSON.stringify(device));
 					return res.status(400).json({ error: "Each VNC device must have name, ip, and port" });
 				}
 			}
@@ -99,9 +56,11 @@ async function createWebVNCInstance(req, res) {
 		};
 
 		const result = await serviceManager.WebVNCService.createInstance(name, options);
+
+		logger.info("[WebVNCController] Instance created successfully: " + name);
 		res.json(result);
 	} catch (error) {
-		console.error(`❌ Create WebVNC instance error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to create instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -111,14 +70,18 @@ async function startWebVNCInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WebVNCController] Start instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WebVNCController] Starting instance: " + name + "...");
 		await serviceManager.WebVNCService.startInstance(name);
+
+		logger.info("[WebVNCController] Instance started successfully: " + name);
 		res.json({ message: "WebVNC instance started successfully" });
 	} catch (error) {
-		console.error(`❌ Start WebVNC error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to start instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -128,14 +91,18 @@ async function stopWebVNCInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WebVNCController] Stop instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WebVNCController] Stopping instance: " + name + "...");
 		await serviceManager.WebVNCService.stopInstance(name);
+
+		logger.info("[WebVNCController] Instance stopped successfully: " + name);
 		res.json({ message: "WebVNC instance stopped successfully" });
 	} catch (error) {
-		console.error(`❌ Stop WebVNC error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to stop instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -145,14 +112,18 @@ async function restartWebVNCInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WebVNCController] Restart instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WebVNCController] Restarting instance: " + name + "...");
 		await serviceManager.WebVNCService.restartInstance(name);
+
+		logger.info("[WebVNCController] Instance restarted successfully: " + name);
 		res.json({ message: "WebVNC instance restarted successfully" });
 	} catch (error) {
-		console.error(`❌ Restart WebVNC error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to restart instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -162,56 +133,40 @@ async function deleteWebVNCInstance(req, res) {
 	const { name } = req.body;
 
 	if (!name) {
+		logger.warn("[WebVNCController] Delete instance failed: Invalid instance name");
 		return res.status(400).json({ error: "Invalid instance name" });
 	}
 
 	try {
+		logger.info("[WebVNCController] Deleting instance: " + name + "...");
 		await serviceManager.WebVNCService.deleteInstance(name);
+
+		logger.info("[WebVNCController] Instance deleted successfully: " + name);
 		res.json({ message: "WebVNC instance deleted successfully" });
 	} catch (error) {
-		console.error(`❌ Delete WebVNC error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to delete instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
-
-// Update WireGuard config
-/*
-async function updateWireguardConfig(req, res) {
-	const { name, config } = req.body;
-
-	if (!name) {
-		return res.status(400).json({ error: "Invalid instance name" });
-	}
-
-	if (!config) {
-		return res.status(400).json({ error: "WireGuard config is required" });
-	}
-
-	try {
-		await storageManager.RemoteVNC.updateWireguard(name, config);
-		await serviceManager.WebVNCService.recreateInstance(name);
-		res.json({ message: "WireGuard config updated successfully" });
-	} catch (error) {
-		console.error(`❌ Update WireGuard config error: ${error.message}`);
-		res.status(500).json({ error: error.message });
-	}
-}
-*/
 
 // Add login user
 async function addLoginUser(req, res) {
 	const { name, username, password } = req.body;
 
 	if (!name || !username || !password) {
+		logger.warn("[WebVNCController] Add login user failed: Missing parameters");
 		return res.status(400).json({ error: "Instance name, username, and password are required" });
 	}
 
 	try {
+		logger.info("[WebVNCController] Adding login user '" + username + "' to instance: " + name + "...");
 		await storageManager.RemoteVNC.addLoginUser(name, username, password);
 		await serviceManager.WebVNCService.recreateInstance(name);
+
+		logger.info("[WebVNCController] Login user '" + username + "' added successfully to instance: " + name);
 		res.json({ message: "Login user added successfully" });
 	} catch (error) {
-		console.error(`❌ Add login user error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to add login user '" + username + "' to instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -221,58 +176,48 @@ async function removeLoginUser(req, res) {
 	const { name, username } = req.body;
 
 	if (!name || !username) {
+		logger.warn("[WebVNCController] Remove login user failed: Missing parameters");
 		return res.status(400).json({ error: "Instance name and username are required" });
 	}
 
 	try {
+		logger.info("[WebVNCController] Removing login user '" + username + "' from instance: " + name + "...");
 		await storageManager.RemoteVNC.removeLoginUser(name, username);
 		await serviceManager.WebVNCService.recreateInstance(name);
+
+		logger.info("[WebVNCController] Login user '" + username + "' removed successfully from instance: " + name);
 		res.json({ message: "Login user removed successfully" });
 	} catch (error) {
-		console.error(`❌ Remove login user error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to remove login user '" + username + "' from instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
-
-// Get login users
-/*
-async function getLoginUsers(req, res) {
-	const { name } = req.params;
-
-	if (!name) {
-		return res.status(400).json({ error: "Invalid instance name" });
-	}
-
-	try {
-		const users = await storageManager.RemoteVNC.getLoginUsers(name);
-		res.json(users);
-	} catch (error) {
-		console.error(`❌ Get login users error: ${error.message}`);
-		res.status(500).json({ error: error.message });
-	}
-}
-*/
 
 // Add VNC device
 async function addVncDevice(req, res) {
 	const { name, device } = req.body;
 
 	if (!name || !device) {
+		logger.warn("[WebVNCController] Add VNC device failed: Missing parameters");
 		return res.status(400).json({ error: "Instance name and device are required" });
 	}
 
 	if (!device.name || !device.ip || !device.port) {
-		return res.status(400).json({ error: "Device must have name, ip, port, and path" });
+		logger.warn("[WebVNCController] Add VNC device failed: Invalid device format -> " + JSON.stringify(device));
+		return res.status(400).json({ error: "Device must have name, ip, and port" });
 	}
 
 	device.path = utils.sanitizeServiceName(device.name);
 
 	try {
+		logger.info("[WebVNCController] Adding VNC device '" + device.name + "' to instance: " + name + "...");
 		await storageManager.RemoteVNC.addVncDevice(name, device);
 		await serviceManager.WebVNCService.recreateInstance(name);
+
+		logger.info("[WebVNCController] VNC device '" + device.name + "' added successfully to instance: " + name);
 		res.json({ message: "VNC device added successfully" });
 	} catch (error) {
-		console.error(`❌ Add VNC device error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to add VNC device '" + device.name + "' to instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
@@ -282,50 +227,31 @@ async function removeVncDevice(req, res) {
 	const { name, deviceName } = req.body;
 
 	if (!name || !deviceName) {
+		logger.warn("[WebVNCController] Remove VNC device failed: Missing parameters");
 		return res.status(400).json({ error: "Instance name and device name are required" });
 	}
 
 	try {
+		logger.info("[WebVNCController] Removing VNC device '" + deviceName + "' from instance: " + name + "...");
 		await storageManager.RemoteVNC.removeVncDevice(name, deviceName);
 		await serviceManager.WebVNCService.recreateInstance(name);
+
+		logger.info("[WebVNCController] VNC device '" + deviceName + "' removed successfully from instance: " + name);
 		res.json({ message: "VNC device removed successfully" });
 	} catch (error) {
-		console.error(`❌ Remove VNC device error: ${error.message}`);
+		logger.error("[WebVNCController] Failed to remove VNC device '" + deviceName + "' from instance '" + name + "': " + error.message);
 		res.status(500).json({ error: error.message });
 	}
 }
-
-// Get VNC devices
-/*
-async function getVncDevices(req, res) {
-	const { name } = req.params;
-
-	if (!name) {
-		return res.status(400).json({ error: "Invalid instance name" });
-	}
-
-	try {
-		const devices = await storageManager.RemoteVNC.getVncDevices(name);
-		res.json(devices);
-	} catch (error) {
-		console.error(`❌ Get VNC devices error: ${error.message}`);
-		res.status(500).json({ error: error.message });
-	}
-}
-*/
 
 module.exports = {
-	//getWebVNCInstance,
 	createWebVNCInstance,
 	startWebVNCInstance,
 	stopWebVNCInstance,
 	restartWebVNCInstance,
 	deleteWebVNCInstance,
-	//updateWireguardConfig,
 	addLoginUser,
 	removeLoginUser,
-	//getLoginUsers,
 	addVncDevice,
 	removeVncDevice,
-	//getVncDevices
 };

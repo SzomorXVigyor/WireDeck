@@ -3,7 +3,7 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy package files first for better Docker layer caching
-COPY ./src/package*.json ./
+COPY ./package*.json ./
 
 # Install dependencies
 RUN yarn install --production
@@ -19,4 +19,4 @@ RUN mkdir -p nginx
 EXPOSE 3000
 
 # Start the application
-CMD ["yarn", "start"]
+CMD ["yarn", "start:docker"]

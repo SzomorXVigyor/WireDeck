@@ -2,6 +2,7 @@ const Docker = require("dockerode");
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 const containerManager = require("./containerManager");
 const utils = require("../utils");
+const logger = require("../logger");
 
 const usedImage = "webvnc:latest";
 
@@ -40,41 +41,46 @@ class WebVNCContainer {
 					Dns: ["1.1.1.1", "8.8.8.8"],
 				},
 				Env: [
-                    `USERS=${JSON.stringify(this.options.loginUsers)}`,
-                    `VNC_TARGETS=${JSON.stringify(this.options.vncDevices)}`,
-                    `WIREGUARD_CONF_STR=${this.options.wireguard.config}`,
-                    `JWT_SECRET=${process.env.JWT_SECRET || utils.generateRandomString(16)}`,
-                    `FRONTEND_PORT=8080`,
-                    `FRONTEND_URL=vnc.${this.name}.${process.env.ROOT_DOMAIN}`,
-                ],
+					`USERS=${JSON.stringify(this.options.loginUsers)}`,
+					`VNC_TARGETS=${JSON.stringify(this.options.vncDevices)}`,
+					`WIREGUARD_CONF_STR=${this.options.wireguard.config}`,
+					`JWT_SECRET=${process.env.JWT_SECRET || utils.generateRandomString(16)}`,
+					`FRONTEND_PORT=8080`,
+					`FRONTEND_URL=vnc.${this.name}.${process.env.ROOT_DOMAIN}`,
+				],
 			});
 
 			await container.start();
-			console.log(`✅ Container created and started: ${this.containerName}`);
+			logger.info(`[WebVNC] Container created and started: ${this.containerName}`);
 			return container;
 		} catch (error) {
-			console.error(`❌ Container creation failed for ${this.containerName}:`, error.message);
+			logger.error(`[WebVNC] Container creation failed for ${this.containerName}: ${error.message}`);
 			throw error;
 		}
 	}
 
 	async start() {
+		logger.debug(`[WebVNC] Starting container: ${this.containerName}`);
 		return containerManager.startContainer(this.containerName);
 	}
 
 	async stop() {
+		logger.debug(`[WebVNC] Stopping container: ${this.containerName}`);
 		return containerManager.stopContainer(this.containerName);
 	}
 
 	async restart() {
+		logger.debug(`[WebVNC] Restarting container: ${this.containerName}`);
 		return containerManager.restartContainer(this.containerName);
 	}
 
 	async delete() {
+		logger.debug(`[WebVNC] Deleting container: ${this.containerName}`);
 		return containerManager.deleteContainer(this.containerName);
 	}
 
 	async getStatus() {
+		logger.debug(`[WebVNC] Getting status for container: ${this.containerName}`);
 		return containerManager.getContainerStatus(this.containerName);
 	}
 }

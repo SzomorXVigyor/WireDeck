@@ -1,9 +1,9 @@
 const Docker = require("dockerode");
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 const utils = require("../utils");
+const logger = require("../logger");
 
 const CERTBOT_EMAIL = process.env.CERTBOT_EMAIL;
-
 const usedImage = "certbot/certbot";
 
 class CertbotContainer {
@@ -11,17 +11,17 @@ class CertbotContainer {
         this.domain = domain;
         this.containerName = `certbot-${utils.sanitizeServiceName(this.domain)}`;
         this.createCMD = [
-			"certonly",
-			"--webroot",
-			"--non-interactive",
-			"--webroot-path=/var/www/certbot",
-			"--email",
-			CERTBOT_EMAIL,
-			"--agree-tos",
-			"--no-eff-email",
-			"-d",
-			domain,
-		];
+            "certonly",
+            "--webroot",
+            "--non-interactive",
+            "--webroot-path=/var/www/certbot",
+            "--email",
+            CERTBOT_EMAIL,
+            "--agree-tos",
+            "--no-eff-email",
+            "-d",
+            domain,
+        ];
         this.renewCMD = [
             "renew",
             "--webroot",
@@ -29,7 +29,6 @@ class CertbotContainer {
             "--cert-name",
             domain,
         ];
-
     }
 
     async #runCertbotContainer(cmd) {
@@ -40,7 +39,10 @@ class CertbotContainer {
                 Cmd: cmd,
                 HostConfig: {
                     AutoRemove: true,
-                    Binds: ["/etc/letsencrypt:/etc/letsencrypt", "/var/www/certbot:/var/www/certbot"],
+                    Binds: [
+                        "/etc/letsencrypt:/etc/letsencrypt",
+                        "/var/www/certbot:/var/www/certbot"
+                    ],
                     NetworkMode: "wgnet",
                 },
                 AttachStdout: true,
@@ -53,43 +55,42 @@ class CertbotContainer {
                 stderr: true,
             });
 
-            // Pipe container output to console
+            // Pipe container logs
             stream.pipe(process.stdout);
 
             await container.start();
 
-            // Wait for container to finish
             const result = await container.wait();
 
             if (result.StatusCode !== 0) {
                 throw new Error(`Container exited with status code: ${result.StatusCode}`);
             }
 
-            console.log(`✅ Certbot container completed successfully for: ${this.domain}`);
+            logger.info(`[Certbot] Container finished successfully for domain=${this.domain}`);
         } catch (error) {
-            console.error(`❌ Certbot container failed for ${this.domain}:`, error.message);
+            logger.error(`[Certbot] Container run error: ${error.message}, domain=${this.domain}`);
             throw error;
         }
     }
 
     async createCertificate() {
         try {
-            console.log(`🔒 Creating certificate for: ${this.domain}`);
+            logger.info(`[Certbot] Creating certificate for domain=${this.domain}`);
             await this.#runCertbotContainer(this.createCMD);
-            console.log(`✅ Certificate created for: ${this.domain}`);
+            logger.info(`[Certbot] Certificate created successfully for domain=${this.domain}`);
         } catch (error) {
-            console.error(`❌ Certificate creation failed for ${this.domain}:`, error.message);
+            logger.error(`[Certbot] Certificate creation error: ${error.message}, domain=${this.domain}`);
             throw error;
         }
     }
 
     async renewCertificate() {
         try {
-            console.log(`🔄 Renewing certificate for: ${this.domain}`);
+            logger.info(`[Certbot] Renewing certificate for domain=${this.domain}`);
             await this.#runCertbotContainer(this.renewCMD);
-            console.log(`✅ Certificate renewed for: ${this.domain}`);
+            logger.info(`[Certbot] Certificate renewed successfully for domain=${this.domain}`);
         } catch (error) {
-            console.error(`❌ Certificate renewal failed for ${this.domain}:`, error.message);
+            logger.error(`[Certbot] Certificate renewal error: ${error.message}, domain=${this.domain}`);
         }
     }
 }

@@ -2,6 +2,7 @@ const Docker = require("dockerode");
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 const containerManager = require("./containerManager");
 const utils = require("../utils");
+const logger = require("../logger");
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 const usedImage = "ghcr.io/wg-easy/wg-easy:15.1";
@@ -59,33 +60,38 @@ class WireguardServerContainer {
 			});
 
 			await container.start();
-			console.log(`✅ Container created and started: ${this.containerName}`);
+			logger.info(`[Wireguard] Container created and started: ${this.containerName}`);
 			return container;
 		} catch (error) {
-			console.error(`❌ Container creation failed for ${this.containerName}:`, error.message);
+			logger.error(`[Wireguard] Container creation failed for ${this.containerName}: ${error.message}`);
 			throw error;
 		}
 	}
 
 	async start() {
+		logger.debug(`[Wireguard] Starting container: ${this.containerName}`);
 		return containerManager.startContainer(this.containerName);
 	}
 
 	async stop() {
+		logger.debug(`[Wireguard] Stopping container: ${this.containerName}`);
 		return containerManager.stopContainer(this.containerName);
 	}
 
 	async restart() {
+		logger.debug(`[Wireguard] Restarting container: ${this.containerName}`);
 		return containerManager.restartContainer(this.containerName);
 	}
 
 	async delete() {
+		logger.debug(`[Wireguard] Deleting container: ${this.containerName}`);
 		return containerManager.deleteContainer(this.containerName);
 	}
 
-    async getStatus() {
-        return containerManager.getContainerStatus(this.containerName);
-    }
+	async getStatus() {
+		logger.debug(`[Wireguard] Getting status for container: ${this.containerName}`);
+		return containerManager.getContainerStatus(this.containerName);
+	}
 }
 
 module.exports = WireguardServerContainer;

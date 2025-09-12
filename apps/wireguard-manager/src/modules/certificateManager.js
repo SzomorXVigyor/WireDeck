@@ -1,46 +1,63 @@
 const CertbotContainer = require("./containers/certbot");
 const { WireguardServer: WireguardServerStorage, RemoteVNC: RemoteVNCStorage } = require("./storageManager");
 const webProxyManager = require("./webProxyManager");
+const logger = require("./logger");
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
 
 async function createCertificate(subDomain) {
-	let domain;
-	if (subDomain) {
-		domain = `${subDomain}.${ROOT_DOMAIN}`;
-	} else {
-		domain = ROOT_DOMAIN;
-	}
+	let domain = subDomain ? `${subDomain}.${ROOT_DOMAIN}` : ROOT_DOMAIN;
 	const certbot = new CertbotContainer(domain);
-	await certbot.createCertificate();
+
+	try {
+		logger.info(`[CertificateManager] Creating certificate for domain: ${domain}...`);
+		await certbot.createCertificate();
+		logger.info(`[CertificateManager] Certificate created successfully for domain: ${domain}`);
+	} catch (error) {
+		logger.error(`[CertificateManager] Failed to create certificate for domain '${domain}': ${error.message}`);
+		throw error;
+	}
 }
 
 async function renewCertificate(subDomain) {
-	let domain;
-	if (subDomain) {
-		domain = `${subDomain}.${ROOT_DOMAIN}`;
-	} else {
-		domain = ROOT_DOMAIN;
-	}
+	let domain = subDomain ? `${subDomain}.${ROOT_DOMAIN}` : ROOT_DOMAIN;
 	const certbot = new CertbotContainer(domain);
-	await certbot.renewCertificate();
+
+	try {
+		logger.info(`[CertificateManager] Renewing certificate for domain: ${domain}...`);
+		await certbot.renewCertificate();
+		logger.info(`[CertificateManager] Certificate renewed successfully for domain: ${domain}`);
+	} catch (error) {
+		logger.error(`[CertificateManager] Failed to renew certificate for domain '${domain}': ${error.message}`);
+		throw error;
+	}
 }
 
 async function renewExistingCertificates() {
-	const instances = await WireguardServerStorage.getAll();
+	try {
+		logger.info("[CertificateManager] Renewing all existing certificates...");
 
-	await renewCertificate();
+		const instances = await WireguardServerStorage.getAll();
 
-	for (const [name] of Object.entries(instances)) {
-		await renewCertificate(name);
+		// Renew root domain certificate
+		await renewCertificate();
 
-		if(await RemoteVNCStorage.exists(name)) {
-			await renewCertificate(`vnc.${name}`);
+		for (const [name] of Object.entries(instances)) {
+			await renewCertificate(name);
+
+			if (await RemoteVNCStorage.exists(name)) {
+				await renewCertificate(`vnc.${name}`);
+			}
 		}
-	}
 
-	// Reload nginx after renewal
-	webProxyManager.reloadNginx();
+		logger.info("[CertificateManager] Reloading Nginx after certificate renewal...");
+		webProxyManager.reloadNginx();
+
+		logger.info("[CertificateManager] All certificates renewed successfully");
+	} catch (error) {
+		logger.error(`[CertificateManager] Failed to renew existing certificates: ${error.message}`);
+		throw error;
+	}
 }
 
 module.exports = {
