@@ -2,23 +2,26 @@
   <div class="min-h-screen" :class="themeStore.isDark ? 'bg-gray-900' : 'bg-gray-50'">
     <!-- Header -->
     <header :class="themeStore.isDark ? 'bg-gray-800 shadow-lg' : 'bg-white shadow-sm'">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center py-4">
-          <div class="flex items-center">
-            <h1 class="text-2xl font-bold" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+      <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 space-y-3 sm:space-y-0">
+          <div class="flex items-center justify-between">
+            <h1 class="text-xl sm:text-2xl font-bold" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
               WireDeck WebVNC Dashboard
             </h1>
           </div>
-          <div class="flex items-center space-x-4">
+          <div class="flex flex-wrap w-full sm:w-auto items-center justify-end gap-2 sm:gap-4">
             <!-- WireGuard Status -->
             <div class="flex items-center space-x-2">
               <div :class="wireguardStatusClass" class="w-2 h-2 rounded-full"></div>
-              <span class="text-sm" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
+              <span class="text-xs sm:text-sm" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
                 WireGuard {{ wireguardStatus }}
               </span>
             </div>
 
-            <span :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
+            <span
+              class="text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none"
+              :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
+            >
               Welcome, {{ authStore.user?.username }}
             </span>
 
@@ -31,14 +34,19 @@
                   ? 'text-gray-300 hover:text-white hover:bg-gray-700'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               "
+              aria-label="Toggle theme"
             >
               <SunIcon v-if="themeStore.isDark" class="w-5 h-5" />
               <MoonIcon v-else class="w-5 h-5" />
             </button>
 
-            <button @click="handleLogout" class="btn-secondary flex items-center">
-              <ArrowRightOnRectangleIcon class="w-4 h-4 mr-2" />
-              Logout
+            <button
+              @click="handleLogout"
+              class="btn-secondary flex items-center whitespace-nowrap px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm"
+              style="min-width: 0"
+            >
+              <ArrowRightOnRectangleIcon class="w-4 h-4 mr-1 sm:mr-2" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
