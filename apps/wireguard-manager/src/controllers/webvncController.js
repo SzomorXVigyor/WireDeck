@@ -272,7 +272,7 @@ async function changeVncPassword(req, res) {
       return res.status(400).json({ error: 'Invalid old password' });
     }
 
-    await storageManager.RemoteVNC.changeLoginUserPasswordByToken(instance, username, newPassword, changeToken);
+    await storageManager.RemoteVNC.changeUserPasswordByToken(instance, username, newPassword, changeToken);
 
     logger.info("[WebVNCController] VNC password changed successfully for user '" + username + "' in instance: " + instance);
     res.json({ message: 'VNC password changed successfully' });

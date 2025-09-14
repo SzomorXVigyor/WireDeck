@@ -156,7 +156,7 @@
       // Password strength validation
       function checkPasswordRequirements(password) {
         const requirements = {
-          length: password.length >= 8,
+          length: password.length >= 12,
           uppercase: /[A-Z]/.test(password),
           lowercase: /[a-z]/.test(password),
           number: /\d/.test(password),
