@@ -51,6 +51,9 @@ CERTBOT_EMAIL=email@example.com
 
 # JWT secret for securing application
 JWT_SECRET=your-jwt-secret
+
+# Contact email for users
+CONTACT_EMAIL=email@example.com
 ```
 
 #### 2. Create docker network
