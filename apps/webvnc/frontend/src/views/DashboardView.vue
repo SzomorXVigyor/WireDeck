@@ -255,7 +255,7 @@ const handlePasswordChange = async () => {
     const passwordWindow = window.open(
       redirectUrl,
       'passwordChange',
-      'width=800,height=600,scrollbars=yes,resizable=yes'
+      'width=500,height=700,scrollbars=yes,resizable=yes'
     );
 
     const checkClosed = setInterval(() => {
