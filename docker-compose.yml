@@ -39,13 +39,13 @@ services:
       - /var/www/certbot:/var/www/certbot
     environment:
       - ROOT_DOMAIN=${ROOT_DOMAIN}
-      - CONTACT_EMAIL=${CERTBOT_EMAIL}
+      - CONTACT_EMAIL=${CONTACT_EMAIL}
     command: /bin/sh -c "
       mkdir -p /tmp/errors &&
       if [ -d /usr/share/nginx/html/errors ]; then
         for htmlfile in /usr/share/nginx/html/errors/*.html; do
           if [ -f \"$$htmlfile\" ]; then
-            envsubst '$$ROOT_DOMAIN $$CONTACT_EMAIL' < \"$$htmlfile\" > \"/tmp/errors/$$(basename \"$$htmlfile\")\";
+            envsubst '$$CONTACT_EMAIL' < \"$$htmlfile\" > \"/tmp/errors/$$(basename \"$$htmlfile\")\";
           fi
         done
       fi &&

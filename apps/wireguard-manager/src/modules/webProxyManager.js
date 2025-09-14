@@ -99,7 +99,7 @@ async function reloadNginx() {
       'if [ -d /usr/share/nginx/html/errors ]; then',
       '  for htmlfile in /usr/share/nginx/html/errors/*.html; do',
       '    if [ -f "\\$htmlfile" ]; then',
-      '      envsubst \'\\$ROOT_DOMAIN \\$CONTACT_EMAIL\' < "\\$htmlfile" > "/tmp/errors/\\$(basename "\\$htmlfile")";',
+      '      envsubst \'\\$CONTACT_EMAIL\' < "\\$htmlfile" > "/tmp/errors/\\$(basename "\\$htmlfile")";',
       '    fi;',
       '  done;',
       'fi',
