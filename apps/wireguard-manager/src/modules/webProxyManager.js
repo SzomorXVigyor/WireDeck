@@ -22,7 +22,7 @@ async function addSite(name, ipv4) {
 
   reloadNginx().catch((error) => {
     logger.error(`[WebProxyManager] Failed to reload Nginx after adding site: ${error.message}`);
-  }
+  });
 }
 
 async function removeSite(name) {
@@ -33,7 +33,7 @@ async function removeSite(name) {
     logger.info(`[WebProxyManager] Nginx site config removed: ${configPath}`);
     reloadNginx().catch((error) => {
       logger.error(`[WebProxyManager] Failed to reload Nginx after removing site: ${error.message}`);
-    }
+    });
   }
 }
 
