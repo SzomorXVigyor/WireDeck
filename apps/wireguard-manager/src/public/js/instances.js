@@ -126,6 +126,9 @@ function renderInstances() {
                         <button class="btn btn-sm ${isOnline ? 'btn-info' : 'btn-outline-info'}" onclick="restartInstance('${name}')" ${!isOnline ? 'disabled' : ''}>
                             <i class="fas fa-redo me-1"></i>Restart
                         </button>
+                        <button class="btn btn-sm btn-secondary" onclick="recreateInstance('${name}')">
+                            <i class="fas bi-database-fill-gear me-1"></i>Recreate
+                        </button>
                         <button class="btn btn-sm btn-danger" onclick="confirmDelete('${name}')">
                             <i class="fas fa-trash me-1"></i>Delete
                         </button>
@@ -230,6 +233,10 @@ async function stopInstance(name) {
 
 async function restartInstance(name) {
   await containerAction('restart', name);
+}
+
+async function recreateInstance(name) {
+  await containerAction('recreate', name);
 }
 
 function confirmDelete(name) {

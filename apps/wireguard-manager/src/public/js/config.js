@@ -36,6 +36,7 @@ const API_ENDPOINTS = {
     stop: '/wireguard/stop',
     restart: '/wireguard/restart',
     delete: '/wireguard/delete',
+    recreate: '/wireguard/recreate',
   },
   webvnc: {
     instance: '/webvnc/instance',
