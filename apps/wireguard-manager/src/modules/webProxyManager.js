@@ -43,6 +43,8 @@ server {
     listen 80;
     server_name ${domain};
 
+    include /etc/nginx/error-pages.conf;
+
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
@@ -59,6 +61,8 @@ server {
 
     ssl_certificate /etc/letsencrypt/live/${domain}/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/${domain}/privkey.pem;
+
+    include /etc/nginx/error-pages.conf;
 
     location / {
         proxy_pass http://${ipv4}:8080;
@@ -91,7 +95,21 @@ async function reloadNginx() {
     const container = docker.getContainer(nginxContainer.Id);
 
     const envsubstExec = await container.exec({
-      Cmd: ['/bin/sh', '-c', `envsubst '$$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf`],
+      Cmd: [
+        '/bin/sh',
+        '-c',
+        `
+        # Process nginx.conf
+        envsubst '\\$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && \
+        # Process error HTML pages
+        mkdir -p /tmp/html/errors && \
+        for f in /usr/share/nginx/html/errors/*.html; do \
+            envsubst '\\$CONTACT_EMAIL \\$ROOT_DOMAIN' < \\$f > /tmp/html/errors/\\$(basename \\$f); \
+        done && \
+        # Copy processed HTML to serve folder
+        cp -r /tmp/html/errors/* /usr/share/nginx/html/errors/
+        `
+      ],
       AttachStdout: true,
       AttachStderr: true,
     });
