@@ -45,6 +45,7 @@ const API_ENDPOINTS = {
     stop: '/webvnc/stop',
     restart: '/webvnc/restart',
     delete: '/webvnc/delete',
+    recreate: '/webvnc/recreate',
     users: {
       add: '/webvnc/users/add',
       remove: '/webvnc/users/remove',

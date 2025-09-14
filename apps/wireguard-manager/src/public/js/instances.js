@@ -127,7 +127,7 @@ function renderInstances() {
                             <i class="fas fa-redo me-1"></i>Restart
                         </button>
                         <button class="btn btn-sm btn-secondary" onclick="recreateInstance('${name}')">
-                            <i class="fas bi-database-fill-gear me-1"></i>Recreate
+                            <i class="bi bi-database-fill-gear me-1"></i>Recreate
                         </button>
                         <button class="btn btn-sm btn-danger" onclick="confirmDelete('${name}')">
                             <i class="fas fa-trash me-1"></i>Delete

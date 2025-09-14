@@ -63,6 +63,9 @@ function renderWebVNCContent(webvncData) {
                 <button class="btn btn-sm btn-info" onclick="restartWebVNC('${currentWebvncInstance}')" ${!isOnline ? 'disabled' : ''}>
                     <i class="fas fa-redo me-1"></i>Restart
                 </button>
+                <button class="btn btn-sm btn-secondary" onclick="recreateWebVNC('${name}')">
+                    <i class="bi bi-database-fill-gear me-1"></i>Recreate
+                </button>
                 <button class="btn btn-sm btn-danger" onclick="confirmDeleteWebVNC('${currentWebvncInstance}')">
                     <i class="fas fa-trash me-1"></i>Delete
                 </button>
@@ -258,6 +261,10 @@ async function stopWebVNC(name) {
 
 async function restartWebVNC(name) {
   await webvncAction('restart', name);
+}
+
+async function recreateWebVNC(name) {
+  await webvncAction('recreate', name);
 }
 
 async function deleteWebVNC(name) {
