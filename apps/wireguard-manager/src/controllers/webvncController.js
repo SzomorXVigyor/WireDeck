@@ -39,7 +39,7 @@ async function createWebVNCInstance(req, res) {
         }
         // Add passwordChangeToken for third-party password change requests
         const changeToken = utils.generateRandomString(32);
-        user.passwordChangeToken = changeToken;
+        user.changeToken = changeToken;
       }
     }
 
