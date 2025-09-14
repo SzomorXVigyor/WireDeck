@@ -10,6 +10,7 @@ router.post('/start', authenticateToken, webvncController.startWebVNCInstance);
 router.post('/stop', authenticateToken, webvncController.stopWebVNCInstance);
 router.post('/restart', authenticateToken, webvncController.restartWebVNCInstance);
 router.post('/delete', authenticateToken, webvncController.deleteWebVNCInstance);
+router.post('/recreate', authenticateToken, webvncController.recreateWebVNCInstance);
 
 // User management
 router.post('/users/add', authenticateToken, webvncController.addLoginUser);

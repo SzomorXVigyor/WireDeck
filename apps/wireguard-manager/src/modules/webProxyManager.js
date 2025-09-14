@@ -12,7 +12,7 @@ if (!fs.existsSync(SITES_DIR)) {
   fs.mkdirSync(SITES_DIR, { recursive: true });
 }
 
-async function addSite(name, ipv4) {
+async function addSite(name, ipv4, reload = true) {
   const domain = `${name}.${ROOT_DOMAIN}`;
   const siteConfig = generateSiteConfig(domain, ipv4);
   const configPath = path.join(SITES_DIR, `${name}.conf`);
@@ -20,20 +20,25 @@ async function addSite(name, ipv4) {
   fs.writeFileSync(configPath, siteConfig);
   logger.info(`[WebProxyManager] Nginx site config created: ${configPath}`);
 
-  reloadNginx().catch((error) => {
-    logger.error(`[WebProxyManager] Failed to reload Nginx after adding site: ${error.message}`);
-  });
+  if (reload) {
+    reloadNginx().catch((error) => {
+      logger.error(`[WebProxyManager] Failed to reload Nginx after adding site: ${error.message}`);
+    });
+  }
 }
 
-async function removeSite(name) {
+async function removeSite(name, reload = true) {
   const configPath = path.join(SITES_DIR, `${name}.conf`);
 
   if (fs.existsSync(configPath)) {
     fs.unlinkSync(configPath);
     logger.info(`[WebProxyManager] Nginx site config removed: ${configPath}`);
-    reloadNginx().catch((error) => {
-      logger.error(`[WebProxyManager] Failed to reload Nginx after removing site: ${error.message}`);
-    });
+
+    if (reload) {
+      reloadNginx().catch((error) => {
+        logger.error(`[WebProxyManager] Failed to reload Nginx after removing site: ${error.message}`);
+      });
+    }
   }
 }
 

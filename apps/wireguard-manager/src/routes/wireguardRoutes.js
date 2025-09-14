@@ -10,5 +10,6 @@ router.post('/start', authenticateToken, wireguardController.startInstance);
 router.post('/stop', authenticateToken, wireguardController.stopInstance);
 router.post('/restart', authenticateToken, wireguardController.restartInstance);
 router.post('/delete', authenticateToken, wireguardController.deleteInstance);
+router.post('/recreate', authenticateToken, wireguardController.recreateInstance);
 
 module.exports = router;

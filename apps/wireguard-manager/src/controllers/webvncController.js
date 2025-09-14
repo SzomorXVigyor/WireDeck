@@ -152,6 +152,27 @@ async function deleteWebVNCInstance(req, res) {
   }
 }
 
+// Recreate WebVNC instance
+async function recreateWebVNCInstance(req, res) {
+  const { name } = req.body;
+
+  if (!name) {
+    logger.warn('[WebVNCController] Recreate instance failed: Invalid instance name');
+    return res.status(400).json({ error: 'Invalid instance name' });
+  }
+
+  try {
+    logger.info('[WebVNCController] Recreating instance: ' + name + '...');
+    await serviceManager.WebVNCService.recreateInstance(name, true);
+
+    logger.info('[WebVNCController] Instance recreated successfully: ' + name);
+    res.json({ message: 'WebVNC instance recreated successfully' });
+  } catch (error) {
+    logger.error("[WebVNCController] Failed to recreate instance '" + name + "': " + error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 // Add login user
 async function addLoginUser(req, res) {
   const { name, username, password } = req.body;
@@ -296,6 +317,7 @@ module.exports = {
   stopWebVNCInstance,
   restartWebVNCInstance,
   deleteWebVNCInstance,
+  recreateWebVNCInstance,
   addLoginUser,
   removeLoginUser,
   addVncDevice,
