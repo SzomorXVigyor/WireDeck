@@ -180,6 +180,27 @@ async function deleteInstance(req, res) {
   }
 }
 
+// Recreate instance
+async function recreateInstance(req, res) {
+  const { name } = req.body;
+
+  if (!name) {
+    logger.warn('[WireguardController] Recreate instance failed: Invalid instance name');
+    return res.status(400).json({ error: 'Invalid instance name' });
+  }
+
+  try {
+    logger.info('[WireguardController] Recreating instance: ' + name + '...');
+    await serviceManager.WireguardServerService.recreateInstance(name, true);
+
+    logger.info('[WireguardController] Instance recreated successfully: ' + name);
+    res.json({ message: 'Instance recreated successfully' });
+  } catch (error) {
+    logger.error("[WireguardController] Failed to recreate instance '" + name + "': " + error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   getAllInstances,
   createInstance,
@@ -187,4 +208,5 @@ module.exports = {
   stopInstance,
   restartInstance,
   deleteInstance,
+  recreateInstance,
 };

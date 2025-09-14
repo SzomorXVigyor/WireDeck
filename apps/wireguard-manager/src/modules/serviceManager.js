@@ -81,6 +81,39 @@ const WireguardServerService = {
     }
   },
 
+  async recreateInstance(rawName, recreateWebProxy = false) {
+    const name = utils.sanitizeServiceName(rawName);
+    try {
+      if (!this.wireguardServerInstances.has(name)) throw new Error(`Instance not found: ${name}`);
+
+      logger.info(`[WireguardService] Recreating instance: ${name}`);
+
+      try {
+        await this.wireguardServerInstances.get(name).delete();
+        this.wireguardServerInstances.delete(name);
+      } catch (error) {
+        logger.warn(`[WireguardService] Failed to delete existing docker container for ${name}: ${error.message}`);
+      }
+
+      const instanceData = await WireguardServerStorage.get(name);
+      if (!instanceData) throw new Error(`Instance data not found in storage: ${name}`);
+
+      const wgContainer = new WireguardContainer(name, instanceData);
+      this.wireguardServerInstances.set(name, wgContainer);
+      await wgContainer.createContainer();
+
+      if (recreateWebProxy) {
+        await webProxyManager.removeSite(name, false);
+        await webProxyManager.addSite(name, instanceData.ipv4);
+      }
+
+      logger.info(`[WireguardService] Instance recreated: ${name}`);
+    } catch (error) {
+      logger.error(`[WireguardService] Instance recreation failed for ${name}: ${error.message}`);
+      throw error;
+    }
+  },
+
   async deleteInstance(rawName) {
     const name = utils.sanitizeServiceName(rawName);
 
@@ -201,7 +234,7 @@ const WebVNCService = {
     }
   },
 
-  async recreateInstance(rawName) {
+  async recreateInstance(rawName, recreateWebProxy = false) {
     const name = utils.sanitizeServiceName(rawName);
     try {
       if (!this.vncServices.has(name)) throw new Error(`Instance not found: ${name}`);
@@ -219,6 +252,11 @@ const WebVNCService = {
       const vncContainer = new WebVNCContainer(name, instanceData);
       this.vncServices.set(name, vncContainer);
       await vncContainer.createContainer();
+
+      if (recreateWebProxy) {
+        await webProxyManager.removeSite(`vnc.${name}`, false);
+        await webProxyManager.addSite(`vnc.${name}`, instanceData.ipv4, `vnc.${name}.${ROOT_DOMAIN}`);
+      }
 
       logger.info(`[WebVNCService] VNC Instance recreated: ${name}`);
     } catch (error) {
