@@ -31,7 +31,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/error-pages:/etc/nginx/error-pages:ro
       - ./nginx/sites:/etc/nginx/sites
       - ./nginx/html/:/usr/share/nginx/html/errors:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
