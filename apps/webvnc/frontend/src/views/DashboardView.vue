@@ -272,13 +272,8 @@ const handlePasswordChange = async () => {
 };
 
 const connectToDevice = async (device) => {
-  const response = await fetch(`/api/vnc/connect/${device.path}`, {
-    headers: { Authorization: `Bearer ${authStore.token}` },
-  });
-
-  if (!response.ok) return;
-
-  const data = await response.json();
+  const response = await api.get(`/vnc/connect/${device.path}`);
+  const data = response.data;
   window.open(data.url, '_blank');
 };
 

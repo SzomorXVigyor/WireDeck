@@ -26,10 +26,10 @@ api.interceptors.request.use(
 // Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       const authStore = useAuthStore();
-      authStore.logout();
+      await authStore.logout();
       router.push('/login');
     }
 
