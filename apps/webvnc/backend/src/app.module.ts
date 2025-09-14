@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { NoVncModule } from './novnc/novnc.module';
 import { VncModule } from './vnc/vnc.module';
 import { UsersModule } from './users/users.module';
+import { ConfigurationModule } from './config/config.module';
 import { HealthController } from './health/health.controller';
 import { configValidation } from './config/config.validation';
 import { join } from 'path';
@@ -30,6 +31,7 @@ import { JWT_SECRET } from './utils/env';
     AuthModule,
     VncModule,
     UsersModule,
+    ConfigurationModule,
     NoVncModule,
     // Frontend static files
     ServeStaticModule.forRoot({

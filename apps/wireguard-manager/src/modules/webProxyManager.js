@@ -20,7 +20,9 @@ async function addSite(name, ipv4) {
   fs.writeFileSync(configPath, siteConfig);
   logger.info(`[WebProxyManager] Nginx site config created: ${configPath}`);
 
-  await reloadNginx();
+  reloadNginx().catch((error) => {
+    logger.error(`[WebProxyManager] Failed to reload Nginx after adding site: ${error.message}`);
+  });
 }
 
 async function removeSite(name) {
@@ -29,7 +31,9 @@ async function removeSite(name) {
   if (fs.existsSync(configPath)) {
     fs.unlinkSync(configPath);
     logger.info(`[WebProxyManager] Nginx site config removed: ${configPath}`);
-    await reloadNginx();
+    reloadNginx().catch((error) => {
+      logger.error(`[WebProxyManager] Failed to reload Nginx after removing site: ${error.message}`);
+    });
   }
 }
 
@@ -68,12 +72,6 @@ server {
         proxy_buffering off;
         proxy_read_timeout 1h;
         proxy_send_timeout 1h;
-
-        error_page 502 504 = @fallback;
-    }
-
-    location @fallback {
-        return 302 https://${fallback};
     }
 }
 `.trim();

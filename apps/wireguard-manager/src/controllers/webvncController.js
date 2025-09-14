@@ -37,6 +37,9 @@ async function createWebVNCInstance(req, res) {
           logger.warn('[WebVNCController] Create instance failed: Invalid login user -> ' + JSON.stringify(user));
           return res.status(400).json({ error: 'Each login user must have username and password' });
         }
+        // Add passwordChangeToken for third-party password change requests
+        const changeToken = utils.generateRandomString(32);
+        user.changeToken = changeToken;
       }
     }
 
@@ -160,7 +163,8 @@ async function addLoginUser(req, res) {
 
   try {
     logger.info("[WebVNCController] Adding login user '" + username + "' to instance: " + name + '...');
-    await storageManager.RemoteVNC.addLoginUser(name, username, password);
+    const changeToken = utils.generateRandomString(32);
+    await storageManager.RemoteVNC.addLoginUser(name, username, password, changeToken);
     await serviceManager.WebVNCService.recreateInstance(name);
 
     logger.info("[WebVNCController] Login user '" + username + "' added successfully to instance: " + name);
@@ -244,6 +248,48 @@ async function removeVncDevice(req, res) {
   }
 }
 
+// Change VNC password (for third-party requests)
+async function changeVncPassword(req, res) {
+  const { instance, username, changeToken } = req.query;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!instance || !username || !oldPassword || !newPassword || !changeToken) {
+    logger.warn('[WebVNCController] Change VNC password failed: Missing parameters');
+    return res.status(400).json({ error: 'Instance, username, oldPassword, changeToken and new password are required' });
+  }
+
+  try {
+    logger.info("[WebVNCController] Changing VNC password for user '" + username + "' in instance: " + instance + '...');
+
+    const [isStrong, message] = utils.checkPasswordStrength(newPassword);
+    if (!isStrong) {
+      logger.warn("[WebVNCController] Change VNC password failed: Weak new password for user '" + username + "' in instance: " + instance + ' -> ' + message);
+      return res.status(400).json({ error: 'Weak new password: ' + message });
+    }
+
+    if ((await storageManager.RemoteVNC.validateLoginUser(instance, username, oldPassword)) === false) {
+      logger.warn("[WebVNCController] Change VNC password failed: Invalid old password for user '" + username + "' in instance: " + instance);
+      return res.status(400).json({ error: 'Invalid old password' });
+    }
+
+    await storageManager.RemoteVNC.changeUserPasswordByToken(instance, username, newPassword, changeToken);
+
+    serviceManager.WebVNCService.recreateInstance(instance)
+      .then(() => {
+        logger.info("[WebVNCController] WebVNC instance '" + instance + "' recreated after password change for user '" + username + "'");
+      })
+      .catch((err) => {
+        logger.error("[WebVNCController] Failed to recreate WebVNC instance '" + instance + "' after password change for user '" + username + "': " + err.message);
+      });
+
+    logger.info("[WebVNCController] VNC password changed successfully for user '" + username + "' in instance: " + instance);
+    res.json({ message: 'VNC password changed successfully' });
+  } catch (error) {
+    logger.error("[WebVNCController] Failed to change VNC password for user '" + username + "' in instance '" + instance + "': " + error.message);
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   createWebVNCInstance,
   startWebVNCInstance,
@@ -254,4 +300,5 @@ module.exports = {
   removeLoginUser,
   addVncDevice,
   removeVncDevice,
+  changeVncPassword,
 };

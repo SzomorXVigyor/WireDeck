@@ -4,6 +4,7 @@ const storageManager = require('./modules/storageManager');
 const certificateManager = require('./modules/certificateManager');
 const containerManager = require('./modules/containers/containerManager');
 const serviceManager = require('./modules/serviceManager');
+const webProxyManager = require('./modules/webProxyManager');
 const logger = require('./modules/logger');
 
 // Import routes
@@ -63,6 +64,10 @@ cron.schedule('0 2 * * 0', async () => {
     logger.info('Weekly certificate renewal completed');
   } catch (error) {
     logger.error('Weekly certificate renewal failed:', error.message);
+  } finally {
+    webProxyManager.reloadNginx().catch((err) => {
+      logger.error('Failed to reload Nginx after certificate renewal:', err.message);
+    });
   }
 });
 
@@ -92,6 +97,10 @@ async function startServer() {
     logger.info('Startup certificate renewal completed');
   } catch (error) {
     logger.error('Startup certificate renewal failed:', error.message);
+  } finally {
+    webProxyManager.reloadNginx().catch((err) => {
+      logger.error('Failed to reload Nginx after startup certificate renewal:', err.message);
+    });
   }
 
   app.listen(PORT, () => {
