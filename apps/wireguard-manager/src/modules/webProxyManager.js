@@ -72,12 +72,6 @@ server {
         proxy_buffering off;
         proxy_read_timeout 1h;
         proxy_send_timeout 1h;
-
-        error_page 502 504 = @fallback;
-    }
-
-    location @fallback {
-        return 302 https://${fallback};
     }
 }
 `.trim();
