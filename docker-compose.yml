@@ -32,7 +32,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/error-pages:/etc/nginx/error-pages:ro
+      - ./nginx/error-pages.conf:/etc/nginx/error-pages.conf:ro
       - ./nginx/sites:/etc/nginx/sites
       - ./nginx/html/:/usr/share/nginx/html/errors:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
@@ -40,7 +40,13 @@ services:
     environment:
       - ROOT_DOMAIN=${ROOT_DOMAIN}
       - CONTACT_EMAIL=${CERTBOT_EMAIL}
-    command: /bin/sh -c "envsubst '\$${ROOT_DOMAIN}' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -g 'daemon off;' -c /tmp/nginx.conf"
+    command: /bin/sh -c "
+      mkdir -p /tmp/errors &&
+      for file in /usr/share/nginx/html/errors/*.html; do
+        envsubst '\$${ROOT_DOMAIN} \$${CONTACT_EMAIL}' < \$file > /tmp/errors/\$(basename \$file);
+      done &&
+      envsubst '\$${ROOT_DOMAIN}' < /etc/nginx/nginx.conf > /tmp/nginx.conf &&
+      nginx -g 'daemon off;' -c /tmp/nginx.conf"
     restart: unless-stopped
 
 networks:
