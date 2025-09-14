@@ -42,11 +42,11 @@ services:
     command: |
       /bin/sh -c "
       # Process nginx.conf
-      envsubst '\$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && \
+      envsubst '\$$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && \
       # Process error HTML pages
       mkdir -p /tmp/html/errors && \
       for f in /usr/share/nginx/html/errors/*.html; do
-        envsubst '\$CONTACT_EMAIL \$ROOT_DOMAIN' < \$f > /tmp/html/errors/\$(basename \$f)
+        envsubst '\$$CONTACT_EMAIL \$$ROOT_DOMAIN' < \$$f > /tmp/html/errors/\$$(basename \$$f)
       done && \
       # Copy processed HTML to serve folder
       cp -r /tmp/html/errors/* /usr/share/nginx/html/errors/ && \
