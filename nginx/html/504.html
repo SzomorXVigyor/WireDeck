@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Error - Server</title>
+<meta http-equiv="refresh" content="1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #1e1e1e;
+    color: #eee;
+  }
+  .card {
+    background: #2b2b2b;
+    border-radius: 12px;
+    padding: 2.5rem 3rem;
+    display: flex;
+    align-items: center;
+    max-width: 900px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .content {
+    flex: 1;
+    padding-right: 2rem;
+  }
+  h1 {
+    margin: 0;
+    font-size: 3rem;
+    color: #e74c3c;
+  }
+  h2 {
+    margin: 0.5rem 0 1rem;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #ccc;
+  }
+  p {
+    font-size: 1.05rem;
+    margin: 0.5rem 0 1.5rem;
+    color: #bbb;
+  }
+  small {
+    display: block;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: #888;
+  }
+  svg {
+    flex-shrink: 0;
+    width: 250px;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="content">
+    <h1>504</h1>
+    <h2>Gateway Timeout</h2>
+    <p>The proxy server could not reach the requested application.<br>Please try again later.</p>
+    <p>If the issue persists, contact us at <a href="mailto:$CONTACT_EMAIL">$CONTACT_EMAIL</a>.</p>
+    <small>A lonely proxy server</small>
+  </div>
+
+  <!-- Illustration -->
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 200">
+
+    <!-- Server Stack -->
+    <rect x="30" y="80" width="120" height="25" rx="3" fill="#2f2f2f" stroke="#555"/>
+    <rect x="30" y="110" width="120" height="25" rx="3" fill="#2f2f2f" stroke="#555"/>
+    <rect x="30" y="140" width="120" height="25" rx="3" fill="#2f2f2f" stroke="#555"/>
+
+    <!-- Lights -->
+    <circle cx="40" cy="92" r="3" fill="#2ecc71"/>
+    <circle cx="50" cy="92" r="3" fill="#f1c40f"/>
+    <circle cx="60" cy="92" r="3" fill="#e74c3c"/>
+    <circle cx="40" cy="122" r="3" fill="#2ecc71"/>
+    <circle cx="50" cy="122" r="3" fill="#f1c40f"/>
+    <circle cx="60" cy="122" r="3" fill="#e74c3c"/>
+    <circle cx="40" cy="152" r="3" fill="#2ecc71"/>
+    <circle cx="50" cy="152" r="3" fill="#f1c40f"/>
+    <circle cx="60" cy="152" r="3" fill="#e74c3c"/>
+
+    <!-- Warning Triangle -->
+    <polygon points="130,35 150,70 110,70" fill="#e74c3c"/>
+    <line x1="130" y1="45" x2="130" y2="58" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="130" cy="64" r="3" fill="#fff"/>
+  </svg>
+</div>
+</body>
+</html>

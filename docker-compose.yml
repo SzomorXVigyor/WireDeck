@@ -33,11 +33,26 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/sites:/etc/nginx/sites
+      - ./nginx/html/errors:/usr/share/nginx/html/errors:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - /var/www/certbot:/var/www/certbot
     environment:
       - ROOT_DOMAIN=${ROOT_DOMAIN}
-    command: /bin/sh -c "envsubst '\$${ROOT_DOMAIN}' < /etc/nginx/nginx.conf > /tmp/nginx.conf && nginx -g 'daemon off;' -c /tmp/nginx.conf"
+      - CONTACT_EMAIL=${CERTBOT_EMAIL}
+    command: |
+      /bin/sh -c "
+      # Process nginx.conf
+      envsubst '\$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && \
+      # Process error HTML pages
+      mkdir -p /tmp/html/errors && \
+      for f in /usr/share/nginx/html/errors/*.html; do \
+          envsubst '\$CONTACT_EMAIL \$ROOT_DOMAIN' < \$f > /tmp/html/errors/\$(basename \$f); \
+      done && \
+      # Copy processed HTML to serve folder
+      cp -r /tmp/html/errors/* /usr/share/nginx/html/errors/ && \
+      # Start Nginx
+      nginx -g 'daemon off;' -c /tmp/nginx.conf
+      "
     restart: unless-stopped
 
 networks:
