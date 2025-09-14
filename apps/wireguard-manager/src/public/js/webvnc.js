@@ -63,7 +63,7 @@ function renderWebVNCContent(webvncData) {
                 <button class="btn btn-sm btn-info" onclick="restartWebVNC('${currentWebvncInstance}')" ${!isOnline ? 'disabled' : ''}>
                     <i class="fas fa-redo me-1"></i>Restart
                 </button>
-                <button class="btn btn-sm btn-secondary" onclick="recreateWebVNC('${name}')">
+                <button class="btn btn-sm btn-secondary" onclick="recreateWebVNC('${currentWebvncInstance}')">
                     <i class="fas fa-gears me-1"></i>Recreate
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="confirmDeleteWebVNC('${currentWebvncInstance}')">
