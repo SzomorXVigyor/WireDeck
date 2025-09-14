@@ -3,3 +3,4 @@ yarn.lock
 .env
 /database
 /nginx/sites
+/src/logs/
