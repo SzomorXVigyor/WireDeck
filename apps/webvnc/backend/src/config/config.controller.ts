@@ -8,7 +8,7 @@ export class ConfigController {
 
   @Get()
   getConfig() {
-    const passwordChangeEnabled: boolean = (WIREDECK_SLAVE && PASS_CHANGE_URL && SERVICE_NAME) ? true : false;
+    const passwordChangeEnabled: boolean = WIREDECK_SLAVE && PASS_CHANGE_URL && SERVICE_NAME ? true : false;
 
     return {
       features: {

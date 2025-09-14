@@ -252,11 +252,7 @@ const handlePasswordChange = async () => {
     const { redirectUrl } = response.data;
 
     // Open password change URL in a new window
-    const passwordWindow = window.open(
-      redirectUrl,
-      '_blank',
-      'width=500,height=700,scrollbars=yes,resizable=yes'
-    );
+    const passwordWindow = window.open(redirectUrl, '_blank', 'width=500,height=700,scrollbars=yes,resizable=yes');
 
     const checkClosed = setInterval(() => {
       if (passwordWindow.closed) {

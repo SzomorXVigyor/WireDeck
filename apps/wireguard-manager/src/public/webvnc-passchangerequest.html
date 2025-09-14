@@ -99,16 +99,14 @@
                 </form>
 
                 <div class="text-center mt-3">
-                  <small class="text-muted">
-                    User: <span id="userInfo" class="fw-bold"></span>
-                  </small>
+                  <small class="text-muted"> User: <span id="userInfo" class="fw-bold"></span> </small>
                 </div>
               </div>
 
               <!-- Success Message Container -->
-              <div id="successContainer" class="success-container" style="display: none;">
+              <div id="successContainer" class="success-container" style="display: none">
                 <div class="mb-4">
-                  <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                  <i class="fas fa-check-circle text-success" style="font-size: 4rem"></i>
                 </div>
                 <h5 class="text-success mb-3">Password Changed Successfully!</h5>
                 <div class="alert alert-info">
@@ -124,9 +122,7 @@
                   <span class="countdown" id="countdown">10</span> seconds
                 </div>
                 <div class="mt-3">
-                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.close()">
-                    Close Now
-                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.close()">Close Now</button>
                 </div>
               </div>
             </div>
@@ -259,13 +255,13 @@
       function showSuccessState() {
         // Hide the form container
         document.getElementById('passwordFormContainer').style.display = 'none';
-        
+
         // Update card title
         document.getElementById('cardTitle').textContent = 'Password Change Complete';
-        
+
         // Show success container
         document.getElementById('successContainer').style.display = 'block';
-        
+
         // Start countdown
         startCountdown();
       }
@@ -273,11 +269,11 @@
       function startCountdown() {
         let timeLeft = 10;
         const countdownElement = document.getElementById('countdown');
-        
+
         const countdownInterval = setInterval(() => {
           timeLeft--;
           countdownElement.textContent = timeLeft;
-          
+
           if (timeLeft <= 0) {
             clearInterval(countdownInterval);
             // Try to close the window
@@ -315,7 +311,7 @@
 
         // Password requirements are now always visible, just add input listener
         const newPasswordInput = document.getElementById('newPassword');
-        
+
         newPasswordInput.addEventListener('input', function () {
           checkPasswordRequirements(this.value);
         });

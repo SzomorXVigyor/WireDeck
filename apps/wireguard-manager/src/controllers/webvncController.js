@@ -274,11 +274,13 @@ async function changeVncPassword(req, res) {
 
     await storageManager.RemoteVNC.changeUserPasswordByToken(instance, username, newPassword, changeToken);
 
-    serviceManager.WebVNCService.recreateInstance(instance).then(() => {
-      logger.info("[WebVNCController] WebVNC instance '" + instance + "' recreated after password change for user '" + username + "'");
-    }).catch((err) => {
-      logger.error("[WebVNCController] Failed to recreate WebVNC instance '" + instance + "' after password change for user '" + username + "': " + err.message);
-    });
+    serviceManager.WebVNCService.recreateInstance(instance)
+      .then(() => {
+        logger.info("[WebVNCController] WebVNC instance '" + instance + "' recreated after password change for user '" + username + "'");
+      })
+      .catch((err) => {
+        logger.error("[WebVNCController] Failed to recreate WebVNC instance '" + instance + "' after password change for user '" + username + "': " + err.message);
+      });
 
     logger.info("[WebVNCController] VNC password changed successfully for user '" + username + "' in instance: " + instance);
     res.json({ message: 'VNC password changed successfully' });
