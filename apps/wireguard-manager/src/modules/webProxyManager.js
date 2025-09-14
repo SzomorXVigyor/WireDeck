@@ -94,22 +94,21 @@ async function reloadNginx() {
 
     const container = docker.getContainer(nginxContainer.Id);
 
+    const command = [
+      'mkdir -p /tmp/errors',
+      'if [ -d /usr/share/nginx/html/errors ]; then',
+      '  for htmlfile in /usr/share/nginx/html/errors/*.html; do',
+      '    if [ -f "\\$htmlfile" ]; then',
+      '      envsubst \'\\$ROOT_DOMAIN \\$CONTACT_EMAIL\' < "\\$htmlfile" > "/tmp/errors/\\$(basename "\\$htmlfile")";',
+      '    fi;',
+      '  done;',
+      'fi',
+      "envsubst '\\$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf",
+      "nginx -g 'daemon off;' -c /tmp/nginx.conf",
+    ].join(' && ');
+
     const envsubstExec = await container.exec({
-      Cmd: [
-        '/bin/sh',
-        '-c',
-        `
-        # Process nginx.conf
-        envsubst '\\$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf && \
-        # Process error HTML pages
-        mkdir -p /tmp/html/errors && \
-        for f in /usr/share/nginx/html/errors/*.html; do \
-            envsubst '\\$CONTACT_EMAIL \\$ROOT_DOMAIN' < \\$f > /tmp/html/errors/\\$(basename \\$f); \
-        done && \
-        # Copy processed HTML to serve folder
-        cp -r /tmp/html/errors/* /usr/share/nginx/html/errors/
-        `
-      ],
+      Cmd: ['/bin/sh', '-c', command],
       AttachStdout: true,
       AttachStderr: true,
     });

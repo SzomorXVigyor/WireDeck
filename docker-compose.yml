@@ -42,10 +42,14 @@ services:
       - CONTACT_EMAIL=${CERTBOT_EMAIL}
     command: /bin/sh -c "
       mkdir -p /tmp/errors &&
-      for file in /usr/share/nginx/html/errors/*.html; do
-        envsubst '\$${ROOT_DOMAIN} \$${CONTACT_EMAIL}' < \$file > /tmp/errors/\$(basename \$file);
-      done &&
-      envsubst '\$${ROOT_DOMAIN}' < /etc/nginx/nginx.conf > /tmp/nginx.conf &&
+      if [ -d /usr/share/nginx/html/errors ]; then
+        for htmlfile in /usr/share/nginx/html/errors/*.html; do
+          if [ -f \"$$htmlfile\" ]; then
+            envsubst '$$ROOT_DOMAIN $$CONTACT_EMAIL' < \"$$htmlfile\" > \"/tmp/errors/$$(basename \"$$htmlfile\")\";
+          fi
+        done
+      fi &&
+      envsubst '$$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf &&
       nginx -g 'daemon off;' -c /tmp/nginx.conf"
     restart: unless-stopped
 
