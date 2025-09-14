@@ -30,7 +30,7 @@
                 "
               >
                 <UserIcon class="w-5 h-5" />
-                <span class="text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">
+                <span class="text-xs font-semibold sm:text-sm truncate max-w-[100px] sm:max-w-none">
                   {{ authStore.user?.username }}
                 </span>
                 <ChevronDownIcon class="w-4 h-4" />
@@ -47,7 +47,7 @@
                     class="px-4 py-2 border-b"
                     :class="themeStore.isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600'"
                   >
-                    <p class="text-sm font-medium">{{ authStore.user?.username }}</p>
+                    <p class="text-sm font-semibold">{{ authStore.user?.username }}</p>
                   </div>
 
                   <!-- Password Change Option -->
