@@ -38,7 +38,7 @@ async function createWebVNCInstance(req, res) {
           return res.status(400).json({ error: 'Each login user must have username and password' });
         }
         // Add passwordChangeToken for third-party password change requests
-        const changeToken = (user.changeToken = utils.generateRandomString(32));
+        const changeToken = utils.generateRandomString(32);
         user.passwordChangeToken = changeToken;
       }
     }
@@ -163,7 +163,7 @@ async function addLoginUser(req, res) {
 
   try {
     logger.info("[WebVNCController] Adding login user '" + username + "' to instance: " + name + '...');
-    const changeToken = (user.changeToken = utils.generateRandomString(32));
+    const changeToken = utils.generateRandomString(32);
     await storageManager.RemoteVNC.addLoginUser(name, username, password, changeToken);
     await serviceManager.WebVNCService.recreateInstance(name);
 
