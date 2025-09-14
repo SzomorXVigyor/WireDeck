@@ -1,6 +1,6 @@
 import axios from 'axios';
-import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import router from './router';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
@@ -30,7 +30,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       const authStore = useAuthStore();
       authStore.logout();
-      const router = useRouter();
       router.push('/login');
     }
 
