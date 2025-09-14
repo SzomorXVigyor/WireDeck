@@ -1,5 +1,6 @@
 const fs = require('fs').promises;
 const path = require('path');
+const utils = require('./utils');
 
 const statePath = path.join(__dirname, '../', 'database', 'db.json');
 
@@ -344,7 +345,7 @@ const RemoteVNC = {
     });
   },
 
-  async addLoginUser(instanceName, username, password) {
+  async addLoginUser(instanceName, username, password, changeToken) {
     await _modifyState((state) => {
       if (!state.instances[instanceName]) {
         throw new Error('WireGuard server instance not found');
@@ -360,7 +361,7 @@ const RemoteVNC = {
         throw new Error('User already exists for this remoteVNC instance');
       }
 
-      state.instances[instanceName].remoteVNC.loginUsers.push({ username, password });
+      state.instances[instanceName].remoteVNC.loginUsers.push({ username, password, changeToken });
       state.instances[instanceName].remoteVNC.updatedAt = new Date().toISOString();
     });
   },
@@ -407,6 +408,47 @@ const RemoteVNC = {
     }
 
     return state.instances[instanceName].remoteVNC.vncDevices;
+  },
+
+  async validateLoginUser(instanceName, username, password) {
+    const state = await _readState();
+    if (!state.instances[instanceName]) {
+      throw new Error('WireGuard server instance not found');
+    }
+
+    if (!state.instances[instanceName].remoteVNC) {
+      throw new Error('RemoteVNC module not initialized');
+    }
+
+    const user = state.instances[instanceName].remoteVNC.loginUsers.find((user) => user.username === username);
+    if (!user) return false;
+
+    return user.password === password;
+  },
+
+  async changeUserPasswordByToken(instanceName, username, newPassword, changeToken) {
+    await _modifyState((state) => {
+      if (!state.instances[instanceName]) {
+        throw new Error('WireGuard server instance not found');
+      }
+
+      if (!state.instances[instanceName].remoteVNC) {
+        throw new Error('RemoteVNC module not initialized');
+      }
+
+      const user = state.instances[instanceName].remoteVNC.loginUsers.find((user) => user.username === username);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (user.changeToken !== changeToken) {
+        throw new Error('Invalid change token');
+      }
+
+      user.password = newPassword;
+      user.changeToken = utils.generateRandomString(32);
+      state.instances[instanceName].remoteVNC.updatedAt = new Date().toISOString();
+    });
   },
 };
 

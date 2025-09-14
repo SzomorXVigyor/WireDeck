@@ -1,5 +1,6 @@
+// apps/webvnc/backend/src/config/config.validation.ts
 import { plainToClass, Transform } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, validateSync, IsBoolean } from 'class-validator';
 
 class VncTarget {
   @IsString()
@@ -26,6 +27,10 @@ class User {
   @IsString()
   @IsNotEmpty()
   password: string;
+
+  @IsOptional()
+  @IsString()
+  changeToken?: string;
 }
 
 class EnvironmentVariables {
@@ -51,6 +56,19 @@ class EnvironmentVariables {
 
   @IsString()
   WIREGUARD_CONF_STR: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  WIREDECK_SLAVE?: boolean;
+
+  @IsOptional()
+  @IsString()
+  PASS_CHANGE_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  SERVICE_NAME?: string;
 }
 
 export function configValidation(config: Record<string, unknown>) {

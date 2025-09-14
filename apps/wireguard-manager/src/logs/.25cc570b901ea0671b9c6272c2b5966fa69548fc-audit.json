@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 7
+    },
+    "auditLog": "D:\\Munka\\SzomorXVigyor\\MultiWireGuard-Deployment\\apps\\wireguard-manager\\src\\logs\\.25cc570b901ea0671b9c6272c2b5966fa69548fc-audit.json",
+    "files": [
+        {
+            "date": 1757845309467,
+            "name": "D:\\Munka\\SzomorXVigyor\\MultiWireGuard-Deployment\\apps\\wireguard-manager\\src\\logs\\debug-2025-09-14.log",
+            "hash": "80094da342d21cc4998ecc35dec8018a330cf468ddd33ae0ebcaf378aaaf64e4"
+        }
+    ],
+    "hashType": "sha256"
+}

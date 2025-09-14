@@ -18,12 +18,70 @@
               </span>
             </div>
 
-            <span
-              class="text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none"
-              :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
-            >
-              Welcome, {{ authStore.user?.username }}
-            </span>
+            <!-- User Menu -->
+            <div class="relative" ref="userMenuRef">
+              <button
+                @click="toggleUserMenu"
+                class="flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors"
+                :class="
+                  themeStore.isDark
+                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                "
+              >
+                <UserIcon class="w-5 h-5" />
+                <span class="text-xs sm:text-sm truncate max-w-[100px] sm:max-w-none">
+                  {{ authStore.user?.username }}
+                </span>
+                <ChevronDownIcon class="w-4 h-4" />
+              </button>
+
+              <!-- User Menu Dropdown -->
+              <div
+                v-if="showUserMenu"
+                class="absolute right-0 mt-2 w-56 rounded-lg shadow-lg z-50"
+                :class="themeStore.isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200'"
+              >
+                <div class="py-1">
+                  <div
+                    class="px-4 py-2 border-b"
+                    :class="themeStore.isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600'"
+                  >
+                    <p class="text-sm font-medium">{{ authStore.user?.username }}</p>
+                  </div>
+
+                  <!-- Password Change Option -->
+                  <button
+                    v-if="configStore.config.features.passwordChange"
+                    @click="handlePasswordChange"
+                    class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center"
+                    :class="
+                      themeStore.isDark
+                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    "
+                  >
+                    <KeyIcon class="w-4 h-4 mr-3" />
+                    Change Password
+                  </button>
+
+                  <div class="border-t" :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'">
+                    <button
+                      @click="handleLogout"
+                      class="w-full text-left px-4 py-2 text-sm transition-colors flex items-center"
+                      :class="
+                        themeStore.isDark
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      "
+                    >
+                      <ArrowRightOnRectangleIcon class="w-4 h-4 mr-3" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <!-- Theme Toggle -->
             <button
@@ -39,19 +97,23 @@
               <SunIcon v-if="themeStore.isDark" class="w-5 h-5" />
               <MoonIcon v-else class="w-5 h-5" />
             </button>
-
-            <button
-              @click="handleLogout"
-              class="btn-secondary flex items-center whitespace-nowrap px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm"
-              style="min-width: 0"
-            >
-              <ArrowRightOnRectangleIcon class="w-4 h-4 mr-1 sm:mr-2" />
-              <span>Logout</span>
-            </button>
           </div>
         </div>
       </div>
     </header>
+
+    <!-- Password Change Loading Modal -->
+    <div
+      v-if="passwordChangeLoading"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="card max-w-sm mx-4">
+        <div class="flex items-center space-x-3">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
+          <p :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">Redirecting to password change...</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -120,18 +182,23 @@
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useDevicesStore } from '../stores/devices';
 import { useThemeStore } from '../stores/theme';
 import { useHealthStore } from '../stores/health';
+import { useConfigStore } from '../stores/config';
+import api from '../services/api';
 import {
   ComputerDesktopIcon,
   ArrowTopRightOnSquareIcon,
   ArrowRightOnRectangleIcon,
   SunIcon,
   MoonIcon,
+  UserIcon,
+  ChevronDownIcon,
+  KeyIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -139,6 +206,11 @@ const authStore = useAuthStore();
 const devicesStore = useDevicesStore();
 const themeStore = useThemeStore();
 const healthStore = useHealthStore();
+const configStore = useConfigStore();
+
+const showUserMenu = ref(false);
+const userMenuRef = ref(null);
+const passwordChangeLoading = ref(false);
 
 const wireguardStatus = computed(() => {
   return healthStore.health?.environment?.wireguard?.status || 'unknown';
@@ -155,9 +227,52 @@ const wireguardStatusClass = computed(() => {
   }
 });
 
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value;
+};
+
+const handleClickOutside = (event) => {
+  if (userMenuRef.value && !userMenuRef.value.contains(event.target)) {
+    showUserMenu.value = false;
+  }
+};
+
 const handleLogout = async () => {
+  showUserMenu.value = false;
   await authStore.logout();
   router.push('/login');
+};
+
+const handlePasswordChange = async () => {
+  showUserMenu.value = false;
+  passwordChangeLoading.value = true;
+
+  try {
+    const response = await api.post('/auth/changepassword');
+    const { redirectUrl } = response.data;
+
+    // Open password change URL in a new window
+    const passwordWindow = window.open(
+      redirectUrl,
+      'passwordChange',
+      'width=800,height=600,scrollbars=yes,resizable=yes'
+    );
+
+    const checkClosed = setInterval(() => {
+      if (passwordWindow.closed) {
+        clearInterval(checkClosed);
+        console.log('Password change window closed');
+      }
+    }, 1000);
+
+    // Clean up the interval after 5 minutes
+    setTimeout(() => clearInterval(checkClosed), 300000);
+  } catch (error) {
+    console.error('Password change error:', error);
+    alert('Failed to initiate password change. Please try again.');
+  } finally {
+    passwordChangeLoading.value = false;
+  }
 };
 
 const connectToDevice = async (device) => {
@@ -174,5 +289,11 @@ const connectToDevice = async (device) => {
 onMounted(() => {
   devicesStore.fetchDevices();
   healthStore.fetchHealth();
+  configStore.fetchConfig();
+  document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside);
 });
 </script>

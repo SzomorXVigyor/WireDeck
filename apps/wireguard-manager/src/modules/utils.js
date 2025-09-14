@@ -22,8 +22,29 @@ function generateRandomString(length) {
   return result;
 }
 
+function checkPasswordStrength(password, minLength = 12, requestsCapital = 1, requestsNumber = 1, requestsSpecial = 0) {
+  const capitalLetters = password.replace(/[^A-Z]/g, '').length;
+  const numbers = password.replace(/[^0-9]/g, '').length;
+  const specialCharacters = password.replace(/[a-zA-Z0-9]/g, '').length;
+
+  if (password.length < minLength) {
+    return [false, `Password must be at least ${minLength} characters long.`];
+  }
+  if (capitalLetters < requestsCapital) {
+    return [false, `Password must contain at least ${requestsCapital} uppercase letter(s).`];
+  }
+  if (numbers < requestsNumber) {
+    return [false, `Password must contain at least ${requestsNumber} number(s).`];
+  }
+  if (specialCharacters < requestsSpecial) {
+    return [false, `Password must contain at least ${requestsSpecial} special character(s).`];
+  }
+  return [true, ''];
+}
+
 module.exports = {
   sanitizeServiceName,
   ipv4ToIpv6Cidr,
   generateRandomString,
+  checkPasswordStrength,
 };

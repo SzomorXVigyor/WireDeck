@@ -41,6 +41,9 @@ class WebVNCContainer {
           Dns: ['1.1.1.1', '8.8.8.8'],
         },
         Env: [
+          'WIREDECK_SLAVE=true',
+          `PASS_CHANGE_URL=${process.env.ROOT_DOMAIN}/webvnc-passchangerequest.index.html`,
+          `SERVICE_NAME=${this.name}`,
           `USERS=${JSON.stringify(this.options.loginUsers)}`,
           `VNC_TARGETS=${JSON.stringify(this.options.vncDevices)}`,
           `WIREGUARD_CONF_STR=${this.options.wireguard.config}`,

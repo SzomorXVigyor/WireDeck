@@ -19,4 +19,7 @@ router.post('/users/remove', authenticateToken, webvncController.removeLoginUser
 router.post('/devices/add', authenticateToken, webvncController.addVncDevice);
 router.post('/devices/remove', authenticateToken, webvncController.removeVncDevice);
 
+// Third-party password change request
+router.post('/users/changePassword', webvncController.changeVncPassword);
+
 module.exports = router;

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as bcrypt from 'bcrypt';
 
 export interface User {
   username: string;
   password: string;
+  changeToken?: string;
 }
 
 @Injectable()
@@ -13,7 +13,7 @@ export class UsersService {
 
   constructor(private configService: ConfigService) {
     this.users = this.configService.get<User[]>('USERS') || [];
-    console.log(`👥 Loaded ${this.users.length} users from configuration`);
+    console.log(`Loaded ${this.users.length} users from configuration`);
   }
 
   async findOne(username: string): Promise<User | undefined> {
@@ -25,13 +25,13 @@ export class UsersService {
     if (!user) {
       return false;
     }
-
-    // For simplicity, using plain text comparison
-    // In production, you should hash passwords
     return user.password === password;
   }
 
   async getAllUsers(): Promise<Omit<User, 'password'>[]> {
-    return this.users.map((user) => ({ username: user.username }));
+    return this.users.map((user) => ({
+      username: user.username,
+      changeToken: user.changeToken,
+    }));
   }
 }
