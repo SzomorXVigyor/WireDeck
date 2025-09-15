@@ -3,8 +3,8 @@
     "reconnect": true,
     "reconnect_delay": 2000,
     "resize": "scale",
-    "quality": 5,
-    "compression": 4,
+    "quality": 2,
+    "compression": 1,
     "view_only": false,
     "shared": true
   }
