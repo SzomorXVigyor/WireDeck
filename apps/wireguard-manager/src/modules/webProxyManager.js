@@ -99,64 +99,19 @@ async function reloadNginx() {
 
     const container = docker.getContainer(nginxContainer.Id);
 
-    const command = [
-      'mkdir -p /tmp/errors',
-      'if [ -d /usr/share/nginx/html/errors ]; then',
-      '  for htmlfile in /usr/share/nginx/html/errors/*.html; do',
-      '    if [ -f "\\$htmlfile" ]; then',
-      '      envsubst \'\\$CONTACT_EMAIL\' < "\\$htmlfile" > "/tmp/errors/\\$(basename "\\$htmlfile")";',
-      '    fi;',
-      '  done;',
-      'fi',
-      "envsubst '\\$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf",
-      "nginx -g 'daemon off;' -c /tmp/nginx.conf",
-    ].join(' && ');
-
-    const envsubstExec = await container.exec({
-      Cmd: ['/bin/sh', '-c', command],
-      AttachStdout: true,
-      AttachStderr: true,
-    });
-
-    const envsubstStream = await envsubstExec.start({ hijack: true, stdin: false });
-
-    await new Promise((resolve, reject) => {
-      envsubstStream.on('end', async () => {
-        try {
-          const inspect = await envsubstExec.inspect();
-          if (inspect.ExitCode === 0) resolve();
-          else reject(new Error(`envsubst failed with exit code: ${inspect.ExitCode}`));
-        } catch (error) {
-          reject(error);
-        }
-      });
-      envsubstStream.on('error', reject);
-    });
-
-    const reloadExec = await container.exec({
-      Cmd: ['kill', '-HUP', '1'],
-      AttachStdout: true,
-      AttachStderr: true,
-    });
-
-    const reloadStream = await reloadExec.start({ hijack: true, stdin: false });
-
-    await new Promise((resolve, reject) => {
-      reloadStream.on('end', async () => {
-        try {
-          const inspect = await reloadExec.inspect();
-          if (inspect.ExitCode === 0) {
-            logger.info('[WebProxyManager] Nginx reloaded successfully');
-            resolve();
-          } else {
-            reject(new Error(`Nginx reload failed with exit code: ${inspect.ExitCode}`));
-          }
-        } catch (error) {
-          reject(error);
-        }
-      });
-      reloadStream.on('error', reject);
-    });
+    setTimeout(async () => {
+      try {
+        const reloadExec = await container.exec({
+          Cmd: ['nginx', '-s', 'reload'],
+          AttachStdout: true,
+          AttachStderr: true,
+        });
+        await reloadExec.start({ hijack: true, stdin: false });
+        logger.info('[WebProxyManager] Nginx reload command sent');
+      } catch (error) {
+        logger.error(`[WebProxyManager] Nginx reload failed: ${error.message}`);
+      }
+    }, 500);
   } catch (error) {
     logger.error(`[WebProxyManager] Nginx reload failed: ${error.message}`);
     throw error;
