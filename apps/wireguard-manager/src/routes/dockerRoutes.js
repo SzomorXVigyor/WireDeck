@@ -5,5 +5,6 @@ const { authenticateToken } = require('../controllers/authController');
 const router = express.Router();
 
 router.get('/status', authenticateToken, dockerController.getDockerStatus);
+router.post('/reload-nginx', authenticateToken, dockerController.reloadNginx);
 
 module.exports = router;

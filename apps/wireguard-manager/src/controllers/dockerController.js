@@ -1,5 +1,6 @@
 const containerManager = require('../modules/containers/containerManager');
 const logger = require('../modules/logger');
+const webProxyManager = require('../modules/webProxyManager');
 
 // Docker status endpoint
 async function getDockerStatus(req, res) {
@@ -22,6 +23,21 @@ async function getDockerStatus(req, res) {
   }
 }
 
+// Nginx reload endpoint
+async function reloadNginx(req, res) {
+  try {
+    await webProxyManager.reloadNginx();
+    res.json({ success: true, message: 'Nginx reload triggered' });
+  } catch (error) {
+    logger.error('[DockerController] Nginx reload error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
 module.exports = {
   getDockerStatus,
+  reloadNginx,
 };

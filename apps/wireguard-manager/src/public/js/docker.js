@@ -48,3 +48,35 @@ async function checkDockerStatus() {
     document.getElementById('createBtn').disabled = true;
   }
 }
+
+async function reloadNginxProxy() {
+  const reloadBtn = document.getElementById('reloadNginxBtn');
+  const originalHtml = reloadBtn.innerHTML;
+  
+  try {
+    reloadBtn.disabled = true;
+    reloadBtn.innerHTML = '<i class="fas fa-spin fa-spinner"></i>';
+    
+    const response = await fetch(API_ENDPOINTS.docker.reloadNginx, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showToast('Nginx reload triggered successfully', 'success');
+    } else {
+      showToast(`Nginx reload failed: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    showToast(`Nginx reload error: ${error.message}`, 'error');
+  } finally {
+    setTimeout(() => {
+      reloadBtn.disabled = false;
+      reloadBtn.innerHTML = originalHtml;
+    }, 1000);
+  }
+}
