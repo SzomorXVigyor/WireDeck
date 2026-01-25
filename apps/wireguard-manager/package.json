@@ -1,6 +1,6 @@
 {
   "name": "wiredeck",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "./src/server.js",
   "repository": "https://github.com/SzomorXVigyor/WireDeck.git",
   "author": "Aranyalma2 <40268481+Aranyalma2@users.noreply.github.com>",
