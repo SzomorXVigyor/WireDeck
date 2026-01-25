@@ -5,7 +5,7 @@ const utils = require('../utils');
 const logger = require('../logger');
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
-const usedImage = 'ghcr.io/wg-easy/wg-easy:15.1';
+const usedImage = 'ghcr.io/wg-easy/wg-easy:15.2.1';
 
 class WireguardServerContainer {
   constructor(name, options = {}) {
@@ -52,6 +52,7 @@ class WireguardServerContainer {
           'INIT_DNS=1.1.1.1,8.8.8.8',
           `INIT_IPV4_CIDR=${this.options.ipv4Cidr}`,
           `INIT_IPV6_CIDR=${utils.ipv4ToIpv6Cidr(this.options.ipv4Cidr)}`,
+          `INIT_ALLOWED_IPS=${this.options.ipv4Cidr}`,
           'DISABLE_IPV6=true',
           'PORT=8080',
           'HOST=0.0.0.0',
