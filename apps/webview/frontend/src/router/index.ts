@@ -1,6 +1,6 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import LoginView from '../views/LoginView.vue'
+import { createRouter, createWebHashHistory } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
+import LoginView from '../views/LoginView.vue';
 
 const routes = [
   {
@@ -12,24 +12,24 @@ const routes = [
     name: 'Login',
     component: LoginView,
     meta: { requiresGuest: true },
-  }
-]
+  },
+];
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
-})
+});
 
 router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+  const authStore = useAuthStore();
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next('/login')
+    next('/login');
   } else if (to.meta.requiresGuest && authStore.isAuthenticated) {
-    next('/dashboard')
+    next('/dashboard');
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;
