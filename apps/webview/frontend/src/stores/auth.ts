@@ -1,33 +1,57 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, Ref } from 'vue';
 import api from '../services/api';
 
+interface User {
+  id: string | number;
+  username: string;
+  email?: string;
+  [key: string]: any;
+}
+
+interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+interface LoginResponse {
+  access_token: string;
+  user: User;
+  message?: string;
+}
+
+interface LoginResult {
+  success: boolean;
+  error?: string;
+}
+
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref(localStorage.getItem('auth_token'));
-  const user = ref(null);
-  const loading = ref(false);
-  const error = ref(null);
+  const token: Ref<string | null> = ref(localStorage.getItem('auth_token'));
+  const user: Ref<User | null> = ref(null);
+  const loading: Ref<boolean> = ref(false);
+  const error: Ref<string | null> = ref(null);
 
   const isAuthenticated = computed(() => !!token.value);
 
-  const initializeAuth = async () => {
+  const initializeAuth = async (): Promise<void> => {
     if (token.value) {
       try {
-        const response = await api.get('/auth/profile');
+        const response = await api.get<{ user: User }>('/auth/profile');
         user.value = response.data.user;
       } catch (err) {
+        console.error('Error fetching user profile:', err);
         logout();
       }
     }
   };
 
-  const login = async (credentials) => {
+  const login = async (credentials: LoginCredentials): Promise<LoginResult> => {
     loading.value = true;
     error.value = null;
 
     try {
       // Prevent Axios from throwing on 4xx/5xx
-      const response = await api.post('/auth/login', credentials, {
+      const response = await api.post<LoginResponse>('/auth/login', credentials, {
         validateStatus: () => true,
       });
 
@@ -43,7 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
         error.value = response.data.message || 'Invalid credentials';
         return { success: false, error: error.value };
       }
-    } catch (err) {
+    } catch (err: any) {
       error.value = err.response?.data?.message || err.message || 'Login failed';
       return { success: false, error: error.value };
     } finally {
@@ -51,11 +75,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       await api.post('/auth/logout');
     } catch (err) {
-      // Ignore logout errors
+      console.error('Logout error:', err);
     }
 
     token.value = null;

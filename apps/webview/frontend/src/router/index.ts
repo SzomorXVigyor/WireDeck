@@ -1,8 +1,9 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
+import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import LoginView from '../views/LoginView.vue';
+import DashboardView from '../views/DashboardView.vue';
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     redirect: '/login',
@@ -12,6 +13,12 @@ const routes = [
     name: 'Login',
     component: LoginView,
     meta: { requiresGuest: true },
+  },
+  {
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: DashboardView,
+    meta: { requiresAuth: true },
   },
 ];
 

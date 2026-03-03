@@ -1,24 +1,34 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, Ref } from 'vue';
 import api from '../services/api';
 
+interface ConfigFeatures {
+  passwordChange: boolean;
+  [key: string]: any;
+}
+
+interface Config {
+  features: ConfigFeatures;
+  [key: string]: any;
+}
+
 export const useConfigStore = defineStore('config', () => {
-  const config = ref({
+  const config: Ref<Config> = ref({
     features: {
       passwordChange: false,
     },
   });
-  const loading = ref(false);
-  const error = ref(null);
+  const loading: Ref<boolean> = ref(false);
+  const error: Ref<string | null> = ref(null);
 
-  const fetchConfig = async () => {
+  const fetchConfig = async (): Promise<void> => {
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await api.get('/config');
+      const response = await api.get<Config>('/config');
       config.value = response.data;
-    } catch (err) {
+    } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch configuration';
       console.error('Error fetching config:', err);
     } finally {

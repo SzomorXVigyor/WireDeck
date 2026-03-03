@@ -1,20 +1,27 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, Ref } from 'vue';
 import api from '../services/api';
 
-export const useHealthStore = defineStore('health', () => {
-  const health = ref(null);
-  const loading = ref(false);
-  const error = ref(null);
+interface HealthStatus {
+  status: string;
+  timestamp?: string;
+  uptime?: number;
+  [key: string]: any;
+}
 
-  const fetchHealth = async () => {
+export const useHealthStore = defineStore('health', () => {
+  const health: Ref<HealthStatus | null> = ref(null);
+  const loading: Ref<boolean> = ref(false);
+  const error: Ref<string | null> = ref(null);
+
+  const fetchHealth = async (): Promise<void> => {
     loading.value = true;
     error.value = null;
 
     try {
-      const response = await api.get('/health');
+      const response = await api.get<HealthStatus>('/health');
       health.value = response.data;
-    } catch (err) {
+    } catch (err: any) {
       error.value = err.response?.data?.message || 'Failed to fetch health status';
       console.error('Error fetching health:', err);
     } finally {
