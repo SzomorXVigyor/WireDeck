@@ -103,15 +103,25 @@
     </div>
 
     <!-- ── Edit-mode card grid ───────────────────────────────────────────── -->
-    <div v-else-if="editDraft && isEditing" class="flex flex-wrap items-stretch gap-4">
-      <!-- Existing cards with click overlay -->
+    <div
+      v-else-if="editDraft && isEditing"
+      class="flex flex-wrap items-stretch gap-4"
+      :class="draggedId !== null ? 'cursor-grabbing select-none' : ''"
+    >
+      <!-- Existing cards: drag to reorder, click to edit -->
       <div
-        v-for="card in sortedDraftCards"
+        v-for="card in orderedDraftCards"
         :key="card.id"
-        class="relative group cursor-pointer"
-        :class="
-          editDraft.layout.type === 'fill' ? 'flex-1 min-w-[220px] self-stretch' : 'w-52 flex-shrink-0 self-stretch'
-        "
+        draggable="true"
+        class="relative group transition-opacity duration-150"
+        :class="[
+          editDraft.layout.type === 'fill' ? 'flex-1 min-w-[220px] self-stretch' : 'w-52 flex-shrink-0 self-stretch',
+          draggedId === card.id ? 'opacity-30 cursor-grabbing' : 'cursor-grab',
+        ]"
+        @dragstart="onDragStart($event, card.id)"
+        @dragend="onDragEnd"
+        @dragover.prevent="onDragOver(card.id)"
+        @drop.prevent="onDrop"
         @click="openCardModal(card)"
       >
         <!-- Card rendered as preview (non-interactive) -->
@@ -125,6 +135,13 @@
         <div
           class="absolute inset-0 z-10 rounded-xl flex items-center justify-center transition-all group-hover:bg-blue-500/10 group-hover:ring-2 group-hover:ring-blue-500/60 ring-inset"
         >
+          <!-- Drag handle indicator (two vertical ellipsis = grip) -->
+          <div
+            class="absolute top-2 left-2 flex items-center opacity-0 group-hover:opacity-50 transition-opacity pointer-events-none"
+          >
+            <EllipsisVerticalIcon class="w-3.5 h-3.5 text-blue-500 -mr-1.5" />
+            <EllipsisVerticalIcon class="w-3.5 h-3.5 text-blue-500" />
+          </div>
           <span
             class="opacity-0 group-hover:opacity-100 transition-opacity bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-md inline-flex items-center gap-1"
           >
@@ -182,7 +199,15 @@ import { useAuthStore } from '../stores/auth';
 import CardWrapper from '../components/cards/CardWrapper.vue';
 import EditViewOptionsModal from '../components/EditViewOptionsModal.vue';
 import EditCardModal from '../components/EditCardModal.vue';
-import { PencilIcon, TrashIcon, Cog6ToothIcon, CheckIcon, XMarkIcon, PlusIcon } from '@heroicons/vue/24/outline';
+import {
+  PencilIcon,
+  TrashIcon,
+  Cog6ToothIcon,
+  CheckIcon,
+  XMarkIcon,
+  PlusIcon,
+  EllipsisVerticalIcon,
+} from '@heroicons/vue/24/outline';
 import type { Card, ViewDetail, Layout } from '../types/view';
 
 const route = useRoute();
@@ -212,36 +237,85 @@ const sortedCards = computed(() => {
   return [...viewsStore.currentView.components].sort((a, b) => a.order - b.order);
 });
 
-const sortedDraftCards = computed(() => {
-  if (!editDraft.value) return [];
-  return [...editDraft.value.components].sort((a, b) => a.order - b.order);
-});
-
 const nextCardOrder = computed(() => {
   if (!editDraft.value || editDraft.value.components.length === 0) return 1;
   return Math.max(...editDraft.value.components.map((c) => c.order)) + 1;
 });
+
+// ── Drag-to-reorder state ───────────────────────────────────────────────────
+
+const draggedId = ref<number | null>(null);
+const orderedDraftCards = ref<Card[]>([]);
+
+const onDragStart = (e: DragEvent, cardId: number): void => {
+  draggedId.value = cardId;
+  if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+};
+
+const onDragOver = (targetId: number): void => {
+  if (draggedId.value === null || draggedId.value === targetId) return;
+  const fromIdx = orderedDraftCards.value.findIndex((c) => c.id === draggedId.value);
+  const toIdx = orderedDraftCards.value.findIndex((c) => c.id === targetId);
+  if (fromIdx === -1 || toIdx === -1) return;
+  const arr = [...orderedDraftCards.value];
+  const [moved] = arr.splice(fromIdx, 1);
+  arr.splice(toIdx, 0, moved);
+  orderedDraftCards.value = arr;
+};
+
+const onDrop = (): void => {
+  if (!editDraft.value) return;
+  orderedDraftCards.value.forEach((card, idx) => {
+    card.order = idx + 1;
+  });
+  const orderedMap = new Map(orderedDraftCards.value.map((c) => [c.id, c]));
+  editDraft.value.components = editDraft.value.components.map((c) => orderedMap.get(c.id) ?? c);
+  draggedId.value = null;
+};
+
+const onDragEnd = (): void => {
+  draggedId.value = null;
+};
 
 // ── Edit-mode actions ───────────────────────────────────────────────────────
 
 const startEdit = () => {
   if (!viewsStore.currentView) return;
   editDraft.value = JSON.parse(JSON.stringify(viewsStore.currentView));
+  orderedDraftCards.value = [...editDraft.value!.components].sort((a, b) => a.order - b.order);
   isEditing.value = true;
+  viewsStore.stopPolling();
 };
 
 const cancelEdit = () => {
   isEditing.value = false;
   editDraft.value = null;
+  orderedDraftCards.value = [];
+  draggedId.value = null;
+  // Resume data updates
+  const interval = viewsStore.currentView?.layout.updateInterval ?? 0;
+  if (interval > 0) {
+    viewsStore.startPolling(currentViewId.value, interval);
+  } else {
+    viewsStore.fetchRegisterData(currentViewId.value);
+  }
 };
 
 const saveEdit = async () => {
   if (!editDraft.value) return;
   saving.value = true;
   try {
+    // Sync final visual order into editDraft before saving
+    orderedDraftCards.value.forEach((card, idx) => {
+      card.order = idx + 1;
+    });
+    const orderedMap = new Map(orderedDraftCards.value.map((c) => [c.id, c]));
+    editDraft.value.components = editDraft.value.components.map((c) => orderedMap.get(c.id) ?? c);
+
     await viewsStore.updateView(currentViewId.value, editDraft.value);
     isEditing.value = false;
     editDraft.value = null;
+    orderedDraftCards.value = [];
     // Restart polling with the (possibly updated) interval
     const interval = viewsStore.currentView?.layout.updateInterval ?? 0;
     if (interval > 0) {
@@ -291,11 +365,19 @@ const handleCardSet = (updatedCard: Card) => {
   } else {
     editDraft.value.components.push(updatedCard);
   }
+  // Keep orderedDraftCards in sync
+  const ordIdx = orderedDraftCards.value.findIndex((c) => c.id === updatedCard.id);
+  if (ordIdx !== -1) {
+    orderedDraftCards.value[ordIdx] = updatedCard;
+  } else {
+    orderedDraftCards.value.push(updatedCard);
+  }
 };
 
 const handleCardDelete = (cardId: number) => {
   if (!editDraft.value) return;
   editDraft.value.components = editDraft.value.components.filter((c) => c.id !== cardId);
+  orderedDraftCards.value = orderedDraftCards.value.filter((c) => c.id !== cardId);
 };
 
 // ── Route watcher ───────────────────────────────────────────────────────────
