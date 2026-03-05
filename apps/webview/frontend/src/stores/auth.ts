@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed, Ref } from 'vue';
+import { ref, computed, type Ref } from 'vue';
 import api from '../services/api';
 
 interface User {

@@ -1,7 +1,9 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import LoginView from '../views/LoginView.vue';
 import DashboardView from '../views/DashboardView.vue';
+import ViewPage from '../views/ViewPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -16,9 +18,15 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/dashboard',
-    name: 'Dashboard',
     component: DashboardView,
     meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'view/:id',
+        name: 'ViewDetail',
+        component: ViewPage,
+      },
+    ],
   },
 ];
 

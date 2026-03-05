@@ -4,14 +4,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
+import { useThemeStore } from './stores/theme';
 
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
 
 onMounted(() => {
-  // Initialize auth state from localStorage
+  // Restore theme from localStorage / system preference before first render
+  themeStore.initializeTheme();
+  // Restore auth state from localStorage
   authStore.initializeAuth();
 });
 </script>
