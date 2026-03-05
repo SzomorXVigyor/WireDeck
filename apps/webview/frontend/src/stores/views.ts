@@ -86,8 +86,45 @@ export const useViewsStore = defineStore('views', () => {
     }
   };
 
-  // ── Polling ───────────────────────────────────────────────────────────────
+  // ── View CRUD ─────────────────────────────────────────────────────────────
 
+  /** Create a new empty view (`POST /api/view/new`). Returns the created view. */
+  const createView = async (): Promise<ViewDetail> => {
+    const response = await api.post<ViewDetail>('/view/new');
+    views.value.push({ id: response.data.id, name: response.data.name });
+    return response.data;
+  };
+
+  /** Persist edits to an existing view (`PUT /api/view/:id`). Updates local state. */
+  const updateView = async (id: number | string, data: ViewDetail): Promise<void> => {
+    try {
+      await api.put(`/view/${id}`, data);
+      currentView.value = { ...data };
+      const idx = views.value.findIndex((v) => v.id === Number(id));
+      if (idx !== -1) views.value[idx] = { id: Number(id), name: data.name };
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to update view';
+      console.error('Error updating view:', err);
+      throw err;
+    }
+  };
+
+  /** Delete a view (`DELETE /api/view/:id`). Removes it from the local list. */
+  const deleteView = async (id: number | string): Promise<void> => {
+    try {
+      await api.delete(`/view/${id}`);
+      views.value = views.value.filter((v) => v.id !== Number(id));
+      if (currentView.value?.id === Number(id)) {
+        currentView.value = null;
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to delete view';
+      console.error('Error deleting view:', err);
+      throw err;
+    }
+  };
+
+  // ── Polling ───────────────────────────────────────────────────────────────
   /**
    * Start automatic polling for `viewId` at the given interval (seconds).
    * Stops any previously running timer first.
@@ -118,6 +155,9 @@ export const useViewsStore = defineStore('views', () => {
     fetchView,
     fetchRegisterData,
     writeRegisterData,
+    createView,
+    updateView,
+    deleteView,
     startPolling,
     stopPolling,
   };

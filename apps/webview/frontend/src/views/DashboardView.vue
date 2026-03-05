@@ -62,12 +62,28 @@
       <!-- Views navigation -->
       <nav class="flex-1 overflow-y-auto p-3">
         <!-- Section title -->
-        <p
-          class="text-xs font-semibold uppercase tracking-wider mb-2 px-2"
-          :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
-        >
-          Views
-        </p>
+        <div class="flex items-center justify-between mb-2 px-2">
+          <p
+            class="text-xs font-semibold uppercase tracking-wider"
+            :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
+          >
+            Views
+          </p>
+          <!-- Create view (admin only) -->
+          <button
+            v-if="authStore.user?.role === 'admin'"
+            class="p-0.5 rounded transition-colors"
+            :class="
+              themeStore.isDark
+                ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            "
+            title="Create new view"
+            @click="handleCreateView"
+          >
+            <PlusIcon class="w-4 h-4" />
+          </button>
+        </div>
 
         <!-- Loading skeleton -->
         <div v-if="viewsStore.loadingViews" class="space-y-1">
@@ -192,6 +208,7 @@ import {
   UserCircleIcon,
   Bars3Icon,
   XMarkIcon,
+  PlusIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -207,6 +224,15 @@ const isActiveView = (id: number) => route.name === 'ViewDetail' && String(route
 const handleLogout = async () => {
   await authStore.logout();
   router.push('/login');
+};
+
+const handleCreateView = async () => {
+  try {
+    const newView = await viewsStore.createView();
+    router.push({ name: 'ViewDetail', params: { id: newView.id } });
+  } catch {
+    // error already set in store
+  }
 };
 
 onMounted(async () => {

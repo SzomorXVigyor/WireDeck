@@ -258,6 +258,46 @@ app.get("/api/view/:id", authenticate, (req, res) => {
 	res.json(view);
 });
 
+// POST /api/view/new
+let nextViewId = 3;
+app.post("/api/view/new", authenticate, (req, res) => {
+	const id = nextViewId++;
+	const newView = {
+		id,
+		name: `New View ${id}`,
+		layout: { type: "fill", updateInterval: 0 },
+		components: [],
+	};
+	mockViews.push({ id: newView.id, name: newView.name });
+	mockViewDetails[id] = newView;
+	res.status(201).json(newView);
+});
+
+// PUT /api/view/:id
+app.put("/api/view/:id", authenticate, (req, res) => {
+	const id = parseInt(req.params.id, 10);
+	if (!mockViewDetails[id]) {
+		return res.status(404).json({ message: `View with id ${id} not found` });
+	}
+	const updated = req.body;
+	mockViewDetails[id] = { ...updated, id };
+	const listIdx = mockViews.findIndex((v) => v.id === id);
+	if (listIdx !== -1) mockViews[listIdx].name = updated.name ?? mockViews[listIdx].name;
+	res.json(mockViewDetails[id]);
+});
+
+// DELETE /api/view/:id
+app.delete("/api/view/:id", authenticate, (req, res) => {
+	const id = parseInt(req.params.id, 10);
+	if (!mockViewDetails[id]) {
+		return res.status(404).json({ message: `View with id ${id} not found` });
+	}
+	delete mockViewDetails[id];
+	const listIdx = mockViews.findIndex((v) => v.id === id);
+	if (listIdx !== -1) mockViews.splice(listIdx, 1);
+	res.status(204).send();
+});
+
 // ── Register data storage (mutable mock state) ───────────────────────────────
 // Seed initial values for every register across all views.
 const mockRegisterData = {};
@@ -370,6 +410,9 @@ app.listen(PORT, () => {
 	console.log("  GET    /api/view/:id     (authenticated)");
 	console.log("  GET    /api/view/:id/data   (authenticated)");
 	console.log("  POST   /api/view/:id/data   (authenticated)");
+	console.log("  POST   /api/view/new        (authenticated, admin)");
+	console.log("  PUT    /api/view/:id        (authenticated, admin)");
+	console.log("  DELETE /api/view/:id        (authenticated, admin)");
 	console.log("\nMock credentials:");
 	console.log("  Username: admin, Password: admin");
 	console.log("  Username: user, Password: password");
