@@ -1,7 +1,7 @@
 # --------------------
 # Frontend build stage
 # --------------------
-FROM node:18-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 
 # Enable yarn via corepack
 RUN corepack enable
@@ -25,7 +25,7 @@ RUN yarn build
 # --------------------
 # Backend build stage
 # --------------------
-FROM node:18-alpine AS backend-builder
+FROM node:24-alpine AS backend-builder
 
 # Enable yarn
 RUN corepack enable
