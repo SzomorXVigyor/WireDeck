@@ -5,6 +5,7 @@ import LoginView from '../views/LoginView.vue';
 import DashboardView from '../views/DashboardView.vue';
 import ViewPage from '../views/ViewPage.vue';
 import RegisterDictionaryPage from '../views/RegisterDictionaryPage.vue';
+import DevicesPage from '../views/DevicesPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -31,6 +32,12 @@ const routes: RouteRecordRaw[] = [
         path: 'registers',
         name: 'RegisterDictionary',
         component: RegisterDictionaryPage,
+        meta: { requiresAdmin: true },
+      },
+      {
+        path: 'devices',
+        name: 'Devices',
+        component: DevicesPage,
         meta: { requiresAdmin: true },
       },
     ],

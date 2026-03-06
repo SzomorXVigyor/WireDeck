@@ -138,21 +138,42 @@
           >
             Admin
           </p>
-          <router-link
-            :to="{ name: 'RegisterDictionary' }"
-            class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
-            :class="
-              route.name === 'RegisterDictionary'
-                ? 'bg-blue-600 text-white'
-                : themeStore.isDark
-                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-            "
-            @click="sidebarOpen = false"
-          >
-            <BookOpenIcon class="w-4 h-4 flex-shrink-0" />
-            <span class="truncate">Register dictionary</span>
-          </router-link>
+          <ul class="space-y-1">
+            <li>
+              <router-link
+                :to="{ name: 'RegisterDictionary' }"
+                class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
+                :class="
+                  route.name === 'RegisterDictionary'
+                    ? 'bg-blue-600 text-white'
+                    : themeStore.isDark
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                "
+                @click="sidebarOpen = false"
+              >
+                <BookOpenIcon class="w-4 h-4 flex-shrink-0" />
+                <span class="truncate">Register dictionary</span>
+              </router-link>
+            </li>
+            <li>
+              <router-link
+                :to="{ name: 'Devices' }"
+                class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
+                :class="
+                  route.name === 'Devices'
+                    ? 'bg-blue-600 text-white'
+                    : themeStore.isDark
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                "
+                @click="sidebarOpen = false"
+              >
+                <ServerStackIcon class="w-4 h-4 flex-shrink-0" />
+                <span class="truncate">Devices</span>
+              </router-link>
+            </li>
+          </ul>
         </div>
       </nav>
 
@@ -209,7 +230,7 @@
 
         <!-- Empty state shown when no view is selected and not on an admin sub-page -->
         <div
-          v-if="route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary'"
+          v-if="route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary' && route.name !== 'Devices'"
           class="flex flex-col items-center justify-center min-h-[60vh] gap-4"
         >
           <ViewColumnsIcon class="w-16 h-16" :class="themeStore.isDark ? 'text-gray-600' : 'text-gray-300'" />
@@ -238,6 +259,7 @@ import {
   XMarkIcon,
   PlusIcon,
   BookOpenIcon,
+  ServerStackIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -269,7 +291,12 @@ onMounted(async () => {
   await viewsStore.fetchViews();
 
   // Auto-navigate to the first view when landing on bare /dashboard (but not on an admin sub-page)
-  if (route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary' && viewsStore.views.length > 0) {
+  if (
+    route.name !== 'ViewDetail' &&
+    route.name !== 'RegisterDictionary' &&
+    route.name !== 'Devices' &&
+    viewsStore.views.length > 0
+  ) {
     router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0].id } });
   }
 });
