@@ -129,6 +129,31 @@
             </router-link>
           </li>
         </ul>
+
+        <!-- Admin section: Register dictionary -->
+        <div v-if="authStore.user?.role === 'admin'" class="mt-4">
+          <p
+            class="text-xs font-semibold uppercase tracking-wider mb-2 px-2"
+            :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
+          >
+            Admin
+          </p>
+          <router-link
+            :to="{ name: 'RegisterDictionary' }"
+            class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
+            :class="
+              route.name === 'RegisterDictionary'
+                ? 'bg-blue-600 text-white'
+                : themeStore.isDark
+                  ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+            "
+            @click="sidebarOpen = false"
+          >
+            <BookOpenIcon class="w-4 h-4 flex-shrink-0" />
+            <span class="truncate">Register dictionary</span>
+          </router-link>
+        </div>
       </nav>
 
       <!-- User footer -->
@@ -182,8 +207,11 @@
         <!-- Routed view page -->
         <router-view />
 
-        <!-- Empty state shown when no view is selected -->
-        <div v-if="route.name !== 'ViewDetail'" class="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <!-- Empty state shown when no view is selected and not on an admin sub-page -->
+        <div
+          v-if="route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary'"
+          class="flex flex-col items-center justify-center min-h-[60vh] gap-4"
+        >
           <ViewColumnsIcon class="w-16 h-16" :class="themeStore.isDark ? 'text-gray-600' : 'text-gray-300'" />
           <p class="text-base font-medium" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
             Select a view from the sidebar
@@ -209,6 +237,7 @@ import {
   Bars3Icon,
   XMarkIcon,
   PlusIcon,
+  BookOpenIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -239,8 +268,8 @@ onMounted(async () => {
   themeStore.initializeTheme();
   await viewsStore.fetchViews();
 
-  // Auto-navigate to the first view when landing on bare /dashboard
-  if (route.name !== 'ViewDetail' && viewsStore.views.length > 0) {
+  // Auto-navigate to the first view when landing on bare /dashboard (but not on an admin sub-page)
+  if (route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary' && viewsStore.views.length > 0) {
     router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0].id } });
   }
 });

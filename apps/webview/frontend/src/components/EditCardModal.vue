@@ -54,14 +54,15 @@
 
             <!-- Register -->
             <div>
-              <label class="block text-sm font-medium mb-1" :class="labelClass">Register address</label>
-              <input
+              <label class="block text-sm font-medium mb-1" :class="labelClass">Register</label>
+              <select
                 v-model.number="draft.register"
-                type="number"
-                min="1"
                 class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 :class="inputClass"
-              />
+              >
+                <option v-if="registerOptions.length === 0" :value="0" disabled>No registers defined</option>
+                <option v-for="r in registerOptions" :key="r.id" :value="r.id">{{ r.id }} - {{ r.name }}</option>
+              </select>
             </div>
 
             <hr :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'" />
@@ -282,6 +283,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useThemeStore } from '../stores/theme';
+import { useRegistersStore } from '../stores/registers';
 import type { Card, CardType } from '../types/view';
 
 interface DraftCard {
@@ -314,6 +316,9 @@ const emit = defineEmits<{
 }>();
 
 const themeStore = useThemeStore();
+const registersStore = useRegistersStore();
+
+const registerOptions = computed(() => registersStore.registers);
 
 const isNew = computed(() => !props.card);
 
@@ -340,7 +345,7 @@ function makeDraft(): DraftCard {
     name: 'New Card',
     type,
     order: props.defaultOrder ?? 1,
-    register: 1,
+    register: 0,
     style: { ...defaults.style },
     extra: { ...defaults.extra },
   };
@@ -348,8 +353,13 @@ function makeDraft(): DraftCard {
 
 watch(
   () => props.modelValue,
-  (open) => {
-    if (open) draft.value = makeDraft();
+  async (open) => {
+    if (open) {
+      draft.value = makeDraft();
+      if (registersStore.registers.length === 0) {
+        await registersStore.fetchRegisters();
+      }
+    }
   }
 );
 

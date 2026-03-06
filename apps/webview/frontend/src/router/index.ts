@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth';
 import LoginView from '../views/LoginView.vue';
 import DashboardView from '../views/DashboardView.vue';
 import ViewPage from '../views/ViewPage.vue';
+import RegisterDictionaryPage from '../views/RegisterDictionaryPage.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -25,6 +26,12 @@ const routes: RouteRecordRaw[] = [
         path: 'view/:id',
         name: 'ViewDetail',
         component: ViewPage,
+      },
+      {
+        path: 'registers',
+        name: 'RegisterDictionary',
+        component: RegisterDictionaryPage,
+        meta: { requiresAdmin: true },
       },
     ],
   },
