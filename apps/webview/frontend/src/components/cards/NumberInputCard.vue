@@ -62,7 +62,7 @@ const viewsStore = useViewsStore();
 const style = computed(() => props.card.style as NumberInputStyle);
 const extra = computed(() => props.card.extra as NumberInputExtra);
 
-/** Local input value — initialised from register data when it arrives */
+/** Local input value - initialised from register data when it arrives */
 const localValue = ref<number | null>(null);
 
 watch(

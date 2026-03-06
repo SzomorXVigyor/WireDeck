@@ -35,8 +35,8 @@
                 class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 :class="inputClass"
               >
-                <option value="fill">Fill — cards stretch to fill each row</option>
-                <option value="fixed">Fixed — cards have a fixed width</option>
+                <option value="fill">Fill - cards stretch to fill each row</option>
+                <option value="fixed">Fixed - cards have a fixed width</option>
               </select>
             </div>
 
