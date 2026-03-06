@@ -119,6 +119,17 @@ app.get("/api/config", (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Devices mock data
+// ─────────────────────────────────────────────────────────────────────────────
+
+let nextDeviceId = 3;
+
+const mockDevices = [
+  { id: 1, name: "PLC-1",  ip: "192.168.1.10", port: 502, protocol: "ModbusTCP" },
+  { id: 2, name: "HVAC-1", ip: "192.168.1.20", port: 502, protocol: "ModbusTCP" },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Register dictionary mock data
 // Each entry represents a physical/logical device register.
 // Card.register references RegisterDictEntry.id.
@@ -130,79 +141,68 @@ const mockRegisters = [
   {
     id: 1,
     name: "Main Switch Command",
-    accessType: "ModbusTCP",
-    accessDeviceId: "plc-1",
-    protocolAttributes: { ip: "192.168.1.10", port: 502, slaveAddress: 1, registerType: "coil", registerAddress: 100, operation: "RW" },
+    deviceId: 1,
+    protocolAttributes: { slaveAddress: 1, registerType: "coil", registerAddress: 100, operation: "RW" },
   },
   {
     id: 2,
     name: "Pump Enable",
-    accessType: "ModbusTCP",
-    accessDeviceId: "plc-1",
-    protocolAttributes: { ip: "192.168.1.10", port: 502, slaveAddress: 1, registerType: "coil", registerAddress: 101, operation: "RW" },
+    deviceId: 1,
+    protocolAttributes: { slaveAddress: 1, registerType: "coil", registerAddress: 101, operation: "RW" },
   },
   {
     id: 3,
     name: "Bus Voltage",
-    accessType: "ModbusTCP",
-    accessDeviceId: "plc-1",
-    protocolAttributes: { ip: "192.168.1.10", port: 502, slaveAddress: 1, registerType: "input-register", registerAddress: 102, operation: "R" },
+    deviceId: 1,
+    protocolAttributes: { slaveAddress: 1, registerType: "input-register", registerAddress: 102, operation: "R" },
   },
   {
     id: 4,
     name: "Bus Current",
-    accessType: "ModbusTCP",
-    accessDeviceId: "plc-1",
-    protocolAttributes: { ip: "192.168.1.10", port: 502, slaveAddress: 1, registerType: "input-register", registerAddress: 103, operation: "R" },
+    deviceId: 1,
+    protocolAttributes: { slaveAddress: 1, registerType: "input-register", registerAddress: 103, operation: "R" },
   },
   {
     id: 5,
     name: "Active Load",
-    accessType: "ModbusTCP",
-    accessDeviceId: "plc-1",
-    protocolAttributes: { ip: "192.168.1.10", port: 502, slaveAddress: 1, registerType: "input-register", registerAddress: 104, operation: "R" },
+    deviceId: 1,
+    protocolAttributes: { slaveAddress: 1, registerType: "input-register", registerAddress: 104, operation: "R" },
   },
   {
     id: 6,
     name: "Room Temperature",
-    accessType: "ModbusTCP",
-    accessDeviceId: "hvac-1",
-    protocolAttributes: { ip: "192.168.1.20", port: 502, slaveAddress: 2, registerType: "input-register", registerAddress: 200, operation: "R" },
+    deviceId: 2,
+    protocolAttributes: { slaveAddress: 2, registerType: "input-register", registerAddress: 200, operation: "R" },
   },
   {
     id: 7,
     name: "Target Temperature Setpoint",
-    accessType: "ModbusTCP",
-    accessDeviceId: "hvac-1",
-    protocolAttributes: { ip: "192.168.1.20", port: 502, slaveAddress: 2, registerType: "holding-register", registerAddress: 201, operation: "RW" },
+    deviceId: 2,
+    protocolAttributes: { slaveAddress: 2, registerType: "holding-register", registerAddress: 201, operation: "RW" },
   },
   {
     id: 8,
     name: "Heater Enable",
-    accessType: "ModbusTCP",
-    accessDeviceId: "hvac-1",
-    protocolAttributes: { ip: "192.168.1.20", port: 502, slaveAddress: 2, registerType: "coil", registerAddress: 202, operation: "RW" },
+    deviceId: 2,
+    protocolAttributes: { slaveAddress: 2, registerType: "coil", registerAddress: 202, operation: "RW" },
   },
   {
     id: 9,
     name: "Cooling Enable",
-    accessType: "ModbusTCP",
-    accessDeviceId: "hvac-1",
-    protocolAttributes: { ip: "192.168.1.20", port: 502, slaveAddress: 2, registerType: "coil", registerAddress: 203, operation: "RW" },
+    deviceId: 2,
+    protocolAttributes: { slaveAddress: 2, registerType: "coil", registerAddress: 203, operation: "RW" },
   },
   {
     id: 10,
     name: "Relative Humidity",
-    accessType: "ModbusTCP",
-    accessDeviceId: "hvac-1",
-    protocolAttributes: { ip: "192.168.1.20", port: 502, slaveAddress: 2, registerType: "input-register", registerAddress: 204, operation: "R" },
+    deviceId: 2,
+    protocolAttributes: { slaveAddress: 2, registerType: "input-register", registerAddress: 204, operation: "R" },
   },
   {
     id: 11,
     name: "Ventilation Mode",
-    accessType: "ModbusTCP",
-    accessDeviceId: "hvac-1",
-    protocolAttributes: { ip: "192.168.1.20", port: 502, slaveAddress: 2, registerType: "holding-register", registerAddress: 205, operation: "RW" },
+    deviceId: 2,
+    protocolAttributes: { slaveAddress: 2, registerType: "holding-register", registerAddress: 205, operation: "RW" },
   },
 ];
 
@@ -457,9 +457,8 @@ app.post("/api/view/:id/data", authenticate, (req, res) => {
   res.json({ register: addr, value });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Register dictionary endpoints
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────// Device endpoints
+// ───────────────────────────────────────────────────────────────────────────────
 
 // Admin guard middleware
 const requireAdmin = (req, res, next) => {
@@ -469,6 +468,54 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
+// GET /api/devices
+app.get("/api/devices", authenticate, (req, res) => {
+  res.json(mockDevices);
+});
+
+// POST /api/device/new
+app.post("/api/device/new", authenticate, requireAdmin, (req, res) => {
+  const { name, ip, port, protocol } = req.body;
+  if (!name || !ip || !port || !protocol) {
+    return res.status(400).json({ message: "name, ip, port and protocol are required" });
+  }
+  const newDevice = {
+    id: nextDeviceId++,
+    name,
+    ip,
+    port: Number(port),
+    protocol,
+  };
+  mockDevices.push(newDevice);
+  res.status(201).json(newDevice);
+});
+
+// PUT /api/device/:id
+app.put("/api/device/:id", authenticate, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const idx = mockDevices.findIndex((d) => d.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ message: `Device with id ${id} not found` });
+  }
+  const { name, ip, port, protocol } = req.body;
+  mockDevices[idx] = { id, name, ip, port: Number(port), protocol };
+  res.json(mockDevices[idx]);
+});
+
+// DELETE /api/device/:id
+app.delete("/api/device/:id", authenticate, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const idx = mockDevices.findIndex((d) => d.id === id);
+  if (idx === -1) {
+    return res.status(404).json({ message: `Device with id ${id} not found` });
+  }
+  mockDevices.splice(idx, 1);
+  res.status(204).send();
+});
+
+// ───────────────────────────────────────────────────────────────────────────────// Register dictionary endpoints
+// ─────────────────────────────────────────────────────────────────────────────
+
 // GET /api/registers
 app.get("/api/registers", authenticate, (req, res) => {
   res.json(mockRegisters);
@@ -476,15 +523,14 @@ app.get("/api/registers", authenticate, (req, res) => {
 
 // POST /api/register/new
 app.post("/api/register/new", authenticate, requireAdmin, (req, res) => {
-  const { name, accessType, accessDeviceId, protocolAttributes } = req.body;
-  if (!name || !accessType || !accessDeviceId || !protocolAttributes) {
-    return res.status(400).json({ message: "name, accessType, accessDeviceId and protocolAttributes are required" });
+  const { name, deviceId, protocolAttributes } = req.body;
+  if (!name || !deviceId || !protocolAttributes) {
+    return res.status(400).json({ message: "name, deviceId and protocolAttributes are required" });
   }
   const newEntry = {
     id: nextRegisterId++,
     name,
-    accessType,
-    accessDeviceId,
+    deviceId: Number(deviceId),
     protocolAttributes,
   };
   mockRegisters.push(newEntry);
@@ -498,8 +544,8 @@ app.put("/api/register/:id", authenticate, requireAdmin, (req, res) => {
   if (idx === -1) {
     return res.status(404).json({ message: `Register with id ${id} not found` });
   }
-  const { name, accessType, accessDeviceId, protocolAttributes } = req.body;
-  mockRegisters[idx] = { id, name, accessType, accessDeviceId, protocolAttributes };
+  const { name, deviceId, protocolAttributes } = req.body;
+  mockRegisters[idx] = { id, name, deviceId: Number(deviceId), protocolAttributes };
   res.json(mockRegisters[idx]);
 });
 
@@ -559,10 +605,14 @@ app.listen(PORT, () => {
   console.log("  POST   /api/view/new        (authenticated, admin)");
   console.log("  PUT    /api/view/:id        (authenticated, admin)");
   console.log("  DELETE /api/view/:id        (authenticated, admin)");
-  console.log("  GET    /api/registers       (authenticated)");
-  console.log("  POST   /api/register/new    (authenticated, admin)");
-  console.log("  PUT    /api/register/:id    (authenticated, admin)");
-  console.log("  DELETE /api/register/:id    (authenticated, admin)");
+  console.log("  GET    /api/devices          (authenticated)");
+  console.log("  POST   /api/device/new       (authenticated, admin)");
+  console.log("  PUT    /api/device/:id       (authenticated, admin)");
+  console.log("  DELETE /api/device/:id       (authenticated, admin)");
+  console.log("  GET    /api/registers        (authenticated)");
+  console.log("  POST   /api/register/new     (authenticated, admin)");
+  console.log("  PUT    /api/register/:id     (authenticated, admin)");
+  console.log("  DELETE /api/register/:id     (authenticated, admin)");
   console.log("\nMock credentials:");
   console.log("  Username: admin, Password: admin");
   console.log("  Username: user, Password: password");
