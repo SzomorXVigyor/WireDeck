@@ -1,22 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-
-export interface User {
-  username: string;
-  password: string;
-  changeToken?: string;
-}
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  private users: User[];
+  private users: UserEntity[];
 
   constructor(private configService: ConfigService) {
-    this.users = this.configService.get<User[]>('USERS') || [];
+    this.users = this.configService.get<UserEntity[]>('USERS') || [];
     console.log(`Loaded ${this.users.length} users from configuration`);
   }
 
-  async findOne(username: string): Promise<User | undefined> {
+  async findOne(username: string): Promise<UserEntity | undefined> {
     return this.users.find((user) => user.username === username);
   }
 
@@ -28,10 +23,7 @@ export class UsersService {
     return user.password === password;
   }
 
-  async getAllUsers(): Promise<Omit<User, 'password'>[]> {
-    return this.users.map((user) => ({
-      username: user.username,
-      changeToken: user.changeToken,
-    }));
+  async getAllUsers(): Promise<Omit<UserEntity, 'password'>[]> {
+    return this.users.map(({ password: _, ...rest }) => rest);
   }
 }

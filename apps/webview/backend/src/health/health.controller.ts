@@ -1,21 +1,20 @@
 import { Controller, Get } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { execSync } from 'child_process';
+import { HealthResponseDto } from './dto/health-response.dto';
 
 @Controller('health')
 export class HealthController {
   constructor(private configService: ConfigService) {}
 
   @Get()
-  getHealth() {
-    const vncTargets = this.configService.get('VNC_TARGETS') || [];
+  getHealth(): HealthResponseDto {
     const users = this.configService.get('USERS') || [];
 
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
       environment: {
-        vncTargets: vncTargets.length,
         users: users.length,
         wireguard: this.checkWireGuardStatus(),
       },

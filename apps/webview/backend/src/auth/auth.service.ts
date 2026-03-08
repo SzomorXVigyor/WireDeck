@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
+import { UserEntity } from '../users/entities/user.entity';
+import { UserResponseDto } from '../users/dto/user-response.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -9,21 +12,19 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async validateUser(username: string, password: string): Promise<any> {
+  /** Returns the public user (no password/changeToken) on success, or null on failure. */
+  async validateUser(username: string, password: string): Promise<UserResponseDto | null> {
     const isValid = await this.usersService.validateUser(username, password);
-    if (isValid) {
-      const user = await this.usersService.findOne(username);
-      const { password: _, ...result } = user;
-      return result;
-    }
-    return null;
+    if (!isValid) return null;
+    const { password: _, changeToken: __, ...user } = await this.usersService.findOne(username);
+    return user;
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.username };
+  async login(user: UserEntity): Promise<LoginResponseDto> {
+    const payload = { username: user.username, role: user.role, sub: user.username };
     return {
       access_token: this.jwtService.sign(payload),
-      user: { username: user.username },
+      user,
     };
   }
 }

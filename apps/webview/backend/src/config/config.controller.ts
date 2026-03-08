@@ -1,13 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { WIREDECK_SLAVE, PASS_CHANGE_URL, SERVICE_NAME } from '../utils/env';
+import { ConfigResponseDto } from './dto/config-response.dto';
 
 @Controller('config')
 export class ConfigController {
-  constructor(private configService: ConfigService) {}
+  constructor() {}
 
   @Get()
-  getConfig() {
+  getConfig(): ConfigResponseDto {
     const passwordChangeEnabled: boolean = WIREDECK_SLAVE && PASS_CHANGE_URL && SERVICE_NAME ? true : false;
 
     return {

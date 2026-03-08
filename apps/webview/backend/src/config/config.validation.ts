@@ -1,20 +1,7 @@
 // apps/webvnc/backend/src/config/config.validation.ts
 import { plainToClass, Transform } from 'class-transformer';
-import { IsArray, IsNotEmpty, IsOptional, IsString, validateSync, IsBoolean } from 'class-validator';
-
-class User {
-  @IsString()
-  @IsNotEmpty()
-  username: string;
-
-  @IsString()
-  @IsNotEmpty()
-  password: string;
-
-  @IsOptional()
-  @IsString()
-  changeToken?: string;
-}
+import { IsArray, IsOptional, IsString, validateSync, IsBoolean } from 'class-validator';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 class EnvironmentVariables {
   @IsArray()
@@ -25,7 +12,7 @@ class EnvironmentVariables {
       return [];
     }
   })
-  USERS: User[];
+  USERS: UserEntity[];
 
   @IsString()
   WIREGUARD_CONF_STR: string;
