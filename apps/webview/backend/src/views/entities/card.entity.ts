@@ -1,14 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { CardType } from '@prisma/client';
 
-export enum CardType {
-  BUTTON = 'button',
-  SWITCH = 'switch',
-  DISPLAY = 'display',
-  NUMBER_INPUT = 'number-input',
-}
-
+export { CardType };
 export class CardStyleEntity {
   @ApiProperty({ example: 'primary', required: false })
   @IsString()

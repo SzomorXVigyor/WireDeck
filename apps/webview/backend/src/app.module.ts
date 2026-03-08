@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpStatus, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { AuthModule } from './auth/auth.module';
@@ -9,7 +9,14 @@ import { DevicesModule } from './devices/devices.module';
 import { RegistersModule } from './registers/registers.module';
 import { HealthController } from './health/health.controller';
 import { configValidation } from './config/config.validation';
+import { PrismaModule, providePrismaClientExceptionFilter } from 'nestjs-prisma';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
+import { DATABASE_URL } from './utils/env';
+import { SERVICE_NAME } from './utils/env';
 import { join } from 'path';
+
+const pgSchema = SERVICE_NAME || 'public';
 
 @Module({
   imports: [
@@ -19,6 +26,20 @@ import { join } from 'path';
       envFilePath: '.development.env',
     }),
     // API modules first
+    PrismaModule.forRootAsync({
+      isGlobal: true,
+      useFactory: () => {
+        const pool = new Pool({ connectionString: DATABASE_URL });
+        pool.on('connect', (client) => {
+          client.query(`SET search_path TO "${pgSchema}"`);
+        });
+        return {
+          prismaOptions: {
+            adapter: new PrismaPg(pool),
+          },
+        };
+      },
+    }),
     AuthModule,
     UsersModule,
     ConfigurationModule,
@@ -37,5 +58,13 @@ import { join } from 'path';
     }),
   ],
   controllers: [HealthController],
+  providers: [
+    providePrismaClientExceptionFilter({
+      // Prisma Error Code: HTTP Status Response
+      P2000: HttpStatus.BAD_REQUEST,
+      P2002: HttpStatus.CONFLICT,
+      P2025: HttpStatus.NOT_FOUND,
+    }),
+  ],
 })
 export class AppModule {}

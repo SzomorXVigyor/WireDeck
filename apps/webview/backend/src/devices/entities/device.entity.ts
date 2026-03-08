@@ -1,10 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsIP, IsNotEmpty, IsString, Max, Min } from 'class-validator';
+import { DeviceProtocol } from '@prisma/client';
 
-export enum DeviceProtocol {
-  MODBUS_TCP = 'ModbusTCP',
-}
-
+export { DeviceProtocol };
 export class DeviceEntity {
   @ApiProperty({ example: 1 })
   @IsInt()

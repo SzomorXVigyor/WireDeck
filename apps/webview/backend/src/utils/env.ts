@@ -8,6 +8,7 @@ if (existsSync('.development.env')) {
 
 const env = from(process.env, {});
 
+export const DATABASE_URL = env.get('DATABASE_URL').required().asString();
 export const JWT_SECRET = env.get('JWT_SECRET').required().asString();
 export const PORT = env.get('PORT').default(8080).asPortNumber();
 export const FRONTEND_URL = env.get('FRONTEND_URL').default('http://localhost:3000').asString();
@@ -16,7 +17,7 @@ export const IN_PRODUCTION = NODE_ENV === 'production';
 export const IN_DEVELOPMENT = NODE_ENV === 'development';
 export const WIREDECK_SLAVE = env.get('WIREDECK_SLAVE').default('true').asBool();
 export const PASS_CHANGE_URL = env.get('PASS_CHANGE_URL').default('').asString();
-export const SERVICE_NAME = env.get('SERVICE_NAME').default('').asString();
+export const SERVICE_NAME = env.get('SERVICE_NAME').required().default('').asString();
 export const VERSION = env.get('npm_package_version').default('0.0.0').asString();
 
 if (WIREDECK_SLAVE && (!PASS_CHANGE_URL || !SERVICE_NAME)) {

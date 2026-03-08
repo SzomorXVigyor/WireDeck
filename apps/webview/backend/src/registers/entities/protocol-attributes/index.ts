@@ -1,5 +1,5 @@
 import { Type } from '@nestjs/common';
-import { DeviceProtocol } from '../../../devices/entities/device.entity';
+import { DeviceProtocol } from '@prisma/client';
 import { BaseProtocolAttributesEntity } from './base-protocol-attributes.entity';
 import { ModbusTcpProtocolAttributesEntity } from './modbus-tcp-protocol-attributes.entity';
 
@@ -20,5 +20,5 @@ export type ProtocolAttributes = ModbusTcpProtocolAttributesEntity;
  *   3. Add a single entry here.
  */
 export const PROTOCOL_ATTRIBUTES_MAP: Record<DeviceProtocol, Type<BaseProtocolAttributesEntity>> = {
-  [DeviceProtocol.MODBUS_TCP]: ModbusTcpProtocolAttributesEntity,
+  [DeviceProtocol.ModbusTCP]: ModbusTcpProtocolAttributesEntity,
 };
