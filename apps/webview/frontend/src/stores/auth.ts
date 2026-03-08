@@ -2,25 +2,24 @@ import { defineStore } from 'pinia';
 import { ref, computed, type Ref } from 'vue';
 import api from '../services/api';
 
-interface User {
-  id: string | number;
+export type UserRole = 'user' | 'admin';
+
+export interface User {
   username: string;
-  email?: string;
-  [key: string]: any;
+  role: UserRole;
 }
 
-interface LoginCredentials {
+export interface LoginCredentials {
   username: string;
   password: string;
 }
 
-interface LoginResponse {
+export interface LoginResponse {
   access_token: string;
   user: User;
-  message?: string;
 }
 
-interface LoginResult {
+export interface LoginResult {
   success: boolean;
   error?: string;
 }
