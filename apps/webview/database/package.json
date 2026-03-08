@@ -1,0 +1,9 @@
+{
+  "name": "webview-db-migrator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Prisma migration runner for webview database",
+  "dependencies": {
+    "prisma": "^6.0.0"
+  }
+}

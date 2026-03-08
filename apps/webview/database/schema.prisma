@@ -1,0 +1,129 @@
+// Prisma schema for WebView
+// Draft – PostgreSQL
+// Run from apps/webview/backend:
+//   npx prisma generate --schema=../database/schema.prisma
+//   npx prisma migrate dev --schema=../database/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  // Output into the backend's own node_modules so imports work without extra setup
+  output   = "../backend/node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+// Matches CardType in views/dto/card.dto.ts
+// Prisma enum values cannot contain hyphens, so we use @map for the wire values.
+enum CardType {
+  button
+  switch
+  display
+  number_input @map("number-input")
+}
+
+// Matches DeviceProtocol in devices/dto/create-device.dto.ts
+enum DeviceProtocol {
+  ModbusTCP
+}
+
+// Matches RegisterType in registers/dto/protocol-attributes.dto.ts
+enum RegisterType {
+  coil
+  discrete_input   @map("discrete-input")
+  holding_register @map("holding-register")
+  input_register   @map("input-register")
+}
+
+// Matches RegisterOperation in registers/dto/protocol-attributes.dto.ts
+enum RegisterOperation {
+  R
+  W
+  RW
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+// Matches ViewDto / ViewLayoutDto
+model View {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  // Flattened from ViewLayoutDto { type, updateInterval }
+  layoutType     String
+  updateInterval Int    @default(0)
+
+  components Card[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("views")
+}
+
+// Matches CardDto / CardStyleDto
+model Card {
+  id    Int      @id @default(autoincrement())
+  name  String
+  type  CardType
+  order Int
+
+  // FK to RegisterDictEntry (mirrors card.register in the API)
+  registerId Int
+  register   RegisterDictEntry @relation(fields: [registerId], references: [id])
+
+  viewId Int
+  view   View @relation(fields: [viewId], references: [id], onDelete: Cascade)
+
+  // Flattened from CardStyleDto { color?, size? }
+  styleColor String?
+  styleSize  String?
+
+  // Arbitrary extra config (e.g. confirmAction, label)
+  extra Json?
+
+  @@map("cards")
+}
+
+// Matches CreateDeviceDto / DeviceDto
+model Device {
+  id       Int            @id @default(autoincrement())
+  name     String
+  ip       String
+  port     Int
+  protocol DeviceProtocol
+
+  registers RegisterDictEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("devices")
+}
+
+// Matches CreateRegisterDto / RegisterDictEntryDto + ProtocolAttributesDto
+model RegisterDictEntry {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  // FK to Device
+  deviceId Int
+  device   Device @relation(fields: [deviceId], references: [id])
+
+  // Flattened from ProtocolAttributesDto
+  slaveAddress    Int
+  registerType    RegisterType
+  registerAddress Int
+  operation       RegisterOperation
+
+  cards Card[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("register_dict_entries")
+}
