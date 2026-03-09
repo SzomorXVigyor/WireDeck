@@ -6,6 +6,7 @@ import { ViewDto, ViewLayoutDto } from './dto/view.dto';
 import type { CardDto, CardStyleDto } from './dto/card.dto';
 import { WriteRegisterDto } from './dto/write-register.dto';
 import { RegisterValueDto } from './dto/register-value.dto';
+import { QueryRegistersDto } from './dto/query-registers.dto';
 
 /** Prisma select shape for a full view with its ordered cards. */
 const VIEW_WITH_CARDS_SELECT = {
@@ -103,11 +104,19 @@ export class ViewsService {
     await this.prisma.view.delete({ where: { id } });
   }
 
-  async getData(id: number): Promise<RegisterValueDto[]> {
-    throw new Error('Not implemented');
+  async getData(id: number, dto: QueryRegistersDto): Promise<RegisterValueDto[]> {
+    // generate mock data for the requested registers
+    return dto.registers.map((reg) => ({
+      register: reg,
+      value: Math.floor(Math.random() * 100), // random value for demo purposes
+    }));
   }
 
   async writeData(id: number, dto: WriteRegisterDto): Promise<RegisterValueDto> {
-    throw new Error('Not implemented');
+    // generate mock data for the requested register
+    return {
+      register: dto.register,
+      value: Math.floor(Math.random() * 100), // random value for demo purposes
+    };
   }
 }

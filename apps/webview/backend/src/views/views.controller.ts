@@ -17,6 +17,7 @@ import { ViewSummaryDto } from './dto/view-summary.dto';
 import { ViewDto } from './dto/view.dto';
 import { WriteRegisterDto } from './dto/write-register.dto';
 import { RegisterValueDto } from './dto/register-value.dto';
+import { QueryRegistersDto } from './dto/query-registers.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles, Role } from '../auth/decorators/roles.decorator';
@@ -88,14 +89,16 @@ export class ViewsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('view/:id/data')
-  @ApiOperation({ summary: 'Read live register values for all cards in a view' })
+  @Post('view/:id/data/query')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Read live register values for a given list of register IDs' })
   @ApiParam({ name: 'id', type: Number, description: 'View ID' })
-  @ApiResponse({ status: 200, description: 'Current value of each register in the view', type: [RegisterValueDto] })
+  @ApiBody({ type: QueryRegistersDto })
+  @ApiResponse({ status: 200, description: 'Current value of each requested register', type: [RegisterValueDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 404, description: 'View not found' })
-  async getData(@Param('id', ParseIntPipe) id: number): Promise<RegisterValueDto[]> {
-    return this.viewsService.getData(id);
+  async getData(@Param('id', ParseIntPipe) id: number, @Body() dto: QueryRegistersDto): Promise<RegisterValueDto[]> {
+    return this.viewsService.getData(id, dto);
   }
 
   @UseGuards(JwtAuthGuard)

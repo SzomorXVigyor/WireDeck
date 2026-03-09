@@ -55,11 +55,13 @@ export const useViewsStore = defineStore('views', () => {
 
   /**
    * Fetch current register values for the active view.
-   * `GET /api/view/:id/data` → `{ register, value }[]`
+   * `POST /api/view/:id/data/query` with body `{ registers: number[] }` → `{ register, value }[]`
+   * The register list is derived from the currently loaded view's card components.
    */
   const fetchRegisterData = async (viewId: number | string): Promise<void> => {
     try {
-      const response = await api.get<RegisterEntry[]>(`/view/${viewId}/data`);
+      const registers = (currentView.value?.components ?? []).map((c) => c.register);
+      const response = await api.post<RegisterEntry[]>(`/view/${viewId}/data/query`, { registers });
       const map = new Map<number, number>();
       for (const entry of response.data) {
         map.set(entry.register, entry.value);

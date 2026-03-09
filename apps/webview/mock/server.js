@@ -423,16 +423,18 @@ setInterval(() => {
   });
 }, 2000);
 
-// GET /api/view/:id/data
-app.get("/api/view/:id/data", authenticate, (req, res) => {
+// POST /api/view/:id/data/query
+app.post("/api/view/:id/data/query", authenticate, (req, res) => {
   const id = parseInt(req.params.id, 10);
   const view = mockViewDetails[id];
   if (!view) {
     return res.status(404).json({ message: `View with id ${id} not found` });
   }
-  const result = view.components.map((card) => ({
-    register: card.register,
-    value: mockRegisterData[card.register] ?? 0,
+  const { registers } = req.body;
+  const registerList = Array.isArray(registers) ? registers.map((r) => parseInt(r, 10)) : [];
+  const result = registerList.map((reg) => ({
+    register: reg,
+    value: mockRegisterData[reg] ?? 0,
   }));
   res.json(result);
 });
