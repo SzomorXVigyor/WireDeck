@@ -9,7 +9,7 @@ export interface Device {
   name: string;
   /** Device IP address (IPv4). */
   ip: string;
-  /** TCP port for device communication (1–65535). */
+  /** TCP port for device communication (1-65535). */
   port: number;
   /** Communication protocol used by this device. */
   protocol: Protocol;

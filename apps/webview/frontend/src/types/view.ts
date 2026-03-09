@@ -1,5 +1,5 @@
 // ── Primitives ─────────────────────────────────────────────────────────────
-export type CardType = 'button' | 'switch' | 'display' | 'number-input';
+export type CardType = 'button' | 'switch' | 'display' | 'number_input';
 export type LayoutType = 'fill' | 'fixed';
 
 // ── Style schemas (keyed by CardType) ──────────────────────────────────────
@@ -38,7 +38,7 @@ export interface DisplayStyle {
   fontSize?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-/** Style for `number-input` cards */
+/** Style for `number_input` cards */
 export interface NumberInputStyle {
   /** Unit label shown inside / alongside the input field. */
   unit?: string;
@@ -89,7 +89,7 @@ export interface DisplayExtra {
   prefix?: string;
 }
 
-/** Extra behaviour config for `number-input` cards */
+/** Extra behaviour config for `number_input` cards */
 export interface NumberInputExtra {
   /**
    * Step size used for increment / decrement.
@@ -133,10 +133,10 @@ export interface RegisterEntry {
 
 export interface Layout {
   /**
-   * `fill`  – Cards stretch to fill the horizontal space of each row.
+   * `fill`  - Cards stretch to fill the horizontal space of each row.
    *           Excess cards wrap to the next row.
    *
-   * `fixed` – Each card occupies only its minimum intrinsic width.
+   * `fixed` - Each card occupies only its minimum intrinsic width.
    *           Excess cards wrap to the next row.
    */
   type: LayoutType;

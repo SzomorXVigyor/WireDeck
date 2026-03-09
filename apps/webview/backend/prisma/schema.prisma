@@ -20,7 +20,7 @@ enum CardType {
   button
   switch
   display
-  number_input @map("number-input")
+  number_input
 }
 
 // Matches DeviceProtocol in devices/dto/create-device.dto.ts

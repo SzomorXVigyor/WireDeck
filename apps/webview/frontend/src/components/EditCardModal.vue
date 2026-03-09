@@ -48,7 +48,7 @@
                 <option value="button">Button</option>
                 <option value="switch">Switch</option>
                 <option value="display">Display</option>
-                <option value="number-input">Number Input</option>
+                <option value="number_input">Number Input</option>
               </select>
             </div>
 
@@ -57,12 +57,16 @@
               <label class="block text-sm font-medium mb-1" :class="labelClass">Register</label>
               <select
                 v-model.number="draft.register"
-                class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                :class="inputClass"
+                class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                :class="registerSelectClass"
+                @blur="registerTouched = true"
+                @change="registerTouched = true"
               >
-                <option v-if="registerOptions.length === 0" :value="0" disabled>No registers defined</option>
+                <option :value="0" disabled>- Select a register -</option>
+                <option v-if="registerOptions.length === 0" :value="-1" disabled>No registers defined</option>
                 <option v-for="r in registerOptions" :key="r.id" :value="r.id">{{ r.id }} - {{ r.name }}</option>
               </select>
+              <p v-if="registerError" class="mt-1 text-xs text-red-500">A register must be selected</p>
             </div>
 
             <hr :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'" />
@@ -197,7 +201,7 @@
             </template>
 
             <!-- ── NUMBER INPUT ──────────────────────────────────────── -->
-            <template v-else-if="draft.type === 'number-input'">
+            <template v-else-if="draft.type === 'number_input'">
               <div>
                 <label class="block text-sm font-medium mb-1" :class="labelClass">Unit label</label>
                 <input
@@ -268,7 +272,13 @@
             </button>
             <button
               type="button"
-              class="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              :class="
+                canSubmit
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-blue-400 text-white cursor-not-allowed opacity-60'
+              "
+              :disabled="!canSubmit"
               @click="handleSet"
             >
               Set
@@ -299,8 +309,8 @@ interface DraftCard {
 const TYPE_DEFAULTS: Record<CardType, { style: Record<string, any>; extra: Record<string, any> }> = {
   button: { style: { color: 'primary', size: 'md' }, extra: { label: '', confirmAction: false } },
   switch: { style: { color: 'green' }, extra: { onLabel: 'ON', offLabel: 'OFF' } },
-  display: { style: { fontSize: 'lg', unit: '' }, extra: { precision: 2, prefix: '' } },
-  'number-input': { style: { min: 0, max: 100, unit: '' }, extra: { step: 1, placeholder: '' } },
+  display: { style: { fontSize: 'lg', unit: '' }, extra: { precision: 0, prefix: '' } },
+  number_input: { style: { min: 0, max: 100, unit: '' }, extra: { step: 1, placeholder: '' } },
 };
 
 const props = defineProps<{
@@ -326,7 +336,7 @@ const draft = ref<DraftCard>(makeDraft());
 
 function makeDraft(): DraftCard {
   if (props.card) {
-    return JSON.parse(
+    const d = JSON.parse(
       JSON.stringify({
         id: props.card.id,
         name: props.card.name,
@@ -337,6 +347,8 @@ function makeDraft(): DraftCard {
         extra: props.card.extra,
       })
     );
+    if (d.type === 'display' && d.extra.precision == null) d.extra.precision = 0;
+    return d;
   }
   const type: CardType = 'display';
   const defaults = TYPE_DEFAULTS[type];
@@ -356,10 +368,18 @@ watch(
   async (open) => {
     if (open) {
       draft.value = makeDraft();
+      registerTouched.value = false;
       if (registersStore.registers.length === 0) {
         await registersStore.fetchRegisters();
       }
     }
+  }
+);
+
+watch(
+  () => draft.value.register,
+  (_val) => {
+    registerTouched.value = true;
   }
 );
 
@@ -369,9 +389,25 @@ const onTypeChange = () => {
   draft.value.extra = { ...defaults.extra };
 };
 
+const canSubmit = computed(() => draft.value.register > 0);
+const registerTouched = ref(false);
+const registerError = computed(() => registerTouched.value && draft.value.register <= 0);
+
+const registerSelectClass = computed(() => {
+  const base = themeStore.isDark
+    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
+    : 'bg-white border-gray-300 text-gray-900';
+  if (registerError.value) return `${base} border-red-500 focus:ring-red-500`;
+  return `${base} focus:ring-blue-500`;
+});
+
 const cancel = () => emit('update:modelValue', false);
 
 const handleSet = () => {
+  if (!canSubmit.value) {
+    registerTouched.value = true;
+    return;
+  }
   const card: Card = {
     id: draft.value.id === 0 ? Date.now() : draft.value.id,
     name: draft.value.name,

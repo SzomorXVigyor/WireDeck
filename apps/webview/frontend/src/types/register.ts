@@ -4,7 +4,7 @@ export type ModbusRegisterType = 'coil' | 'discrete-input' | 'holding-register' 
 export type ModbusOperation = 'R' | 'W' | 'RW';
 
 export interface ModbusTCPAttributes {
-  /** Modbus slave / unit address (0–247). */
+  /** Modbus slave / unit address (0-247). */
   slaveAddress: number;
   /** Modbus register table. */
   registerType: ModbusRegisterType;

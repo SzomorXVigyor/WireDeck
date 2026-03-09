@@ -286,7 +286,7 @@ const mockViewDetails = {
       {
         id: 7,
         name: "Target Temperature",
-        type: "number-input",
+        type: "number_input",
         order: 2,
         register: 7,
         style: { unit: "°C", min: 16, max: 30 },
@@ -401,7 +401,7 @@ const mockRegisterData = {};
         else if (card.type === "display") {
           // Seed with a realistic value that will drift slightly each poll
           mockRegisterData[card.register] = parseFloat((10 + card.register * 3.7).toFixed(2));
-        } else if (card.type === "number-input") {
+        } else if (card.type === "number_input") {
           const style = card.style;
           mockRegisterData[card.register] = style.min !== undefined ? style.min : 0;
         }

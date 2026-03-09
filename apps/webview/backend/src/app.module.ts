@@ -31,7 +31,9 @@ const pgSchema = SERVICE_NAME || 'public';
       useFactory: () => {
         const pool = new Pool({ connectionString: DATABASE_URL });
         pool.on('connect', (client) => {
-          client.query(`SET search_path TO "${pgSchema}"`);
+          client.query(`SET search_path TO "${pgSchema}"`).catch((err: unknown) => {
+            console.error('Failed to set search_path:', err);
+          });
         });
         return {
           prismaOptions: {

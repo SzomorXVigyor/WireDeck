@@ -147,7 +147,7 @@ Response 200:
 }
 ```
 
-Card types: `button`, `switch`, `display`, `number-input`.
+Card types: `button`, `switch`, `display`, `number_input`.
 `register` references a RegisterDictEntry id (see Register Dictionary).
 `layout.updateInterval` is the polling interval in seconds (0 = no polling).
 

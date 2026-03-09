@@ -33,5 +33,5 @@ export class ModbusTcpProtocolAttributesEntity extends BaseProtocolAttributesEnt
   @IsInt()
   @Min(0)
   @Max(255)
-  unitId: number;
+  slaveAddress: number;
 }

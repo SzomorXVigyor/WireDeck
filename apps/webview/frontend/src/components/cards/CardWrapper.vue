@@ -9,7 +9,7 @@
     <ButtonCard v-if="card.type === 'button'" :card="card" :view-id="viewId" class="h-full" />
     <SwitchCard v-else-if="card.type === 'switch'" :card="card" :view-id="viewId" class="h-full" />
     <DisplayCard v-else-if="card.type === 'display'" :card="card" class="h-full" />
-    <NumberInputCard v-else-if="card.type === 'number-input'" :card="card" :view-id="viewId" class="h-full" />
+    <NumberInputCard v-else-if="card.type === 'number_input'" :card="card" :view-id="viewId" class="h-full" />
     <!-- Fallback for unknown types -->
     <div
       v-else
