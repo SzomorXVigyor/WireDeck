@@ -30,7 +30,7 @@ function mapRow(row: RegisterRow): RegisterDictEntryDto {
 export class RegistersService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly devicesService: DevicesService,
+    private readonly devicesService: DevicesService
   ) {}
 
   /**

@@ -43,7 +43,7 @@ function mapViewRow(row: ViewRow): ViewDto {
         register: c.registerId,
         style: c.style ? (c.style as unknown as CardStyleDto) : undefined,
         extra: c.extra ? (c.extra as unknown as Record<string, unknown>) : undefined,
-      }),
+      })
     ),
   };
 }
