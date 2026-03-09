@@ -1,12 +1,37 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from 'nestjs-prisma';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { DevicesService } from '../devices/devices.service';
 import { RegisterDictEntryDto } from './dto/register-dict-entry.dto';
 import { CreateRegisterDto } from './dto/create-register.dto';
 import { BaseProtocolAttributesEntity, PROTOCOL_ATTRIBUTES_MAP } from './entities/protocol-attributes';
 
+const REGISTER_SELECT = {
+  id: true,
+  name: true,
+  deviceId: true,
+  protocolAttributes: true,
+} as const;
+
+type RegisterRow = Prisma.RegisterDictEntryGetPayload<{ select: typeof REGISTER_SELECT }>;
+
+function mapRow(row: RegisterRow): RegisterDictEntryDto {
+  return {
+    id: row.id,
+    name: row.name,
+    deviceId: row.deviceId,
+    protocolAttributes: row.protocolAttributes as unknown as BaseProtocolAttributesEntity,
+  };
+}
+
 @Injectable()
 export class RegistersService {
-  constructor(private readonly devicesService: DevicesService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly devicesService: DevicesService,
+  ) {}
 
   /**
    * Looks up the device by id, resolves the correct protocol-attributes class
@@ -14,22 +39,50 @@ export class RegistersService {
    * Throws if the device is not found or attrs fail validation.
    */
   async validateProtocolAttributes(deviceId: number, attrs: unknown): Promise<BaseProtocolAttributesEntity> {
-    throw new Error('Not implemented');
+    const device = await this.devicesService.findOne(deviceId); // P2025 → 404 if missing
+    const AttrClass = PROTOCOL_ATTRIBUTES_MAP[device.protocol];
+    const instance = plainToInstance(AttrClass, attrs);
+    const errors = await validate(instance);
+    if (errors.length > 0) {
+      const messages = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+      throw new BadRequestException(messages);
+    }
+    return instance;
   }
 
   async findAll(): Promise<RegisterDictEntryDto[]> {
-    throw new Error('Not implemented');
+    const rows = await this.prisma.registerDictEntry.findMany({ select: REGISTER_SELECT });
+    return rows.map(mapRow);
   }
 
   async create(dto: CreateRegisterDto): Promise<RegisterDictEntryDto> {
-    throw new Error('Not implemented');
+    const validAttrs = await this.validateProtocolAttributes(dto.deviceId, dto.protocolAttributes);
+    const row = await this.prisma.registerDictEntry.create({
+      data: {
+        name: dto.name,
+        deviceId: dto.deviceId,
+        protocolAttributes: validAttrs as unknown as Prisma.InputJsonValue,
+      },
+      select: REGISTER_SELECT,
+    });
+    return mapRow(row);
   }
 
   async update(id: number, dto: CreateRegisterDto): Promise<RegisterDictEntryDto> {
-    throw new Error('Not implemented');
+    const validAttrs = await this.validateProtocolAttributes(dto.deviceId, dto.protocolAttributes);
+    const row = await this.prisma.registerDictEntry.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        deviceId: dto.deviceId,
+        protocolAttributes: validAttrs as unknown as Prisma.InputJsonValue,
+      },
+      select: REGISTER_SELECT,
+    });
+    return mapRow(row);
   }
 
   async remove(id: number): Promise<void> {
-    throw new Error('Not implemented');
+    await this.prisma.registerDictEntry.delete({ where: { id } });
   }
 }
