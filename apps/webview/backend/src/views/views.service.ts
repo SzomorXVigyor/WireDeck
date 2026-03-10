@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { ViewSummaryDto } from './dto/view-summary.dto';
@@ -53,6 +53,8 @@ function mapViewRow(row: ViewRow): ViewDto {
 
 @Injectable()
 export class ViewsService {
+  private readonly logger = new Logger(ViewsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: RegisterCacheService,
@@ -80,6 +82,7 @@ export class ViewsService {
       },
       select: VIEW_WITH_CARDS_SELECT,
     });
+    this.logger.debug(`View created: id=${row.id} name="${row.name}"`);
     return mapViewRow(row);
   }
 
@@ -103,11 +106,13 @@ export class ViewsService {
       },
       select: VIEW_WITH_CARDS_SELECT,
     });
+    this.logger.debug(`View updated: id=${row.id} name="${row.name}" cards=${row.components.length}`);
     return mapViewRow(row);
   }
 
   async remove(id: number): Promise<void> {
     await this.prisma.view.delete({ where: { id } });
+    this.logger.debug(`View deleted: id=${id}`);
   }
 
   async getData(id: number, dto: QueryRegistersDto): Promise<RegisterValueDto[]> {
@@ -135,7 +140,9 @@ export class ViewsService {
 
     try {
       await this.connectionManager.writeRegister(dto.register, dto.value);
+      this.logger.debug(`Register write: viewId=${id} registerId=${dto.register} value=${dto.value}`);
     } catch (err) {
+      this.logger.warn(`Register write failed: viewId=${id} registerId=${dto.register} - ${String(err)}`);
       throw new BadRequestException(String(err));
     }
 

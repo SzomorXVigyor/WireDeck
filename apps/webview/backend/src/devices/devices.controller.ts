@@ -59,6 +59,8 @@ export class DevicesController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Device not found' })
+  @ApiResponse({ status: 409, description: 'Conflict - unique constraint violation' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateDeviceDto): Promise<DeviceDto> {
     return this.devicesService.update(id, dto);
   }
@@ -73,6 +75,8 @@ export class DevicesController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Device not found' })
+  @ApiResponse({ status: 409, description: 'Conflict - device is still referenced by existing registers' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.devicesService.remove(id);
   }

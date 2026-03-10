@@ -55,6 +55,7 @@ export class ViewsController {
   @ApiResponse({ status: 201, description: 'View created with a generated name', type: ViewDto })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async create(): Promise<ViewDto> {
     return this.viewsService.create();
   }
@@ -70,6 +71,7 @@ export class ViewsController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'View not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: ViewDto): Promise<ViewDto> {
     return this.viewsService.update(id, dto);
   }
@@ -84,6 +86,7 @@ export class ViewsController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'View not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.viewsService.remove(id);
   }
@@ -108,9 +111,10 @@ export class ViewsController {
   @ApiParam({ name: 'id', type: Number, description: 'View ID' })
   @ApiBody({ type: WriteRegisterDto })
   @ApiResponse({ status: 200, description: 'Confirmed register value after write', type: RegisterValueDto })
-  @ApiResponse({ status: 400, description: 'Missing fields or register not part of this view' })
+  @ApiResponse({ status: 400, description: 'Missing fields, register not part of this view, or device write error' })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 404, description: 'View not found' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async writeData(@Param('id', ParseIntPipe) id: number, @Body() dto: WriteRegisterDto): Promise<RegisterValueDto> {
     return this.viewsService.writeData(id, dto);
   }

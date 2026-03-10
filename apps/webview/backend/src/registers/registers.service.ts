@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { plainToInstance } from 'class-transformer';
@@ -29,6 +29,8 @@ function mapRow(row: RegisterRow): RegisterDictEntryDto {
 
 @Injectable()
 export class RegistersService {
+  private readonly logger = new Logger(RegistersService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly devicesService: DevicesService,
@@ -47,6 +49,7 @@ export class RegistersService {
     const errors = await validate(instance);
     if (errors.length > 0) {
       const messages = errors.flatMap((e) => Object.values(e.constraints ?? {}));
+      this.logger.warn(`Protocol attribute validation failed for device ${deviceId}: ${messages.join(', ')}`);
       throw new BadRequestException(messages);
     }
     return instance;
@@ -67,6 +70,7 @@ export class RegistersService {
       },
       select: REGISTER_SELECT,
     });
+    this.logger.debug(`Register created: id=${row.id} name="${row.name}" deviceId=${row.deviceId}`);
     this.connectionManager.onRegisterCreated(row);
     return mapRow(row);
   }
@@ -82,6 +86,7 @@ export class RegistersService {
       },
       select: REGISTER_SELECT,
     });
+    this.logger.debug(`Register updated: id=${row.id} name="${row.name}"`);
     this.connectionManager.onRegisterUpdated(row);
     return mapRow(row);
   }
@@ -89,11 +94,13 @@ export class RegistersService {
   async remove(id: number): Promise<void> {
     try {
       await this.prisma.registerDictEntry.delete({ where: { id } });
+      this.logger.debug(`Register deleted: id=${id}`);
       this.connectionManager.onRegisterDeleted(id);
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
-        throw new BadRequestException(`Unable to delete register ${id} - bound to a view`);
+        throw new ConflictException(`Register ${id} cannot be deleted - it is still referenced by view cards`);
       }
+      throw err;
     }
   }
 }

@@ -44,6 +44,8 @@ export class RegistersController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Referenced device not found' })
+  @ApiResponse({ status: 409, description: 'Conflict - unique constraint violation' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async create(@Body() dto: CreateRegisterDto): Promise<RegisterDictEntryDto> {
     return this.registersService.create(dto);
   }
@@ -59,6 +61,8 @@ export class RegistersController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Register entry or referenced device not found' })
+  @ApiResponse({ status: 409, description: 'Conflict - unique constraint violation' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateRegisterDto): Promise<RegisterDictEntryDto> {
     return this.registersService.update(id, dto);
   }
@@ -73,6 +77,8 @@ export class RegistersController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Register entry not found' })
+  @ApiResponse({ status: 409, description: 'Conflict - register is still referenced by view cards' })
+  @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.registersService.remove(id);
   }

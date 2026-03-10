@@ -1,7 +1,9 @@
-import { HttpStatus, Module } from '@nestjs/common';
+import { HttpStatus, Logger, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
+import { APP_FILTER } from '@nestjs/core';
+import { PrismaFallbackExceptionFilter } from './utils/prisma-exception.filter';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigurationModule } from './config/config.module';
@@ -34,7 +36,7 @@ const pgSchema = SERVICE_NAME || 'public';
         const pool = new Pool({ connectionString: DATABASE_URL });
         pool.on('connect', (client) => {
           client.query(`SET search_path TO "${pgSchema}"`).catch((err: unknown) => {
-            console.error('Failed to set search_path:', err);
+            Logger.error(`Failed to set search_path to "${pgSchema}": ${String(err)}`, 'PrismaPool');
           });
         });
         return {
@@ -69,8 +71,10 @@ const pgSchema = SERVICE_NAME || 'public';
       // Prisma Error Code: HTTP Status Response
       P2000: HttpStatus.BAD_REQUEST,
       P2002: HttpStatus.CONFLICT,
+      P2003: HttpStatus.CONFLICT,
       P2025: HttpStatus.NOT_FOUND,
     }),
+    { provide: APP_FILTER, useClass: PrismaFallbackExceptionFilter },
   ],
 })
 export class AppModule {}
