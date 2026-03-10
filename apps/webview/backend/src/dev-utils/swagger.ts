@@ -20,7 +20,6 @@ export function loadSwagger(app) {
     .addTag('auth')
     .addTag('health')
     .addTag('config')
-    .addTag('user')
     .addTag('devices')
     .addTag('registers')
     .addTag('views')
