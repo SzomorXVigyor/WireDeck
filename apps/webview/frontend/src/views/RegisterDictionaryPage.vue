@@ -10,7 +10,7 @@
         @click="openCreateModal"
       >
         <PlusIcon class="w-4 h-4" />
-        Create
+        Add register
       </button>
     </div>
 
