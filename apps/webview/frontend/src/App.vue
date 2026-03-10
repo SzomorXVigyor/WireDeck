@@ -1,6 +1,7 @@
 <template>
   <div id="app" class="min-h-screen bg-gray-50">
     <router-view />
+    <ToastContainer />
   </div>
 </template>
 
@@ -8,6 +9,7 @@
 import { onMounted } from 'vue';
 import { useAuthStore } from './stores/auth';
 import { useThemeStore } from './stores/theme';
+import ToastContainer from './components/ToastContainer.vue';
 
 const authStore = useAuthStore();
 const themeStore = useThemeStore();

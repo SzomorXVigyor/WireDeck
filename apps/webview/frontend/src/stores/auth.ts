@@ -63,12 +63,13 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: true };
       } else {
         // Handle failed login gracefully without reload
-        error.value = response.data.message || 'Invalid credentials';
-        return { success: false, error: error.value };
+        const errData = response.data as unknown as Record<string, unknown>;
+        error.value = (typeof errData?.message === 'string' ? errData.message : null) || 'Invalid credentials';
+        return { success: false, error: error.value ?? undefined };
       }
     } catch (err: any) {
       error.value = err.response?.data?.message || err.message || 'Login failed';
-      return { success: false, error: error.value };
+      return { success: false, error: error.value ?? undefined };
     } finally {
       loading.value = false;
     }

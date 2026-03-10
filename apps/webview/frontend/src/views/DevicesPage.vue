@@ -60,11 +60,12 @@
           tableGridClass,
         ]"
       >
-        <span>ID</span>
+        <span class="hidden md:block">ID</span>
         <span>Name</span>
-        <span>Protocol</span>
-        <span>IP address</span>
-        <span>Port</span>
+        <span class="hidden md:block">Protocol</span>
+        <span class="hidden md:block">IP address</span>
+        <span class="hidden md:block">Port</span>
+        <span class="md:hidden">Address</span>
         <span class="text-right">Actions</span>
       </div>
 
@@ -85,13 +86,13 @@
           tableGridClass,
         ]"
       >
-        <span class="font-mono text-xs" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
+        <span class="hidden md:block font-mono text-xs" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
           {{ device.id }}
         </span>
         <span class="font-medium truncate" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
           {{ device.name }}
         </span>
-        <span>
+        <span class="hidden md:block">
           <span
             class="text-xs font-medium px-1.5 py-0.5 rounded"
             :class="themeStore.isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'"
@@ -99,11 +100,20 @@
             {{ device.protocol }}
           </span>
         </span>
-        <span class="font-mono text-xs truncate" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
+        <span
+          class="hidden md:block font-mono text-xs truncate"
+          :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
+        >
           {{ device.ip }}
         </span>
-        <span class="font-mono text-xs" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
+        <span class="hidden md:block font-mono text-xs" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
           {{ device.port }}
+        </span>
+        <span
+          class="md:hidden font-mono text-xs truncate"
+          :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
+        >
+          {{ device.ip }}:{{ device.port }}
         </span>
         <div class="flex items-center justify-end gap-1">
           <button
@@ -157,7 +167,9 @@ const editingDevice = ref<Device | null>(null);
 
 // ── Layout ────────────────────────────────────────────────────────────────────
 
-const tableGridClass = 'grid-cols-[3.5rem_1fr_8rem_11rem_5rem_6rem]';
+// Mobile: Name | IP:Port | Actions (3 cols)
+// Desktop: ID | Name | Protocol | IP | Port | Actions (6 cols)
+const tableGridClass = 'grid-cols-[1fr_9rem_5rem] md:grid-cols-[3.5rem_1fr_8rem_11rem_5rem_6rem]';
 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
