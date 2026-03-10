@@ -7,6 +7,7 @@ import { DevicesService } from '../devices/devices.service';
 import { RegisterDictEntryDto } from './dto/register-dict-entry.dto';
 import { CreateRegisterDto } from './dto/create-register.dto';
 import { BaseProtocolAttributesEntity, PROTOCOL_ATTRIBUTES_MAP } from './entities/protocol-attributes';
+import { ConnectionManagerService } from '../connection/connection-manager.service';
 
 const REGISTER_SELECT = {
   id: true,
@@ -30,7 +31,8 @@ function mapRow(row: RegisterRow): RegisterDictEntryDto {
 export class RegistersService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly devicesService: DevicesService
+    private readonly devicesService: DevicesService,
+    private readonly connectionManager: ConnectionManagerService
   ) {}
 
   /**
@@ -65,6 +67,7 @@ export class RegistersService {
       },
       select: REGISTER_SELECT,
     });
+    this.connectionManager.onRegisterCreated(row);
     return mapRow(row);
   }
 
@@ -79,10 +82,18 @@ export class RegistersService {
       },
       select: REGISTER_SELECT,
     });
+    this.connectionManager.onRegisterUpdated(row);
     return mapRow(row);
   }
 
   async remove(id: number): Promise<void> {
-    await this.prisma.registerDictEntry.delete({ where: { id } });
+    try {
+      await this.prisma.registerDictEntry.delete({ where: { id } });
+      this.connectionManager.onRegisterDeleted(id);
+    } catch (err) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') {
+        throw new BadRequestException(`Unable to delete register ${id} - bound to a view`);
+      }
+    }
   }
 }

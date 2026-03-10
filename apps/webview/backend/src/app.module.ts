@@ -1,12 +1,14 @@
 import { HttpStatus, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ConfigurationModule } from './config/config.module';
 import { ViewsModule } from './views/views.module';
 import { DevicesModule } from './devices/devices.module';
 import { RegistersModule } from './registers/registers.module';
+import { ConnectionModule } from './connection/connection.module';
 import { HealthController } from './health/health.controller';
 import { configValidation } from './config/config.validation';
 import { PrismaModule, providePrismaClientExceptionFilter } from 'nestjs-prisma';
@@ -48,6 +50,8 @@ const pgSchema = SERVICE_NAME || 'public';
     ViewsModule,
     DevicesModule,
     RegistersModule,
+    ConnectionModule,
+    ScheduleModule.forRoot(),
     // Frontend static files
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public', 'frontend'),

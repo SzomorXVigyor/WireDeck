@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { FRONTEND_URL, IN_PRODUCTION, PORT } from './utils/env';
 
@@ -23,7 +23,7 @@ async function bootstrap() {
 
   await await app.listen(PORT);
 
-  console.log(`Application listening on port ${PORT}`);
+  Logger.log(`Application listening on port ${PORT}`);
 }
 
 bootstrap();

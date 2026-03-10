@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { ViewSummaryDto } from './dto/view-summary.dto';
@@ -7,6 +7,8 @@ import type { CardDto, CardStyleDto } from './dto/card.dto';
 import { WriteRegisterDto } from './dto/write-register.dto';
 import { RegisterValueDto } from './dto/register-value.dto';
 import { QueryRegistersDto } from './dto/query-registers.dto';
+import { RegisterCacheService } from '../connection/register-cache.service';
+import { ConnectionManagerService } from '../connection/connection-manager.service';
 
 /** Prisma select shape for a full view with its ordered cards. */
 const VIEW_WITH_CARDS_SELECT = {
@@ -51,7 +53,11 @@ function mapViewRow(row: ViewRow): ViewDto {
 
 @Injectable()
 export class ViewsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: RegisterCacheService,
+    private readonly connectionManager: ConnectionManagerService
+  ) {}
 
   async findAll(): Promise<ViewSummaryDto[]> {
     return this.prisma.view.findMany({ select: { id: true, name: true } });
@@ -105,18 +111,34 @@ export class ViewsService {
   }
 
   async getData(id: number, dto: QueryRegistersDto): Promise<RegisterValueDto[]> {
-    // generate mock data for the requested registers
+    // Verify view exists (throws 404 via Prisma filter if not).
+    await this.prisma.view.findUniqueOrThrow({ where: { id }, select: { id: true } });
+
+    // Return cached values only - the scheduler is the sole driver of device reads.
+    // Any register not yet polled (or not tracked) returns 0.
     return dto.registers.map((reg) => ({
       register: reg,
-      value: Math.floor(Math.random() * 100), // random value for demo purposes
+      value: this.cache.get(reg),
     }));
   }
 
   async writeData(id: number, dto: WriteRegisterDto): Promise<RegisterValueDto> {
-    // generate mock data for the requested register
-    return {
-      register: dto.register,
-      value: Math.floor(Math.random() * 100), // random value for demo purposes
-    };
+    // Verify the register belongs to this view (security: prevent writing
+    // arbitrary registers via a view the caller has access to).
+    const card = await this.prisma.card.findFirst({
+      where: { viewId: id, registerId: dto.register },
+      select: { id: true },
+    });
+    if (!card) {
+      throw new BadRequestException(`Register ${dto.register} is not part of view ${id}`);
+    }
+
+    try {
+      await this.connectionManager.writeRegister(dto.register, dto.value);
+    } catch (err) {
+      throw new BadRequestException(String(err));
+    }
+
+    return { register: dto.register, value: dto.value };
   }
 }

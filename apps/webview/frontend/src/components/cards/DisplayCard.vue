@@ -43,7 +43,7 @@ const rawValue = computed<number>(() => {
   const v = viewsStore.registerData.get(props.card.register);
   if (v !== undefined) return v;
   // Seed fallback until first poll arrives
-  return 10 + (props.card.register % 100) * 0.37;
+  return NaN;
 });
 
 const displayValue = computed(() => {
