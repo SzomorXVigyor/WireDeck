@@ -16,11 +16,8 @@ import { configValidation } from './config/config.validation';
 import { PrismaModule, providePrismaClientExceptionFilter } from 'nestjs-prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-import { DATABASE_URL } from './utils/env';
-import { SERVICE_NAME } from './utils/env';
+import { DATABASE_URL, SERVICE_NAME } from './utils/env';
 import { join } from 'path';
-
-const pgSchema = SERVICE_NAME || 'public';
 
 @Module({
   imports: [
@@ -33,13 +30,10 @@ const pgSchema = SERVICE_NAME || 'public';
     PrismaModule.forRootAsync({
       isGlobal: true,
       useFactory: () => {
-        const pool = new Pool({
-          connectionString: DATABASE_URL,
-          options: `-c search_path="${pgSchema}"`,
-        });
+        const pool = new Pool({ connectionString: DATABASE_URL });
         return {
           prismaOptions: {
-            adapter: new PrismaPg(pool),
+            adapter: new PrismaPg(pool, { schema: SERVICE_NAME }),
           },
         };
       },

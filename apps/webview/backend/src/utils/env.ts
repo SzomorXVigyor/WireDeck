@@ -17,7 +17,7 @@ export const IN_PRODUCTION = NODE_ENV === 'production';
 export const IN_DEVELOPMENT = NODE_ENV === 'development';
 export const WIREDECK_SLAVE = env.get('WIREDECK_SLAVE').default('true').asBool();
 export const PASS_CHANGE_URL = env.get('PASS_CHANGE_URL').default('').asString();
-export const SERVICE_NAME = env.get('SERVICE_NAME').required().default('').asString();
+export const SERVICE_NAME = env.get('SERVICE_NAME').required().asString();
 export const VERSION = env.get('npm_package_version').default('0.0.0').asString();
 
 if (WIREDECK_SLAVE && (!PASS_CHANGE_URL || !SERVICE_NAME)) {

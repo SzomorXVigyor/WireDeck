@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { RegisterCacheService } from './register-cache.service';
 import { ConnectionManagerService } from './connection-manager.service';
 import { ModbusTcpProtocolAttributesEntity } from '../registers/entities/protocol-attributes';
+import { WriteOnlyRegisterError } from './drivers/modbus-tcp.driver';
 
 /**
  * DataCollectorService
@@ -75,6 +76,10 @@ export class DataCollectorService {
           const value = await driver.readRegister(attrs);
           this.cache.set(regId, value);
         } catch (err) {
+          if (err instanceof WriteOnlyRegisterError) {
+            // Write-only register - skip silently, no cache entry produced.
+            continue;
+          }
           this.logger.error(`[Device ${deviceId}] Failed to read register ${regId}: ${String(err)}`);
         }
       }

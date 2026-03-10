@@ -6,6 +6,14 @@ import {
   RegisterType,
 } from '../../registers/entities/protocol-attributes';
 
+/** Thrown when a read is attempted on a write-only (operation=W) register. */
+export class WriteOnlyRegisterError extends Error {
+  constructor(registerAddress: number) {
+    super(`Register address ${registerAddress} is write-only (operation=W) - read skipped`);
+    this.name = 'WriteOnlyRegisterError';
+  }
+}
+
 /**
  * Wraps a single `modbus-serial` TCP client for one physical device.
  *
@@ -74,6 +82,10 @@ export class ModbusTcpDriver {
   }
 
   private async _read(attrs: ModbusTcpProtocolAttributesEntity): Promise<number> {
+    if (attrs.operation === RegisterOperation.W) {
+      throw new WriteOnlyRegisterError(attrs.registerAddress);
+    }
+
     await this.ensureConnected();
     this.client.setID(attrs.slaveAddress);
 
