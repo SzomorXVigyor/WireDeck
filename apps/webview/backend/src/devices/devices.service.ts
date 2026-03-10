@@ -18,7 +18,7 @@ export class DevicesService {
   ) {}
 
   async findAll(): Promise<DeviceDto[]> {
-    return this.prisma.device.findMany({ select: DEVICE_SELECT });
+    return this.prisma.device.findMany({ select: DEVICE_SELECT, orderBy: { id: 'asc' } });
   }
 
   async findOne(id: number): Promise<DeviceDto> {

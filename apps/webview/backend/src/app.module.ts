@@ -1,4 +1,4 @@
-import { HttpStatus, Logger, Module } from '@nestjs/common';
+import { HttpStatus, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -33,11 +33,9 @@ const pgSchema = SERVICE_NAME || 'public';
     PrismaModule.forRootAsync({
       isGlobal: true,
       useFactory: () => {
-        const pool = new Pool({ connectionString: DATABASE_URL });
-        pool.on('connect', (client) => {
-          client.query(`SET search_path TO "${pgSchema}"`).catch((err: unknown) => {
-            Logger.error(`Failed to set search_path to "${pgSchema}": ${String(err)}`, 'PrismaPool');
-          });
+        const pool = new Pool({
+          connectionString: DATABASE_URL,
+          options: `-c search_path="${pgSchema}"`,
         });
         return {
           prismaOptions: {

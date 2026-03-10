@@ -56,7 +56,7 @@ export class RegistersService {
   }
 
   async findAll(): Promise<RegisterDictEntryDto[]> {
-    const rows = await this.prisma.registerDictEntry.findMany({ select: REGISTER_SELECT });
+    const rows = await this.prisma.registerDictEntry.findMany({ select: REGISTER_SELECT, orderBy: { id: 'asc' } });
     return rows.map(mapRow);
   }
 
