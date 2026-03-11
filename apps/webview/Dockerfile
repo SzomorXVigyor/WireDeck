@@ -44,3 +44,47 @@ COPY backend/ ./
 
 # Build backend for production
 RUN yarn build
+
+# Remove dev dependencies to reduce image size
+RUN yarn install --production --ignore-scripts --prefer-offline
+
+# --------------------
+# Production stage
+# --------------------
+FROM node:24-alpine AS production
+
+# Install dependencies: yarn, dumb-init, supervisord, wireguard-tools, bash, iptables
+RUN corepack enable && \
+    apk add --no-cache dumb-init supervisor wireguard-tools iptables bash
+
+# Copy backend build and dependencies
+COPY --from=backend-builder /app/backend/dist ./dist
+COPY --from=backend-builder /app/backend/node_modules ./node_modules
+COPY --from=backend-builder /app/backend/package.json ./package.json
+COPY --from=backend-builder /app/backend/yarn.lock ./yarn.lock
+
+# Copy frontend build output to backend's public directory
+COPY --from=frontend-builder /app/frontend/dist ./public/frontend
+
+# Create required directories
+RUN mkdir -p /etc/wireguard /var/log/supervisor
+
+# Copy startup scripts and supervisord config
+COPY scripts/start-wireguard.sh /scripts/start-wireguard.sh
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Ensure scripts are executable
+RUN chmod +x /scripts/start-wireguard.sh
+
+# Expose backend port
+EXPOSE 8080
+
+# Health check for backend
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:8080/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Use dumb-init as entrypoint to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start both backend and WireGuard under supervisord
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
