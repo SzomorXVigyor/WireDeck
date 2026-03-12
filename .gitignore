@@ -3,3 +3,4 @@
 /nginx/sites/
 .env
 /apps/webvnc/backend/public
+/node_modules/
