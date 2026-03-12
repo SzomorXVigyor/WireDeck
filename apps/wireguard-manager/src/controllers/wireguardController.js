@@ -13,7 +13,7 @@ async function getAllInstances(req, res) {
     for (const [name, instance] of Object.entries(instances)) {
       const isRunning = (await serviceManager.WireguardServerService.statusInstance(name)) === 'running';
 
-      const { username, password, remoteVNC, ...safeInstance } = instance;
+      const { username, password, remoteVNC, webview, ...safeInstance } = instance;
 
       instancesWithStatus[name] = {
         ...safeInstance,
@@ -33,6 +33,20 @@ async function getAllInstances(req, res) {
           ...safeVncInstance,
           status: isVncRunning ? 'online' : 'offline',
           subdomain: `vnc.${name}.${ROOT_DOMAIN}`,
+        };
+      }
+
+      if (webview) {
+        const isWebviewRunning = (await serviceManager.WebViewService.statusInstance(name)) === 'running';
+
+        webview.loginUsers.forEach((element) => delete element.password);
+
+        const { wireguard, ...safeWebviewInstance } = webview;
+
+        instancesWithStatus[name].webview = {
+          ...safeWebviewInstance,
+          status: isWebviewRunning ? 'online' : 'offline',
+          subdomain: `web.${name}.${ROOT_DOMAIN}`,
         };
       }
     }
