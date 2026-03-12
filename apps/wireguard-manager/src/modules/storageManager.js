@@ -548,6 +548,188 @@ const CacheManager = {
 };
 
 // ============================================================================
+// WEBVIEW MODULE
+// ============================================================================
+
+const WebView = {
+  async initialize(instanceName, wireguardConfig, loginUsers = []) {
+    await _modifyState((state) => {
+      if (!state.instances[instanceName]) {
+        throw new Error('WireGuard server instance not found');
+      }
+
+      if (state.instances[instanceName].webView) {
+        throw new Error('WebView module already initialized for this WireGuard server');
+      }
+
+      // Use the same index as the WireGuard server but with 172.20.3.X range
+      const index = state.instances[instanceName].index;
+      const webviewIpv4 = `172.20.3.${index + 1}`;
+
+      state.instances[instanceName].webView = {
+        ipv4: webviewIpv4,
+        wireguard: {
+          config: wireguardConfig || '',
+        },
+        loginUsers: loginUsers, // Array of {username, password, role} objects
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    return this.get(instanceName);
+  },
+
+  async remove(instanceName) {
+    await _modifyState((state) => {
+      if (!state.instances[instanceName]) {
+        throw new Error('WireGuard server instance not found');
+      }
+
+      if (state.instances[instanceName].webView) {
+        delete state.instances[instanceName].webView;
+      }
+    });
+  },
+
+  async exists(instanceName) {
+    const state = await _readState();
+    return !!(state.instances[instanceName] && state.instances[instanceName].webView);
+  },
+
+  async get(instanceName) {
+    const state = await _readState();
+    if (!state.instances[instanceName]) {
+      throw new Error('WireGuard server instance not found');
+    }
+    return state.instances[instanceName].webView || null;
+  },
+
+  async updateWireguard(instanceName, config) {
+    await _modifyState((state) => {
+      if (!state.instances[instanceName]) {
+        throw new Error('WireGuard server instance not found');
+      }
+
+      if (!state.instances[instanceName].webView) {
+        throw new Error('WebView module not initialized');
+      }
+
+      state.instances[instanceName].webView.wireguard.config = config;
+      state.instances[instanceName].webView.updatedAt = new Date().toISOString();
+    });
+  },
+
+  async addLoginUser(instanceName, username, password, role, changeToken) {
+    await _modifyState((state) => {
+      if (!state.instances[instanceName]) {
+        throw new Error('WireGuard server instance not found');
+      }
+
+      if (!state.instances[instanceName].webView) {
+        throw new Error('WebView module not initialized');
+      }
+
+      // Check if user already exists
+      const existingUser = state.instances[instanceName].webView.loginUsers.find((user) => user.username === username);
+      if (existingUser) {
+        throw new Error('User already exists for this WebView instance');
+      }
+
+      state.instances[instanceName].webView.loginUsers.push({ username, password, role, changeToken });
+      state.instances[instanceName].webView.updatedAt = new Date().toISOString();
+    });
+  },
+
+  async removeLoginUser(instanceName, username) {
+    await _modifyState((state) => {
+      if (!state.instances[instanceName]) {
+        throw new Error('WireGuard server instance not found');
+      }
+
+      if (!state.instances[instanceName].webView) {
+        throw new Error('WebView module not initialized');
+      }
+
+      const userIndex = state.instances[instanceName].webView.loginUsers.findIndex((user) => user.username === username);
+      if (userIndex > -1) {
+        state.instances[instanceName].webView.loginUsers.splice(userIndex, 1);
+        state.instances[instanceName].webView.updatedAt = new Date().toISOString();
+      }
+    });
+  },
+
+  async getLoginUsers(instanceName) {
+    const state = await _readState();
+    if (!state.instances[instanceName]) {
+      throw new Error('WireGuard server instance not found');
+    }
+
+    if (!state.instances[instanceName].webView) {
+      throw new Error('WebView module not initialized');
+    }
+
+    return state.instances[instanceName].webView.loginUsers;
+  },
+
+  async validateLoginUser(instanceName, username, password) {
+    const state = await _readState();
+    if (!state.instances[instanceName]) {
+      throw new Error('WireGuard server instance not found');
+    }
+
+    if (!state.instances[instanceName].webView) {
+      throw new Error('WebView module not initialized');
+    }
+
+    const user = state.instances[instanceName].webView.loginUsers.find((user) => user.username === username);
+    if (!user) return false;
+
+    return user.password === password;
+  },
+
+  async validateChangeToken(instanceName, username, changeToken) {
+    const state = await _readState();
+    if (!state.instances[instanceName]) {
+      throw new Error('WireGuard server instance not found');
+    }
+
+    if (!state.instances[instanceName].webView) {
+      throw new Error('WebView module not initialized');
+    }
+
+    const user = state.instances[instanceName].webView.loginUsers.find((user) => user.username === username);
+    if (!user) return false;
+
+    return user.changeToken === changeToken;
+  },
+
+  async changeUserPasswordByToken(instanceName, username, newPassword, changeToken) {
+    await _modifyState((state) => {
+      if (!state.instances[instanceName]) {
+        throw new Error('WireGuard server instance not found');
+      }
+
+      if (!state.instances[instanceName].webView) {
+        throw new Error('WebView module not initialized');
+      }
+
+      const user = state.instances[instanceName].webView.loginUsers.find((user) => user.username === username);
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      if (user.changeToken !== changeToken) {
+        throw new Error('Invalid change token');
+      }
+
+      user.password = newPassword;
+      user.changeToken = utils.generateRandomString(32);
+      state.instances[instanceName].webView.updatedAt = new Date().toISOString();
+    });
+  },
+};
+
+// ============================================================================
 // MODULE EXPORTS
 // ============================================================================
 
@@ -555,6 +737,7 @@ module.exports = {
   // Modular components
   WireguardServer,
   RemoteVNC,
+  WebView,
   UserHandler,
   CacheManager,
 };

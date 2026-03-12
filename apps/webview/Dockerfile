@@ -65,6 +65,9 @@ FROM node:24-alpine AS production
 RUN corepack enable && \
     apk add --no-cache dumb-init supervisor wireguard-tools iptables bash
 
+# Set working directory
+WORKDIR /app
+
 # Copy backend build and dependencies
 COPY --from=backend-builder /app/backend/dist ./dist
 COPY --from=backend-builder /app/backend/node_modules ./node_modules

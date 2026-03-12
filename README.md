@@ -54,12 +54,16 @@ JWT_SECRET=your-jwt-secret
 
 # Contact email for users
 CONTACT_EMAIL=email@example.com
+
+# Database username and password
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your-db-password
 ```
 
 #### 2. Create docker network
 
 ```sh
-docker network create --driver bridge --subnet=172.20.0.0/22 --ipv6=false wgnet
+docker network create --driver bridge --subnet=172.20.0.0/20 --ipv6=false wgnet
 ```
 
 #### 3. Create work directories
@@ -80,10 +84,14 @@ It will automaticly renew by cert manager module.
 docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot -p 80:80 certbot/certbot certonly --standalone --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
 ```
 
-#### 6. Build the webvnc container
+#### 6. Build the app containers
 
 ```sh
 cd apps/webvnc && docker build -t webvnc .
+
+cd apps/webview && docker build -t webview .
+
+cd apps/database && docker build -t dbmigrator .
 ```
 
 #### 7. Start the app (from root)

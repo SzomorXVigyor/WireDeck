@@ -4,12 +4,12 @@ const containerManager = require('./containerManager');
 const utils = require('../utils');
 const logger = require('../logger');
 
-const usedImage = 'webvnc:latest';
+const usedImage = 'webview:latest';
 
-class WebVNCContainer {
+class WebViewContainer {
   constructor(name, options = {}) {
     this.name = utils.sanitizeServiceName(name);
-    this.containerName = `web-vnc-${this.name}`;
+    this.containerName = `web-view-${this.name}`;
     this.options = options;
   }
 
@@ -42,50 +42,51 @@ class WebVNCContainer {
         },
         Env: [
           'WIREDECK_SLAVE=true',
-          `PASS_CHANGE_URL=http://${process.env.ROOT_DOMAIN}/webvnc-passchangerequest.html`,
+          `PASS_CHANGE_URL=http://${process.env.ROOT_DOMAIN}/webview-passchangerequest.html`,
           `SERVICE_NAME=${this.name}`,
           `USERS=${JSON.stringify(this.options.loginUsers)}`,
-          `VNC_TARGETS=${JSON.stringify(this.options.vncDevices)}`,
           `WIREGUARD_CONF_STR=${this.options.wireguard.config}`,
           `JWT_SECRET=${process.env.JWT_SECRET || utils.generateRandomString(16)}`,
+          `DATABASE_URL=${process.env.DATABASE_URL + 'webview'}`,
           `PORT=8080`,
-          `FRONTEND_URL=vnc.${this.name}.${process.env.ROOT_DOMAIN}`,
+          `FRONTEND_URL=view.${this.name}.${process.env.ROOT_DOMAIN}`,
+          `NODE_ENV=production`,
         ],
       });
 
       await container.start();
-      logger.info(`[WebVNC] Container created and started: ${this.containerName}`);
+      logger.info(`[WebView] Container created and started: ${this.containerName}`);
       return container;
     } catch (error) {
-      logger.error(`[WebVNC] Container creation failed for ${this.containerName}: ${error.message}`);
+      logger.error(`[WebView] Container creation failed for ${this.containerName}: ${error.message}`);
       throw error;
     }
   }
 
   async start() {
-    logger.debug(`[WebVNC] Starting container: ${this.containerName}`);
+    logger.debug(`[WebView] Starting container: ${this.containerName}`);
     return containerManager.startContainer(this.containerName);
   }
 
   async stop() {
-    logger.debug(`[WebVNC] Stopping container: ${this.containerName}`);
+    logger.debug(`[WebView] Stopping container: ${this.containerName}`);
     return containerManager.stopContainer(this.containerName);
   }
 
   async restart() {
-    logger.debug(`[WebVNC] Restarting container: ${this.containerName}`);
+    logger.debug(`[WebView] Restarting container: ${this.containerName}`);
     return containerManager.restartContainer(this.containerName);
   }
 
   async delete() {
-    logger.debug(`[WebVNC] Deleting container: ${this.containerName}`);
+    logger.debug(`[WebView] Deleting container: ${this.containerName}`);
     return containerManager.deleteContainer(this.containerName);
   }
 
   async getStatus() {
-    logger.debug(`[WebVNC] Getting status for container: ${this.containerName}`);
+    logger.debug(`[WebView] Getting status for container: ${this.containerName}`);
     return containerManager.getContainerStatus(this.containerName);
   }
 }
 
-module.exports = WebVNCContainer;
+module.exports = WebViewContainer;

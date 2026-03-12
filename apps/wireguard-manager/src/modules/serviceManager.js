@@ -1,8 +1,10 @@
-const { WireguardServer: WireguardServerStorage, RemoteVNC: WebVNCStorage } = require('./storageManager');
+const { WireguardServer: WireguardServerStorage, RemoteVNC: WebVNCStorage, WebView: WebViewStorage } = require('./storageManager');
 const certificateManager = require('./certificateManager');
 const webProxyManager = require('./webProxyManager');
 const WireguardContainer = require('./containers/wireguardServer');
 const WebVNCContainer = require('./containers/webVNC');
+const WebViewContainer = require('./containers/webView');
+const DBMigratorContainer = require('./containers/dbMigrator');
 const utils = require('./utils');
 const logger = require('./logger');
 
@@ -18,6 +20,11 @@ async function initServices() {
     if (instanceData.remoteVNC) {
       const webVNC = new WebVNCContainer(name, instanceData.remoteVNC);
       WebVNCService.vncServices.set(name, webVNC);
+    }
+
+    if (instanceData.webView) {
+      const webView = new WebViewContainer(name, instanceData.webView);
+      WebViewService.viewServices.set(name, webView);
     }
 
     logger.info(`[ServiceManager] Loaded existing instance: ${name}`);
@@ -324,8 +331,152 @@ const WebVNCService = {
   },
 };
 
+const WebViewService = {
+  viewServices: new Map(),
+
+  async createInstance(rawName, options = {}) {
+    const name = utils.sanitizeServiceName(rawName);
+    let instanceData = null,
+      containerCreated = false,
+      proxyConfigured = false;
+
+    try {
+      if (this.viewServices.has(name)) throw new Error(`Instance already exists: ${name}`);
+
+      instanceData = await WebViewStorage.initialize(name, options.wireguardConfig, options.loginUsers);
+      logger.info(`[WebViewService] WebView Instance allocated: ${name}`);
+
+      // Run database migration before creating container
+      logger.info(`[WebViewService] Running database migration for: ${name}`);
+      const dbMigrator = new DBMigratorContainer('webview', name);
+      await dbMigrator.migrate();
+      logger.info(`[WebViewService] Database migration completed for: ${name}`);
+
+      const subdomain = `view.${name}`;
+      await certificateManager.createCertificate(subdomain);
+      logger.info(`[WebViewService] Certificate created for: ${subdomain}`);
+
+      const viewContainer = new WebViewContainer(name, instanceData);
+      this.viewServices.set(name, viewContainer);
+      await viewContainer.createContainer();
+      containerCreated = true;
+      logger.info(`[WebViewService] Container created: ${name}`);
+
+      await webProxyManager.addSite(subdomain, instanceData.ipv4, `${subdomain}.${ROOT_DOMAIN}`);
+      proxyConfigured = true;
+      logger.info(`[WebViewService] Nginx updated for: ${subdomain}`);
+
+      logger.info(`[WebViewService] WebView Instance creation completed: ${name}`);
+      return { message: 'WebView Instance created successfully', subdomain };
+    } catch (error) {
+      logger.error(`[WebViewService] Instance creation failed for ${name}: ${error.message}`);
+
+      try {
+        if (containerCreated) await viewContainer.delete();
+        if (proxyConfigured) await webProxyManager.removeSite(subdomain);
+        if (instanceData) await WebViewStorage.remove(name);
+      } catch (revertError) {
+        logger.error(`[WebViewService] Revert operation failed: ${revertError.message}`);
+      }
+
+      throw error;
+    }
+  },
+
+  async recreateInstance(rawName, recreateWebProxy = false) {
+    const name = utils.sanitizeServiceName(rawName);
+    try {
+      if (!this.viewServices.has(name)) throw new Error(`Instance not found: ${name}`);
+
+      logger.info(`[WebViewService] Recreating instance: ${name}`);
+
+      try {
+        await this.viewServices.get(name).delete();
+      } catch (error) {
+        logger.warn(`[WebViewService] Failed to delete old container: ${error.message}`);
+      }
+
+      const instanceData = await WebViewStorage.get(name);
+      if (!instanceData) throw new Error(`Instance data not found: ${name}`);
+
+      const viewContainer = new WebViewContainer(name, instanceData);
+      this.viewServices.set(name, viewContainer);
+      await viewContainer.createContainer();
+
+      if (recreateWebProxy) {
+        const subdomain = `view.${name}`;
+        await webProxyManager.removeSite(subdomain, false);
+        await webProxyManager.addSite(subdomain, instanceData.ipv4, `${subdomain}.${ROOT_DOMAIN}`);
+      }
+
+      logger.info(`[WebViewService] Instance recreated: ${name}`);
+    } catch (error) {
+      logger.error(`[WebViewService] Instance recreation failed for ${name}: ${error.message}`);
+      throw error;
+    }
+  },
+
+  async deleteInstance(rawName) {
+    const name = utils.sanitizeServiceName(rawName);
+
+    try {
+      logger.info(`[WebViewService] Deleting instance: ${name}`);
+
+      try {
+        if (this.viewServices.has(name)) await this.viewServices.get(name).delete();
+      } catch (error) {
+        logger.warn(`[WebViewService] Failed to delete container: ${error.message}`);
+      }
+
+      const subdomain = `view.${name}`;
+      await webProxyManager.removeSite(subdomain);
+      await WebViewStorage.remove(name);
+      this.viewServices.delete(name);
+
+      logger.info(`[WebViewService] Instance deleted: ${name}`);
+    } catch (error) {
+      logger.error(`[WebViewService] Instance deletion failed for ${name}: ${error.message}`);
+      throw error;
+    }
+  },
+
+  async startInstance(rawName) {
+    const name = utils.sanitizeServiceName(rawName);
+    if (!this.viewServices.has(name)) throw new Error(`Instance not found: ${name}`);
+
+    try {
+      return await this.viewServices.get(name).start();
+    } catch (error) {
+      if (error.reason && error.reason.includes('no such container')) {
+        logger.warn(`[WebViewService] Container not found, recreating: ${name}`);
+        return this.recreateInstance(name);
+      }
+      throw error;
+    }
+  },
+
+  async stopInstance(rawName) {
+    const name = utils.sanitizeServiceName(rawName);
+    if (!this.viewServices.has(name)) throw new Error(`Instance not found: ${name}`);
+    return this.viewServices.get(name).stop();
+  },
+
+  async restartInstance(rawName) {
+    const name = utils.sanitizeServiceName(rawName);
+    if (!this.viewServices.has(name)) throw new Error(`Instance not found: ${name}`);
+    return this.viewServices.get(name).restart();
+  },
+
+  async statusInstance(rawName) {
+    const name = utils.sanitizeServiceName(rawName);
+    if (!this.viewServices.has(name)) throw new Error(`Instance not found: ${name}`);
+    return this.viewServices.get(name).getStatus();
+  },
+};
+
 module.exports = {
   initServices,
   WireguardServerService,
   WebVNCService,
+  WebViewService,
 };
