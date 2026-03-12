@@ -48,6 +48,7 @@ function renderInstances() {
                         <th><i class="fas fa-network-wired me-1"></i>IPv4 Address</th>
                         <th><i class="fas fa-signal me-1"></i>Status</th>
                         <th><i class="fas fa-desktop me-1"></i>WebVNC</th>
+                        <th><i class="fas fa-window-maximize me-1"></i>WebView</th>
                         <th><i class="fas fa-plug me-1"></i>VPN Port</th>
                         <th><i class="fas fa-link me-1"></i>Admin</th>
                         <th><i class="fas fa-cogs me-1"></i>Actions</th>
@@ -92,6 +93,34 @@ function renderInstances() {
             `;
     }
 
+    // WebView column
+    let webviewColumn = '';
+
+    if (instance.webView) {
+      const viewOnline = instance.webView.status === 'online';
+      const viewStatusColor = viewOnline ? 'success' : 'danger';
+      const viewStatusIcon = viewOnline ? 'check-circle' : 'times-circle';
+      const viewStatusText = viewOnline ? 'Online' : 'Offline';
+      const viewStatusClass = viewOnline ? 'status-online' : 'status-offline';
+
+      webviewColumn = `
+                <div class="d-flex flex-column align-items-center gap-1">
+                    <span class="badge bg-${viewStatusColor} webview-badge ${viewStatusClass}">
+                        <i class="fas fa-${viewStatusIcon} me-1"></i>${viewStatusText}
+                    </span>
+                    <button class="btn btn-xs btn-outline-primary" style="font-size: 0.7rem; padding: 0.1rem 0.3rem;" onclick="showWebViewModal('${name}')">
+                        <i class="fas fa-cog me-1"></i>Manage
+                    </button>
+                </div>
+            `;
+    } else {
+      webviewColumn = `
+                <button class="btn btn-sm btn-outline-info" onclick="showCreateWebViewModal('${name}')">
+                    <i class="fas fa-plus me-1"></i>Add WebView
+                </button>
+            `;
+    }
+
     tableHtml += `
             <tr>
                 <td class="fw-bold">${name}</td>
@@ -102,6 +131,7 @@ function renderInstances() {
                     </span>
                 </td>
                 <td>${webvncColumn}</td>
+                <td>${webviewColumn}</td>
                 <td><code>${instance.udpPort}/udp</code></td>
                 <td>
                     <a href="https://${instance.subdomain}" target="_blank" class="btn btn-sm ${isOnline ? 'btn-primary' : 'btn-outline-primary'}" ${!isOnline ? 'style="pointer-events: none;"' : ''}>

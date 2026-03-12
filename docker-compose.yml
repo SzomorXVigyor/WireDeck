@@ -1,85 +1,85 @@
 services:
-  postgres:
-    image: postgres:17-alpine
-    container_name: postgres-db
-    networks:
-      wgnet:
-        ipv4_address: 172.20.0.4
-    environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER}']
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    postgres:
+        image: postgres:17-alpine
+        container_name: postgres-db
+        networks:
+            wgnet:
+                ipv4_address: 172.20.0.4
+        environment:
+            - POSTGRES_USER=${DATABASE_USER}
+            - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+            - POSTGRES_DB=db
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
-  wireguard-manager:
-    build: ./apps/wireguard-manager
-    container_name: wireguard-manager
-    networks:
-      wgnet:
-        ipv4_address: 172.20.0.2
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./nginx/sites:/app/nginx/sites
-      - ./database:/app/database
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/www/certbot:/var/www/certbot
-    environment:
-      - ROOT_DOMAIN=${ROOT_DOMAIN}
-      - INIT_USERNAME=${INIT_USERNAME}
-      - INIT_PASSWORD=${INIT_PASSWORD}
-      - CERTBOT_EMAIL=${CERTBOT_EMAIL}
-      - JWT_SECRET=${JWT_SECRET}
-      - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      nginx-proxy:
-        condition: service_started
+    wireguard-manager:
+        build: ./apps/wireguard-manager
+        container_name: wireguard-manager
+        networks:
+            wgnet:
+                ipv4_address: 172.20.0.2
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./nginx/sites:/app/nginx/sites
+            - ./database:/app/database
+            - /etc/letsencrypt:/etc/letsencrypt
+            - /var/www/certbot:/var/www/certbot
+        environment:
+            - ROOT_DOMAIN=${ROOT_DOMAIN}
+            - INIT_USERNAME=${INIT_USERNAME}
+            - INIT_PASSWORD=${INIT_PASSWORD}
+            - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+            - JWT_SECRET=${JWT_SECRET}
+            - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/
+        restart: unless-stopped
+        depends_on:
+            postgres:
+                condition: service_healthy
+            nginx-proxy:
+                condition: service_started
 
-  nginx-proxy:
-    image: nginx:alpine
-    container_name: nginx-proxy
-    networks:
-      wgnet:
-        ipv4_address: 172.20.0.3
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/error-pages.conf:/etc/nginx/error-pages.conf:ro
-      - ./nginx/sites:/etc/nginx/sites
-      - ./nginx/html/:/usr/share/nginx/html/errors:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot
-    environment:
-      - ROOT_DOMAIN=${ROOT_DOMAIN}
-      - CONTACT_EMAIL=${CONTACT_EMAIL}
-    command: /bin/sh -c "
-      mkdir -p /tmp/errors &&
-      if [ -d /usr/share/nginx/html/errors ]; then
-        for htmlfile in /usr/share/nginx/html/errors/*.html; do
-          if [ -f \"$$htmlfile\" ]; then
+    nginx-proxy:
+        image: nginx:alpine
+        container_name: nginx-proxy
+        networks:
+            wgnet:
+                ipv4_address: 172.20.0.3
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./nginx/error-pages.conf:/etc/nginx/error-pages.conf:ro
+            - ./nginx/sites:/etc/nginx/sites
+            - ./nginx/html/:/usr/share/nginx/html/errors:ro
+            - /etc/letsencrypt:/etc/letsencrypt:ro
+            - /var/www/certbot:/var/www/certbot
+        environment:
+            - ROOT_DOMAIN=${ROOT_DOMAIN}
+            - CONTACT_EMAIL=${CONTACT_EMAIL}
+        command: /bin/sh -c "
+            mkdir -p /tmp/errors &&
+            if [ -d /usr/share/nginx/html/errors ]; then
+            for htmlfile in /usr/share/nginx/html/errors/*.html; do
+            if [ -f \"$$htmlfile\" ]; then
             envsubst '$$CONTACT_EMAIL' < \"$$htmlfile\" > \"/tmp/errors/$$(basename \"$$htmlfile\")\";
-          fi
-        done
-      fi &&
-      envsubst '$$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf &&
-      nginx -g 'daemon off;' -c /tmp/nginx.conf"
-    restart: unless-stopped
+            fi
+            done
+            fi &&
+            envsubst '$$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf &&
+            nginx -g 'daemon off;' -c /tmp/nginx.conf"
+        restart: unless-stopped
 
 networks:
-  wgnet:
-    external: true
-    name: wgnet
+    wgnet:
+        external: true
+        name: wgnet
 
 volumes:
-  postgres_data:
+    postgres_data:
