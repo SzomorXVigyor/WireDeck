@@ -79,19 +79,16 @@ function renderWebViewContent(webviewData) {
   if (webviewData.loginUsers && webviewData.loginUsers.length > 0) {
     webviewData.loginUsers.forEach((user) => {
       html += `
-            <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
-                <div>
-                    <strong>${user.username}</strong>
-                    <span class="badge bg-${user.role === 'admin' ? 'danger' : 'info'}">${user.role}</span>
+                <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-1">
+                    <span><i class="fas fa-user me-2"></i>${user.username}</span>
+                    <button class="btn btn-sm btn-outline-danger" onclick="confirmRemoveWebViewUser('${currentWebviewInstance}', '${user.username}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
-                <button class="btn btn-sm btn-danger" onclick="confirmRemoveWebViewUser('${currentWebviewInstance}', '${user.username}')">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
+            `;
     });
   } else {
-    html += '<p class="text-muted small">No users configured</p>';
+    html += '<p class="text-muted small">No login users configured</p>';
   }
 
   html += `
@@ -110,12 +107,13 @@ function renderWebViewContent(webviewData) {
                 <div class="col-6">
                     <input type="password" class="form-control" id="newWebViewPassword" placeholder="Password">
                 </div>
-                <div class="col-12">
-                    <select class="form-control" id="newWebViewRole">
+                <div class="col-6">
+                    <select class="form-select" id="newWebViewRole">
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
+                <div class="col-6"></div>
                 <div class="col-12">
                     <button class="btn btn-sm btn-primary me-2" onclick="addWebViewUser()">
                         <i class="fas fa-plus me-1"></i>Add
@@ -130,33 +128,28 @@ function renderWebViewContent(webviewData) {
 }
 
 async function createWebView() {
-  const name = currentCreateWebviewInstance;
-
   if (!webviewWireguardConfig) {
-    showToast('Please provide Wireguard configuration', 'error');
+    showToast('Please upload a WireGuard configuration file', 'error');
     return;
   }
 
   // Collect login users
   const loginUsers = [];
-  const usernameInputs = document.querySelectorAll('.webview-username-input');
-  const passwordInputs = document.querySelectorAll('.webview-password-input');
-  const roleInputs = document.querySelectorAll('.webview-role-input');
-
-  for (let i = 0; i < usernameInputs.length; i++) {
-    const username = usernameInputs[i].value.trim();
-    const password = passwordInputs[i].value.trim();
-    const role = roleInputs[i].value;
-
+  const userContainers = document.querySelectorAll('#webviewLoginUsersContainer > div');
+  userContainers.forEach((container) => {
+    const username = container.querySelector('[data-field="username"]')?.value;
+    const password = container.querySelector('[data-field="password"]')?.value;
+    const role = container.querySelector('[data-field="role"]')?.value;
     if (username && password) {
       loginUsers.push({ username, password, role });
     }
-  }
+  });
 
-  if (loginUsers.length === 0) {
-    showToast('Please add at least one user', 'error');
-    return;
-  }
+  const confirmBtn = document.getElementById('confirmCreateWebviewBtn');
+  const originalText = confirmBtn.innerHTML;
+
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Creating...';
 
   try {
     const response = await fetch(API_ENDPOINTS.webview.create, {
@@ -166,24 +159,26 @@ async function createWebView() {
         Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify({
-        name: name,
+        name: currentCreateWebviewInstance,
         wireguardConfig: webviewWireguardConfig,
-        loginUsers: loginUsers,
+        loginUsers,
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      showToast(`Failed to create WebView: ${error.error || error.message}`, 'error');
-      return;
-    }
-
     const result = await response.json();
-    showToast('WebView instance created successfully', 'success');
-    createWebviewModal.hide();
-    await loadInstances();
+
+    if (response.ok) {
+      showToast(`WebView instance created successfully!`, 'success');
+      createWebviewModal.hide();
+      await loadInstances();
+    } else {
+      throw new Error(result.error || 'Creation failed');
+    }
   } catch (error) {
-    showToast(`Error creating WebView: ${error.message}`, 'error');
+    showToast(`Failed to create WebView: ${error.message}`, 'error');
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = originalText;
   }
 }
 
@@ -210,31 +205,28 @@ async function deleteWebView(name) {
 
 async function webviewAction(action, name) {
   try {
-    const endpoint = API_ENDPOINTS.webview[action];
-    if (!endpoint) {
-      showToast('Unknown action', 'error');
-      return;
-    }
-
-    const response = await fetch(endpoint, {
+    const response = await fetch(API_ENDPOINTS.webview[action], {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ name: name }),
+      body: JSON.stringify({ name }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      showToast(`Failed to ${action} WebView: ${error.error || error.message}`, 'error');
-      return;
-    }
+    const result = await response.json();
 
-    showToast(`WebView ${action} completed successfully`, 'success');
-    await loadInstances();
+    if (response.ok) {
+      showToast(`WebView ${action}ed successfully!`, 'success');
+      if (currentWebviewInstance === name) {
+        await loadInstances();
+        showWebViewModal(name);
+      }
+    } else {
+      throw new Error(result.error || `${action} failed`);
+    }
   } catch (error) {
-    showToast(`Error: ${error.message}`, 'error');
+    showToast(`Failed to ${action} WebView: ${error.message}`, 'error');
   }
 }
 
@@ -251,9 +243,9 @@ function hideAddWebViewUserForm() {
 }
 
 async function addWebViewUser() {
-  const username = document.getElementById('newWebViewUsername').value.trim();
-  const password = document.getElementById('newWebViewPassword').value.trim();
-  const role = document.getElementById('newWebViewRole').value;
+  const username = document.getElementById('newWebViewUsername')?.value;
+  const password = document.getElementById('newWebViewPassword')?.value;
+  const role = document.getElementById('newWebViewRole')?.value || 'user';
 
   if (!username || !password) {
     showToast('Username and password are required', 'error');
@@ -275,21 +267,18 @@ async function addWebViewUser() {
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      showToast(`Failed to add user: ${error.error || error.message}`, 'error');
-      return;
-    }
+    const result = await response.json();
 
-    showToast('User added successfully', 'success');
-    hideAddWebViewUserForm();
-    await loadInstances();
-    const instance = instances[currentWebviewInstance];
-    if (instance && instance.webView) {
-      renderWebViewContent(instance.webView);
+    if (response.ok) {
+      showToast('User added successfully!', 'success');
+      hideAddWebViewUserForm();
+      await loadInstances();
+      showWebViewModal(currentWebviewInstance);
+    } else {
+      throw new Error(result.error || 'Failed to add user');
     }
   } catch (error) {
-    showToast(`Error: ${error.message}`, 'error');
+    showToast(`Failed to add user: ${error.message}`, 'error');
   }
 }
 
@@ -307,20 +296,17 @@ async function removeWebViewUser(instanceName, username) {
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      showToast(`Failed to remove user: ${error.error || error.message}`, 'error');
-      return;
-    }
+    const result = await response.json();
 
-    showToast('User removed successfully', 'success');
-    await loadInstances();
-    const instance = instances[currentWebviewInstance];
-    if (instance && instance.webView) {
-      renderWebViewContent(instance.webView);
+    if (response.ok) {
+      showToast('User removed successfully!', 'success');
+      await loadInstances();
+      showWebViewModal(instanceName);
+    } else {
+      throw new Error(result.error || 'Failed to remove user');
     }
   } catch (error) {
-    showToast(`Error: ${error.message}`, 'error');
+    showToast(`Failed to remove user: ${error.message}`, 'error');
   }
 }
 
@@ -397,13 +383,13 @@ function addWebViewLoginUserField() {
   const html = `
         <div class="row g-2 mb-2" id="webviewUser-${index}">
             <div class="col-6">
-                <input type="text" class="form-control webview-username-input" placeholder="Username">
+                <input type="text" class="form-control" data-field="username" placeholder="Username">
             </div>
             <div class="col-4">
-                <input type="password" class="form-control webview-password-input" placeholder="Password">
+                <input type="password" class="form-control" data-field="password" placeholder="Password">
             </div>
             <div class="col-1">
-                <select class="form-control webview-role-input">
+                <select class="form-control" data-field="role">
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
                 </select>
@@ -430,16 +416,34 @@ function setupWebViewDeleteConfirmations() {
   const deleteWebViewUserConfirmBtn = document.getElementById('confirmDeleteWebViewUserBtn');
   if (deleteWebViewUserConfirmBtn) {
     deleteWebViewUserConfirmBtn.addEventListener('click', async () => {
-      deleteWebViewUserModal.hide();
-      await removeWebViewUser(currentDeleteWebViewUser.instance, currentDeleteWebViewUser.username);
+      const originalText = deleteWebViewUserConfirmBtn.innerHTML;
+      deleteWebViewUserConfirmBtn.disabled = true;
+      deleteWebViewUserConfirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Removing...';
+
+      try {
+        await removeWebViewUser(currentDeleteWebViewUser.instance, currentDeleteWebViewUser.username);
+        deleteWebViewUserModal.hide();
+      } finally {
+        deleteWebViewUserConfirmBtn.disabled = false;
+        deleteWebViewUserConfirmBtn.innerHTML = originalText;
+      }
     });
   }
 
   const deleteWebViewConfirmBtn = document.getElementById('confirmDeleteWebViewBtn');
   if (deleteWebViewConfirmBtn) {
     deleteWebViewConfirmBtn.addEventListener('click', async () => {
-      deleteWebViewModal.hide();
-      await deleteWebView(currentDeleteWebViewInstance);
+      const originalText = deleteWebViewConfirmBtn.innerHTML;
+      deleteWebViewConfirmBtn.disabled = true;
+      deleteWebViewConfirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
+
+      try {
+        await deleteWebView(currentDeleteWebViewInstance);
+        deleteWebViewModal.hide();
+      } finally {
+        deleteWebViewConfirmBtn.disabled = false;
+        deleteWebViewConfirmBtn.innerHTML = originalText;
+      }
     });
   }
 }
