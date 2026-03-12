@@ -258,7 +258,8 @@ const onDragOver = (targetId: number): void => {
   const toIdx = orderedDraftCards.value.findIndex((c) => c.id === targetId);
   if (fromIdx === -1 || toIdx === -1) return;
   const arr = [...orderedDraftCards.value];
-  const [moved] = arr.splice(fromIdx, 1);
+  const moved = arr.splice(fromIdx, 1)[0];
+  if (!moved) return;
   arr.splice(toIdx, 0, moved);
   orderedDraftCards.value = arr;
 };
@@ -333,7 +334,7 @@ const handleDelete = async () => {
   if (!confirm(`Delete view "${viewsStore.currentView.name}"?\nThis cannot be undone.`)) return;
   await viewsStore.deleteView(currentViewId.value);
   if (viewsStore.views.length > 0) {
-    router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0].id } });
+    router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0]!.id } });
   } else {
     router.replace('/dashboard');
   }

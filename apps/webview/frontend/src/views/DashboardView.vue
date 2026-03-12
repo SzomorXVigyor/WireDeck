@@ -297,7 +297,7 @@ onMounted(async () => {
     route.name !== 'Devices' &&
     viewsStore.views.length > 0
   ) {
-    router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0].id } });
+    router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0]!.id } });
   }
 });
 </script>

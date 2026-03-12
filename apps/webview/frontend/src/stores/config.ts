@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
-import { ref, Ref } from 'vue';
+import { ref } from 'vue';
+import type { Ref } from 'vue';
 import api from '../services/api';
 
 interface ConfigFeatures {
