@@ -42,11 +42,17 @@ RUN yarn install
 # Copy backend source code
 COPY backend/ ./
 
+# Generate Prisma Client
+RUN yarn prisma generate --generator client
+
 # Build backend for production
 RUN yarn build
 
 # Remove dev dependencies to reduce image size
 RUN yarn install --production --ignore-scripts --prefer-offline
+
+# Re-Generate Prisma Client
+RUN yarn prisma generate --generator client
 
 # --------------------
 # Production stage
