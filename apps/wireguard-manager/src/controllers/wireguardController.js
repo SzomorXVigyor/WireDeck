@@ -43,7 +43,7 @@ async function getAllInstances(req, res) {
 
         const { wireguard, ...safeWebviewInstance } = webView;
 
-        instancesWithStatus[name].webview = {
+        instancesWithStatus[name].webView = {
           ...safeWebviewInstance,
           status: isWebviewRunning ? 'online' : 'offline',
           subdomain: `web.${name}.${ROOT_DOMAIN}`,
