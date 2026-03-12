@@ -15,6 +15,10 @@ function initializeApp() {
   deleteWebVNCUserModal = new bootstrap.Modal(document.getElementById('deleteWebVNCUserModal'));
   deleteWebVNCDeviceModal = new bootstrap.Modal(document.getElementById('deleteWebVNCDeviceModal'));
   deleteWebVNCModal = new bootstrap.Modal(document.getElementById('deleteWebVNCModal'));
+  webviewModal = new bootstrap.Modal(document.getElementById('webviewModal'));
+  createWebviewModal = new bootstrap.Modal(document.getElementById('createWebviewModal'));
+  deleteWebViewUserModal = new bootstrap.Modal(document.getElementById('deleteWebViewUserModal'));
+  deleteWebViewModal = new bootstrap.Modal(document.getElementById('deleteWebViewModal'));
 
   // Check Docker status and load instances
   checkDockerStatus();
@@ -23,9 +27,11 @@ function initializeApp() {
   // Set up form handlers and event listeners
   setupFormHandlers();
   setupFileUpload();
+  setupWebViewFileUpload();
   setupPasswordChange();
   setupInstanceDeletion();
   setupWebVNCDeleteConfirmations();
+  setupWebViewDeleteConfirmations();
 
   // Auto-refresh every 30 seconds
   setInterval(loadInstances, 30000);
@@ -75,5 +81,10 @@ function setupFormHandlers() {
   // Create WebVNC form handler
   document.getElementById('confirmCreateWebvncBtn').addEventListener('click', async () => {
     await createWebVNC();
+  });
+
+  // Create WebView form handler
+  document.getElementById('confirmCreateWebviewBtn').addEventListener('click', async () => {
+    await createWebView();
   });
 }
