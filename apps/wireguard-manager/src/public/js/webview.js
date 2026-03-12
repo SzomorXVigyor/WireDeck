@@ -340,11 +340,11 @@ function confirmDeleteWebView(instanceName) {
 // File upload functions
 function setupWebViewFileUpload() {
   const uploadArea = document.getElementById('webviewConfigUploadArea');
-  if (!uploadArea) return;
+  const fileInput = document.getElementById('webviewConfigFileInput');
 
-  uploadArea.addEventListener('click', () => {
-    document.getElementById('webviewConfigFile').click();
-  });
+  if (!uploadArea || !fileInput) return;
+
+  uploadArea.addEventListener('click', () => fileInput.click());
 
   uploadArea.addEventListener('dragover', (e) => {
     e.preventDefault();
@@ -364,22 +364,28 @@ function setupWebViewFileUpload() {
     }
   });
 
-  const fileInput = document.getElementById('webviewConfigFile');
-  if (fileInput) {
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleWebViewFileUpload(e.target.files[0]);
-      }
-    });
-  }
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleWebViewFileUpload(e.target.files[0]);
+    }
+  });
 }
 
 function handleWebViewFileUpload(file) {
+  if (!file.name.endsWith('.conf')) {
+    showToast('Please select a valid .conf file', 'error');
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = (e) => {
     webviewWireguardConfig = e.target.result;
     document.getElementById('webviewConfigPreview').textContent = webviewWireguardConfig;
     document.getElementById('webviewConfigPreview').style.display = 'block';
+    showToast('Configuration file loaded successfully', 'success');
+  };
+  reader.onerror = () => {
+    showToast('Error reading file', 'error');
   };
   reader.readAsText(file);
 }
@@ -421,7 +427,7 @@ function removeWebViewLoginUserField(index) {
 }
 
 function setupWebViewDeleteConfirmations() {
-  const deleteWebViewUserConfirmBtn = document.getElementById('deleteWebViewUserConfirmBtn');
+  const deleteWebViewUserConfirmBtn = document.getElementById('confirmDeleteWebViewUserBtn');
   if (deleteWebViewUserConfirmBtn) {
     deleteWebViewUserConfirmBtn.addEventListener('click', async () => {
       deleteWebViewUserModal.hide();
@@ -429,7 +435,7 @@ function setupWebViewDeleteConfirmations() {
     });
   }
 
-  const deleteWebViewConfirmBtn = document.getElementById('deleteWebViewConfirmBtn');
+  const deleteWebViewConfirmBtn = document.getElementById('confirmDeleteWebViewBtn');
   if (deleteWebViewConfirmBtn) {
     deleteWebViewConfirmBtn.addEventListener('click', async () => {
       deleteWebViewModal.hide();
