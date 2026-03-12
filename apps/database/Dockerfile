@@ -24,8 +24,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 # Remove unnecessary files from node_modules
-RUN find ./node_modules -type d -name ".bin" -exec rm -rf {} + 2>/dev/null || true && \
-    find ./node_modules -type f \( -name "*.md" -o -name "*.map" -o -name "*.ts" \) -delete && \
+RUN find ./node_modules -type f \( -name "*.md" -o -name "*.map" -o -name "*.ts" \) -delete && \
     find ./node_modules -type d \( -name "test" -o -name "tests" -o -name "example" -o -name "examples" \) -exec rm -rf {} + 2>/dev/null || true
 
 # Copy prisma config
@@ -36,4 +35,4 @@ COPY prisma ./prisma/
 COPY migrations ./migrations/
 
 # Run Prisma migration on startup
-ENTRYPOINT ["npx", "prisma", "migrate", "deploy", "--config", "prisma.config.ts"]
+ENTRYPOINT ["yarn", "prisma", "migrate", "deploy", "--config", "prisma.config.ts"]
