@@ -37,6 +37,7 @@ const API_ENDPOINTS = {
   },
   docker: {
     status: '/docker/status',
+    reloadNginx: '/docker/reload-nginx',
   },
   wireguard: {
     instances: '/wireguard/instances',

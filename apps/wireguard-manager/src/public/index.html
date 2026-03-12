@@ -48,6 +48,9 @@
           <span class="navbar-brand"> <i class="fas me-2 fa-shield-alt"></i> WireDeck </span>
           <div class="align-items-center d-flex">
             <div class="docker-status" id="dockerStatus"><i class="fas me-1 fa-spin fa-spinner"></i>Checking...</div>
+            <button class="btn btn-sm btn-outline-light me-2" id="reloadNginxBtn" onclick="reloadNginxProxy()" title="Reload Nginx Proxy">
+              <i class="fas fa-sync-alt"></i>
+            </button>
             <button class="btn btn-sm btn-outline-light me-3" id="themeToggle" onclick="toggleTheme()">
               <i class="fas fa-moon"></i>
             </button>
