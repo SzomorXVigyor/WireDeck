@@ -1,8 +1,23 @@
-<script setup lang="ts"></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the documentation</p>
+  <div id="app" class="min-h-screen bg-gray-50">
+    <router-view />
+    <ToastContainer />
+  </div>
 </template>
 
-<style scoped></style>
+<script setup lang="ts">
+import { onMounted } from 'vue';
+import { useAuthStore } from './stores/auth';
+import { useThemeStore } from './stores/theme';
+import ToastContainer from './components/ToastContainer.vue';
+
+const authStore = useAuthStore();
+const themeStore = useThemeStore();
+
+onMounted(() => {
+  // Restore theme from localStorage / system preference before first render
+  themeStore.initializeTheme();
+  // Restore auth state from localStorage
+  authStore.initializeAuth();
+});
+</script>
