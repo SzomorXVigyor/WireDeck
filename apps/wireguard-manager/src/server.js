@@ -12,9 +12,10 @@ const authRoutes = require('./routes/authRoutes');
 const dockerRoutes = require('./routes/dockerRoutes');
 const wireguardRoutes = require('./routes/wireguardRoutes');
 const webvncRoutes = require('./routes/webvncRoutes');
+const webviewRoutes = require('./routes/webviewRoutes');
 
 // Required environment variables
-const requiredEnvVars = ['ROOT_DOMAIN', 'INIT_USERNAME', 'INIT_PASSWORD', 'CERTBOT_EMAIL', 'JWT_SECRET'];
+const requiredEnvVars = ['ROOT_DOMAIN', 'INIT_USERNAME', 'INIT_PASSWORD', 'CERTBOT_EMAIL', 'JWT_SECRET', 'DATABASE_URL'];
 
 // Check required environment variables
 requiredEnvVars.forEach((envVar) => {
@@ -42,6 +43,7 @@ app.use('/auth', authRoutes);
 app.use('/docker', dockerRoutes);
 app.use('/wireguard', wireguardRoutes);
 app.use('/webvnc', webvncRoutes);
+app.use('/webview', webviewRoutes);
 
 // Initialize default user
 async function initializeDefaultUser() {
