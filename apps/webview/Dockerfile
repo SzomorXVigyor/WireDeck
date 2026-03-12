@@ -42,7 +42,7 @@ RUN yarn install
 COPY backend/ ./
 
 # Copy prisma schema for this specific app
-COPY prisma/ ./prisma/
+COPY backend/prisma/ ./prisma/
 
 # Generate Prisma Client
 RUN yarn prisma generate --generator client
