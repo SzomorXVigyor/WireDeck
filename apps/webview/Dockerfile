@@ -41,8 +41,8 @@ RUN yarn install
 # Copy backend source code
 COPY backend/ ./
 
-#copy prisma config and schema for prisma generate
-COPY ../../database/prisma/webview/ ./prisma/
+# Copy prisma schema for this specific app
+COPY prisma/ ./prisma/
 
 # Generate Prisma Client
 RUN yarn prisma generate --generator client
