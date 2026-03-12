@@ -4,4 +4,3 @@ dist/
 .env.local
 .development.env
 .production.env
-yarn.lock

@@ -10,17 +10,16 @@ RUN corepack enable
 WORKDIR /app/frontend
 
 # Copy frontend package files
-COPY frontend/package.json ./
+COPY frontend/package.json frontend/yarn.lock ./
 
 # Install frontend dependencies
-RUN yarn install
+RUN yarn install --frozen-lockfile
 
 # Copy frontend source code
 COPY frontend/ ./
 
 # Build frontend for production
 RUN yarn build
-
 
 # --------------------
 # Backend build stage
@@ -34,7 +33,7 @@ RUN corepack enable
 WORKDIR /app/backend
 
 # Copy backend package files
-COPY backend/package.json ./
+COPY backend/package.json backend/yarn.lock ./
 
 # Install backend dependencies
 RUN yarn install
@@ -49,7 +48,7 @@ RUN yarn prisma generate --generator client
 RUN yarn build
 
 # Remove dev dependencies to reduce image size
-RUN yarn install --production --ignore-scripts --prefer-offline
+RUN yarn install --production --ignore-scripts --offline --frozen-lockfile
 
 # Re-Generate Prisma Client
 RUN yarn prisma generate --generator client
