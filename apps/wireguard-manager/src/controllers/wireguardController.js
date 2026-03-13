@@ -46,7 +46,7 @@ async function getAllInstances(req, res) {
         instancesWithStatus[name].webView = {
           ...safeWebviewInstance,
           status: isWebviewRunning ? 'online' : 'offline',
-          subdomain: `web.${name}.${ROOT_DOMAIN}`,
+          subdomain: `view.${name}.${ROOT_DOMAIN}`,
         };
       }
     }

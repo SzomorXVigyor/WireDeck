@@ -18,7 +18,7 @@ async function showWebViewModal(instanceName) {
 
   webviewModal.show();
 
-  // Use data from instances instead of making separate API call (Aligns with WebVNC logic)
+  // Use data from instances instead of making separate API call
   const instance = instances[instanceName];
   if (instance && instance.webView) {
     renderWebViewContent(instance.webView);
@@ -390,9 +390,8 @@ function handleWebViewFileUpload(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
     webviewWireguardConfig = e.target.result;
-    document.getElementById('webviewConfigPreview').textContent = webviewWireguardConfig;
+    document.getElementById('webviewConfigContent').textContent = webviewWireguardConfig;
     document.getElementById('webviewConfigPreview').style.display = 'block';
-    showToast('Configuration file loaded successfully', 'success');
   };
   reader.onerror = () => {
     showToast('Error reading file', 'error');

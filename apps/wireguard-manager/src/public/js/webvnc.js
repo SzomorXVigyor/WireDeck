@@ -552,6 +552,9 @@ function handleFileUpload(file) {
     document.getElementById('configContent').textContent = wireguardConfig;
     document.getElementById('configPreview').style.display = 'block';
   };
+  reader.onerror = () => {
+    showToast('Error reading file', 'error');
+  };
   reader.readAsText(file);
 }
 
