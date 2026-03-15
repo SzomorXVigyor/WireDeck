@@ -3,19 +3,20 @@
     <!-- ───────────── Mobile overlay backdrop ───────────── -->
     <transition name="fade">
       <div
-        v-if="sidebarOpen"
+        v-if="sidebarStore.isOpen"
         class="fixed inset-0 z-20 bg-black/50 md:hidden"
         aria-hidden="true"
-        @click="sidebarOpen = false"
+        @click="sidebarStore.isOpen = false"
       />
     </transition>
 
     <!-- ───────────────── Sidebar ───────────────── -->
     <aside
-      class="fixed md:sticky top-0 z-30 md:z-auto h-screen flex-shrink-0 flex flex-col border-r transition-transform duration-300 ease-in-out md:translate-x-0 w-64 md:w-60"
+      class="fixed md:sticky top-0 z-30 md:z-auto h-screen flex-shrink-0 flex flex-col border-r transition-all duration-300 ease-in-out w-64 md:w-60"
       :class="[
         themeStore.isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+        sidebarStore.isOpen ? 'translate-x-0' : '-translate-x-full',
+        sidebarStore.isHidden ? 'md:-translate-x-full md:-mr-60 md:pointer-events-none' : 'md:translate-x-0 md:mr-0',
       ]"
     >
       <!-- Logo / App name -->
@@ -43,6 +44,20 @@
             <MoonIcon v-else class="w-4 h-4" />
           </button>
 
+          <!-- Hide sidebar on desktop -->
+          <button
+            class="p-1.5 rounded-lg transition-colors hidden md:inline-flex"
+            :class="
+              themeStore.isDark
+                ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+            "
+            title="Hide sidebar"
+            @click="sidebarStore.isHidden = true"
+          >
+            <XMarkIcon class="w-4 h-4" />
+          </button>
+
           <!-- Close on mobile -->
           <button
             class="p-1.5 rounded-lg transition-colors md:hidden"
@@ -52,7 +67,7 @@
                 : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
             "
             title="Close menu"
-            @click="sidebarOpen = false"
+            @click="sidebarStore.isOpen = false"
           >
             <XMarkIcon class="w-4 h-4" />
           </button>
@@ -122,7 +137,7 @@
                     ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                     : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
               "
-              @click="sidebarOpen = false"
+              @click="sidebarStore.isOpen = false"
             >
               <ViewColumnsIcon class="w-4 h-4 flex-shrink-0" />
               <span class="truncate">{{ view.name }}</span>
@@ -150,7 +165,7 @@
                       ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                 "
-                @click="sidebarOpen = false"
+                @click="sidebarStore.isOpen = false"
               >
                 <BookOpenIcon class="w-4 h-4 flex-shrink-0" />
                 <span class="truncate">Register dictionary</span>
@@ -167,7 +182,7 @@
                       ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
                       : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                 "
-                @click="sidebarOpen = false"
+                @click="sidebarStore.isOpen = false"
               >
                 <ServerStackIcon class="w-4 h-4 flex-shrink-0" />
                 <span class="truncate">Devices</span>
@@ -215,7 +230,26 @@
           class="p-1.5 rounded-lg transition-colors"
           :class="themeStore.isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'"
           aria-label="Open menu"
-          @click="sidebarOpen = true"
+          @click="sidebarStore.isOpen = true"
+        >
+          <Bars3Icon class="w-5 h-5" />
+        </button>
+        <span class="font-semibold text-sm" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+          {{ viewsStore.currentView?.name ?? 'WireDeck' }}
+        </span>
+      </header>
+
+      <!-- Desktop top bar (show when sidebar is hidden) -->
+      <header
+        v-if="sidebarStore.isHidden"
+        class="hidden md:flex items-center gap-3 px-4 py-3 border-b flex-shrink-0"
+        :class="themeStore.isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'"
+      >
+        <button
+          class="p-1.5 rounded-lg transition-colors"
+          :class="themeStore.isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'"
+          aria-label="Show sidebar"
+          @click="sidebarStore.isHidden = false"
         >
           <Bars3Icon class="w-5 h-5" />
         </button>
@@ -244,11 +278,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import { useViewsStore } from '../stores/views';
+import { useSidebarStore } from '../stores/sidebar';
 import {
   SunIcon,
   MoonIcon,
@@ -267,8 +302,7 @@ const route = useRoute();
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
 const viewsStore = useViewsStore();
-
-const sidebarOpen = ref(false);
+const sidebarStore = useSidebarStore();
 
 const isActiveView = (id: number) => route.name === 'ViewDetail' && String(route.params.id) === String(id);
 
