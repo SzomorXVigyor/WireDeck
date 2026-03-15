@@ -48,7 +48,7 @@ import { join } from 'path';
     ScheduleModule.forRoot(),
     // Frontend static files
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'public', 'frontend'),
+      rootPath: join(__dirname, '..', '..', 'public', 'frontend'),
       serveRoot: '/',
       exclude: ['/api/{*path}'],
       serveStaticOptions: {

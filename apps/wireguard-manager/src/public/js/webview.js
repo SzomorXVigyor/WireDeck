@@ -23,7 +23,7 @@ async function showWebViewModal(instanceName) {
   if (instance && instance.webView) {
     renderWebViewContent(instance.webView);
   } else {
-    document.getElementById('webviewContent').innerHTML = '<p class="text-muted">No WebView instance configured</p>';
+    document.getElementById('webviewContent').innerHTML = '<div class="alert alert-danger">WebView not configured for this instance</div>';
   }
 }
 
@@ -80,7 +80,10 @@ function renderWebViewContent(webviewData) {
     webviewData.loginUsers.forEach((user) => {
       html += `
                 <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-1">
-                    <span><i class="fas fa-user me-2"></i>${user.username}</span>
+                    <span>
+                      <i class="fas fa-user me-2"></i>${user.username} 
+                      <small class="text-muted ms-1">(${user.role || 'user'})</small>
+                    </span>
                     <button class="btn btn-sm btn-outline-danger" onclick="confirmRemoveWebViewUser('${currentWebviewInstance}', '${user.username}')">
                         <i class="fas fa-trash"></i>
                     </button>
@@ -101,20 +104,19 @@ function renderWebViewContent(webviewData) {
         <div id="addWebViewUserForm" style="display: none;" class="mb-3">
             <h6>Add Login User</h6>
             <div class="row g-2">
-                <div class="col-6">
+                <div class="col-4">
                     <input type="text" class="form-control" id="newWebViewUsername" placeholder="Username">
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                     <input type="password" class="form-control" id="newWebViewPassword" placeholder="Password">
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                     <select class="form-select" id="newWebViewRole">
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
-                <div class="col-6"></div>
-                <div class="col-12">
+                <div class="col-12 mt-2">
                     <button class="btn btn-sm btn-primary me-2" onclick="addWebViewUser()">
                         <i class="fas fa-plus me-1"></i>Add
                     </button>
@@ -200,7 +202,28 @@ async function recreateWebView(name) {
 }
 
 async function deleteWebView(name) {
-  await webviewAction('delete', name);
+  try {
+    const response = await fetch(API_ENDPOINTS.webview.delete, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      showToast('WebView instance deleted successfully!', 'success');
+      await loadInstances();
+    } else {
+      throw new Error(result.error || 'Failed to delete WebView');
+    }
+  } catch (error) {
+    console.error('Error deleting WebView:', error);
+    showToast(`Failed to delete WebView: ${error.message}`, 'error');
+  }
 }
 
 async function webviewAction(action, name) {
@@ -314,6 +337,7 @@ async function removeWebViewUser(instanceName, username) {
 function confirmRemoveWebViewUser(instanceName, username) {
   currentDeleteWebViewUser = { instance: instanceName, username: username };
   document.getElementById('deleteWebViewUserName').textContent = username;
+  document.getElementById('deleteWebViewUserInstance').textContent = instanceName;
   deleteWebViewUserModal.show();
 }
 
@@ -366,9 +390,8 @@ function handleWebViewFileUpload(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
     webviewWireguardConfig = e.target.result;
-    document.getElementById('webviewConfigPreview').textContent = webviewWireguardConfig;
+    document.getElementById('webviewConfigContent').textContent = webviewWireguardConfig;
     document.getElementById('webviewConfigPreview').style.display = 'block';
-    showToast('Configuration file loaded successfully', 'success');
   };
   reader.onerror = () => {
     showToast('Error reading file', 'error');
@@ -382,20 +405,20 @@ function addWebViewLoginUserField() {
 
   const html = `
         <div class="row g-2 mb-2" id="webviewUser-${index}">
-            <div class="col-6">
-                <input type="text" class="form-control" data-field="username" placeholder="Username">
+            <div class="col-4">
+                <input type="text" class="form-control" data-field="username" placeholder="Username" required>
             </div>
             <div class="col-4">
-                <input type="password" class="form-control" data-field="password" placeholder="Password">
+                <input type="password" class="form-control" data-field="password" placeholder="Password" required>
             </div>
-            <div class="col-1">
+            <div class="col-3">
                 <select class="form-control" data-field="role">
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
                 </select>
             </div>
             <div class="col-1">
-                <button class="btn btn-sm btn-danger" type="button" onclick="removeWebViewLoginUserField(${index})">
+                <button class="btn btn-outline-danger w-100" type="button" onclick="removeWebViewLoginUserField(${index})">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -416,6 +439,8 @@ function setupWebViewDeleteConfirmations() {
   const deleteWebViewUserConfirmBtn = document.getElementById('confirmDeleteWebViewUserBtn');
   if (deleteWebViewUserConfirmBtn) {
     deleteWebViewUserConfirmBtn.addEventListener('click', async () => {
+      if (!currentDeleteWebViewUser.instance || !currentDeleteWebViewUser.username) return;
+
       const originalText = deleteWebViewUserConfirmBtn.innerHTML;
       deleteWebViewUserConfirmBtn.disabled = true;
       deleteWebViewUserConfirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Removing...';
@@ -426,6 +451,7 @@ function setupWebViewDeleteConfirmations() {
       } finally {
         deleteWebViewUserConfirmBtn.disabled = false;
         deleteWebViewUserConfirmBtn.innerHTML = originalText;
+        currentDeleteWebViewUser = { instance: null, username: null };
       }
     });
   }
@@ -433,6 +459,8 @@ function setupWebViewDeleteConfirmations() {
   const deleteWebViewConfirmBtn = document.getElementById('confirmDeleteWebViewBtn');
   if (deleteWebViewConfirmBtn) {
     deleteWebViewConfirmBtn.addEventListener('click', async () => {
+      if (!currentDeleteWebViewInstance) return;
+
       const originalText = deleteWebViewConfirmBtn.innerHTML;
       deleteWebViewConfirmBtn.disabled = true;
       deleteWebViewConfirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Deleting...';
@@ -440,9 +468,11 @@ function setupWebViewDeleteConfirmations() {
       try {
         await deleteWebView(currentDeleteWebViewInstance);
         deleteWebViewModal.hide();
+        webviewModal.hide();
       } finally {
         deleteWebViewConfirmBtn.disabled = false;
         deleteWebViewConfirmBtn.innerHTML = originalText;
+        currentDeleteWebViewInstance = null;
       }
     });
   }

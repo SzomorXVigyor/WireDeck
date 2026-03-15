@@ -188,15 +188,16 @@
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1" :class="labelClass">Decimal places</label>
+                <label class="block text-sm font-medium mb-1" :class="labelClass">Decimal places <span class="text-xs font-normal opacity-60">(10<sup>-x</sup>)</span></label>
                 <input
                   v-model.number="draft.extra.precision"
                   type="number"
-                  min="0"
+                  min="-5"
                   max="10"
                   class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   :class="inputClass"
                 />
+                <p class="mt-1 text-xs opacity-60" :class="labelClass">Value multiplied by {{ Math.pow(10, -draft.extra.precision).toFixed(Math.max(0, draft.extra.precision)) }}</p>
               </div>
             </template>
 

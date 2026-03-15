@@ -48,7 +48,10 @@ const rawValue = computed<number>(() => {
 
 const displayValue = computed(() => {
   const precision = extra.value.precision ?? 0;
-  return rawValue.value.toFixed(precision);
+  const factor = Math.pow(10, -precision);
+  const shiftedValue = rawValue.value * factor;
+  const decimalPlaces = Math.max(0, precision);
+  return shiftedValue.toFixed(decimalPlaces);
 });
 
 const fontSizeMap: Record<string, string> = {

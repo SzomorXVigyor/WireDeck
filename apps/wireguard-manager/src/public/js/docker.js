@@ -52,20 +52,20 @@ async function checkDockerStatus() {
 async function reloadNginxProxy() {
   const reloadBtn = document.getElementById('reloadNginxBtn');
   const originalHtml = reloadBtn.innerHTML;
-  
+
   try {
     reloadBtn.disabled = true;
     reloadBtn.innerHTML = '<i class="fas fa-spin fa-spinner"></i>';
-    
+
     const response = await fetch(API_ENDPOINTS.docker.reloadNginx, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${authToken}`,
       },
     });
-    
+
     const result = await response.json();
-    
+
     if (result.success) {
       showToast('Nginx reload triggered successfully', 'success');
     } else {
