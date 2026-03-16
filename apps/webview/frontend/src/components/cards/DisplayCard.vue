@@ -14,13 +14,21 @@
 
     <!-- Value display -->
     <div class="mt-auto flex items-baseline gap-1 pt-1">
-      <span v-if="extra.prefix" class="text-sm text-gray-500 dark:text-gray-400">
+      <span
+        v-if="extra.prefix"
+        :class="valueSizeClass"
+        class="font-bold tabular-nums text-gray-900 dark:text-white leading-none"
+      >
         {{ extra.prefix }}
       </span>
       <span :class="valueSizeClass" class="font-bold tabular-nums text-gray-900 dark:text-white leading-none">
         {{ displayValue }}
       </span>
-      <span v-if="style.unit" class="text-sm text-gray-500 dark:text-gray-400 ml-0.5">
+      <span
+        v-if="style.unit"
+        :class="valueSizeClass"
+        class="font-bold tabular-nums text-gray-900 dark:text-white leading-none"
+      >
         {{ style.unit }}
       </span>
     </div>
