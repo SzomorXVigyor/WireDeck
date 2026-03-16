@@ -8,6 +8,7 @@ export {
   ModbusTcpProtocolAttributesEntity,
   RegisterType,
   RegisterOperation,
+  RegisterValueType,
 } from './modbus-tcp-protocol-attributes.entity';
 
 export type ProtocolAttributes = ModbusTcpProtocolAttributesEntity;

@@ -4,6 +4,7 @@ import {
   ModbusTcpProtocolAttributesEntity,
   RegisterOperation,
   RegisterType,
+  RegisterValueType,
 } from '../../registers/entities/protocol-attributes';
 
 /** Thrown when a read is attempted on a write-only (operation=W) register. */
@@ -104,11 +105,19 @@ export class ModbusTcpDriver {
       }
       case RegisterType.HOLDING_REGISTER: {
         const r = await this.client.readHoldingRegisters(attrs.registerAddress, 1);
-        return r.data[0];
+        let val = r.data[0];
+        if (attrs.valueType === RegisterValueType.SIGNED && val >= 32768) {
+          val -= 65536;
+        }
+        return val;
       }
       case RegisterType.INPUT_REGISTER: {
         const r = await this.client.readInputRegisters(attrs.registerAddress, 1);
-        return r.data[0];
+        let val = r.data[0];
+        if (attrs.valueType === RegisterValueType.SIGNED && val >= 32768) {
+          val -= 65536;
+        }
+        return val;
       }
       default:
         throw new Error(`Unknown register type: ${String(attrs.registerType)}`);
@@ -136,9 +145,23 @@ export class ModbusTcpDriver {
         await this.client.writeCoil(attrs.registerAddress, value !== 0);
         return;
 
-      case RegisterType.HOLDING_REGISTER:
-        await this.client.writeRegister(attrs.registerAddress, value);
+      case RegisterType.HOLDING_REGISTER: {
+        let writeVal = value;
+        if (attrs.valueType === RegisterValueType.SIGNED) {
+          if (writeVal < -32768 || writeVal > 32767) {
+            throw new Error(`Value ${writeVal} out of range for signed 16-bit register`);
+          }
+          if (writeVal < 0) {
+            writeVal += 65536;
+          }
+        } else {
+          if (writeVal < 0 || writeVal > 65535) {
+            throw new Error(`Value ${writeVal} out of range for unsigned 16-bit register`);
+          }
+        }
+        await this.client.writeRegister(attrs.registerAddress, writeVal);
         return;
+      }
 
       case RegisterType.DISCRETE_INPUT:
       case RegisterType.INPUT_REGISTER:

@@ -22,8 +22,15 @@
           :max="style.max"
           :step="extra.step ?? 1"
           :placeholder="extra.placeholder ?? ''"
-          class="w-full py-2 pl-3 text-sm rounded-lg border bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          :class="style.unit ? 'pr-10' : 'pr-3'"
+          @focus="isFocused = true"
+          @blur="isFocused = false"
+          class="w-full py-2 pl-3 text-sm rounded-lg border bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+          :class="[
+            style.unit ? 'pr-10' : 'pr-3',
+            isValid
+              ? 'border-gray-300 dark:border-gray-600 focus:ring-blue-500'
+              : 'border-red-500 dark:border-red-500 focus:ring-red-500',
+          ]"
         />
         <span
           v-if="style.unit"
@@ -33,7 +40,9 @@
         </span>
       </div>
       <button
-        class="flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+        class="flex-shrink-0 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+        :class="isValid ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 dark:bg-gray-600 cursor-not-allowed'"
+        :disabled="!isValid"
         @click="apply"
       >
         Set
@@ -64,11 +73,19 @@ const extra = computed(() => props.card.extra as NumberInputExtra);
 
 /** Local input value - initialised from register data when it arrives */
 const localValue = ref<number | null>(null);
+const isFocused = ref(false);
+
+const isValid = computed(() => {
+  if (localValue.value === null || typeof localValue.value !== 'number') return false;
+  if (style.value.min !== undefined && localValue.value < style.value.min) return false;
+  if (style.value.max !== undefined && localValue.value > style.value.max) return false;
+  return true;
+});
 
 watch(
   () => viewsStore.registerData.get(props.card.register),
   (v) => {
-    if (v !== undefined && localValue.value === null) {
+    if (v !== undefined && !isFocused.value) {
       localValue.value = v;
     }
   },
@@ -76,7 +93,7 @@ watch(
 );
 
 const apply = async () => {
-  if (localValue.value === null) return;
+  if (!isValid.value || localValue.value === null) return;
   await viewsStore.writeRegisterData(props.viewId, props.card.register, localValue.value);
 };
 </script>

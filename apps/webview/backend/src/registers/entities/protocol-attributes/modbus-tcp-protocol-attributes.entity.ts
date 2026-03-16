@@ -15,6 +15,11 @@ export enum RegisterOperation {
   RW = 'RW',
 }
 
+export enum RegisterValueType {
+  UNSIGNED = 'unsigned',
+  SIGNED = 'signed',
+}
+
 /** Protocol attributes for Modbus TCP (Ethernet) devices. */
 export class ModbusTcpProtocolAttributesEntity extends BaseProtocolAttributesEntity {
   @ApiProperty({ enum: RegisterType, enumName: 'RegisterType' })
@@ -34,4 +39,13 @@ export class ModbusTcpProtocolAttributesEntity extends BaseProtocolAttributesEnt
   @Min(0)
   @Max(255)
   slaveAddress: number;
+
+  @ApiProperty({
+    enum: RegisterValueType,
+    enumName: 'RegisterValueType',
+    required: false,
+    default: RegisterValueType.UNSIGNED,
+  })
+  @IsEnum(RegisterValueType)
+  valueType?: RegisterValueType;
 }

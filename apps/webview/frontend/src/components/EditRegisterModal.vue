@@ -130,6 +130,23 @@
                     <option value="RW">RW - Read &amp; Write</option>
                   </select>
                 </div>
+
+                <!-- Value Type -->
+                <div
+                  v-if="
+                    modbusAttrs.registerType === 'holding-register' || modbusAttrs.registerType === 'input-register'
+                  "
+                >
+                  <label class="block text-sm font-medium mb-1" :class="labelClass">Value Type (16-bit)</label>
+                  <select
+                    v-model="modbusAttrs.valueType"
+                    class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    :class="inputClass"
+                  >
+                    <option value="unsigned">Unsigned (0 to 65535)</option>
+                    <option value="signed">Signed (-32768 to 32767)</option>
+                  </select>
+                </div>
               </template>
             </template>
 
@@ -180,7 +197,13 @@
 import { ref, reactive, computed, watch } from 'vue';
 import { useThemeStore } from '../stores/theme';
 import { useDevicesStore } from '../stores/devices';
-import type { RegisterDictEntry, ModbusTCPAttributes, ModbusRegisterType, ModbusOperation } from '../types/register';
+import type {
+  RegisterDictEntry,
+  ModbusTCPAttributes,
+  ModbusRegisterType,
+  ModbusOperation,
+  ModbusValueType,
+} from '../types/register';
 
 // ── Draft types ───────────────────────────────────────────────────────────────
 
@@ -196,6 +219,7 @@ interface ModbusAttrsDraft {
   registerType: ModbusRegisterType;
   registerAddress: string;
   operation: ModbusOperation;
+  valueType: ModbusValueType;
 }
 
 // ── Props / emits ─────────────────────────────────────────────────────────────
@@ -232,7 +256,13 @@ function makeDraft(): DraftEntry {
 }
 
 function defaultModbus(): ModbusAttrsDraft {
-  return { slaveAddress: '1', registerType: 'holding-register', registerAddress: '0', operation: 'RW' };
+  return {
+    slaveAddress: '1',
+    registerType: 'holding-register',
+    registerAddress: '0',
+    operation: 'RW',
+    valueType: 'unsigned',
+  };
 }
 
 function makeAttrs(): ModbusAttrsDraft {
@@ -243,6 +273,7 @@ function makeAttrs(): ModbusAttrsDraft {
     registerType: src.registerType,
     registerAddress: String(src.registerAddress),
     operation: src.operation,
+    valueType: src.valueType ?? 'unsigned',
   };
 }
 
@@ -319,6 +350,7 @@ const handleSet = () => {
     registerType: modbusAttrs.value.registerType,
     registerAddress: Number(modbusAttrs.value.registerAddress),
     operation: modbusAttrs.value.operation,
+    valueType: modbusAttrs.value.valueType,
   };
 
   const entry: RegisterDictEntry = {

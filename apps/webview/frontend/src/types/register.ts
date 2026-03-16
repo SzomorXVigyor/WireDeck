@@ -2,6 +2,7 @@
 // Note: IP and port live on the Device entry, not here.
 export type ModbusRegisterType = 'coil' | 'discrete-input' | 'holding-register' | 'input-register';
 export type ModbusOperation = 'R' | 'W' | 'RW';
+export type ModbusValueType = 'unsigned' | 'signed';
 
 export interface ModbusTCPAttributes {
   /** Modbus slave / unit address (0-247). */
@@ -12,6 +13,8 @@ export interface ModbusTCPAttributes {
   registerAddress: number;
   /** Allowed operations for this register. */
   operation: ModbusOperation;
+  /** Value interpretation type (16-bit). */
+  valueType?: ModbusValueType;
 }
 
 // ── Union of all possible protocol attributes ─────────────────────────────
