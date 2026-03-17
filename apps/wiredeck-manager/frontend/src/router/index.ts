@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import LoginView from '../views/LoginView.vue';
 import DashboardView from '../views/DashboardView.vue';
+import InstancesView from '../views/InstancesView.vue';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -19,6 +20,14 @@ const routes: RouteRecordRaw[] = [
     path: '/dashboard',
     component: DashboardView,
     meta: { requiresAuth: true },
+    redirect: '/dashboard/instances',
+    children: [
+      {
+        path: 'instances',
+        name: 'Instances',
+        component: InstancesView,
+      },
+    ],
   },
 ];
 

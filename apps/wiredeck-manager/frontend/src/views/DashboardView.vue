@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex" :class="themeStore.isDark ? 'bg-gray-900' : 'bg-gray-100'">
-    <!-- ───────────── Mobile overlay backdrop ───────────── -->
+    <!-- ------------- Mobile overlay backdrop ------------- -->
     <transition name="fade">
       <div
         v-if="sidebarOpen"
@@ -10,7 +10,7 @@
       />
     </transition>
 
-    <!-- ───────────────── Sidebar ───────────────── -->
+    <!-- ----------------- Sidebar ----------------- -->
     <aside
       class="fixed md:sticky top-0 z-30 md:z-auto h-screen flex-shrink-0 flex flex-col border-r transition-transform duration-300 ease-in-out md:translate-x-0 w-64 md:w-60"
       :class="[
@@ -59,6 +59,52 @@
         </div>
       </div>
 
+      <!-- Main navigation -->
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+        <router-link
+          :to="{ name: 'Instances' }"
+          class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
+          :class="
+            route.name === 'Instances' || route.path.includes('/instances')
+              ? 'bg-blue-600 text-white'
+              : themeStore.isDark
+                ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+          "
+          @click="sidebarOpen = false"
+        >
+          <ServerStackIcon class="w-4 h-4 flex-shrink-0" />
+          <span class="truncate">Instances</span>
+        </router-link>
+
+        <a
+          href="#"
+          class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full cursor-not-allowed opacity-50"
+          :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
+        >
+          <ChartBarIcon class="w-4 h-4 flex-shrink-0" />
+          <span class="truncate">Monitoring</span>
+        </a>
+
+        <a
+          href="#"
+          class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full cursor-not-allowed opacity-50"
+          :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
+        >
+          <UsersIcon class="w-4 h-4 flex-shrink-0" />
+          <span class="truncate">Users</span>
+        </a>
+
+        <a
+          href="#"
+          class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full cursor-not-allowed opacity-50"
+          :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'"
+        >
+          <SquaresPlusIcon class="w-4 h-4 flex-shrink-0" />
+          <span class="truncate">Modules</span>
+        </a>
+      </nav>
+
       <!-- User footer -->
       <div class="p-3 border-t flex-shrink-0" :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'">
         <div class="flex items-center gap-2 px-2 py-1">
@@ -86,7 +132,7 @@
       </div>
     </aside>
 
-    <!-- ───────────────── Main content ───────────────── -->
+    <!-- ----------------- Main content ----------------- -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Mobile top bar -->
       <header
@@ -116,7 +162,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useThemeStore } from '../stores/theme';
 import {
@@ -126,9 +172,14 @@ import {
   UserCircleIcon,
   Bars3Icon,
   XMarkIcon,
+  ServerStackIcon,
+  ChartBarIcon,
+  UsersIcon,
+  SquaresPlusIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const themeStore = useThemeStore();
 

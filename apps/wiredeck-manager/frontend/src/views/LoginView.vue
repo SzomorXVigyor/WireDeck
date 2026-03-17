@@ -149,7 +149,9 @@
         </form>
 
         <div class="mt-6 text-center">
-          <p class="text-xs" :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-500'">For system and infrastructure administrators only</p>
+          <p class="text-xs" :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-500'">
+            For system and infrastructure administrators only
+          </p>
         </div>
       </div>
     </div>

@@ -4,7 +4,6 @@ import type { Ref } from 'vue';
 import api from '../services/api';
 
 interface ConfigFeatures {
-  passwordChange: boolean;
   [key: string]: any;
 }
 
