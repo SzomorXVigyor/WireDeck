@@ -1,6 +1,5 @@
 import axios, { type AxiosInstance, type InternalAxiosRequestConfig, type AxiosResponse, AxiosError } from 'axios';
 import { useAuthStore } from '../stores/auth';
-import { useToastStore } from '../stores/toast';
 import router from '../router';
 
 const api: AxiosInstance = axios.create({
@@ -32,7 +31,7 @@ api.interceptors.response.use(
       router.push('/login');
       return Promise.reject(error);
     }
-
+    /*
     // Skip toast when the caller opted out (e.g. login form handles its own errors)
     if ((error.config as any)?._suppressToast) {
       return Promise.reject(error);
@@ -49,7 +48,26 @@ api.interceptors.response.use(
     const status = error.response?.status ?? 0;
     const type = status >= 500 ? 'error' : status === 409 ? 'warning' : 'error';
 
-    useToastStore().push(message, type);
+     useToastStore().push(message, type);*/
+
+    const data = error.response?.data as Record<string, unknown> | undefined;
+    const rawMessage = data?.message;
+    const message = Array.isArray(rawMessage)
+      ? rawMessage.join(' · ')
+      : typeof rawMessage === 'string' && rawMessage
+        ? rawMessage
+        : error.message || 'An unexpected error occurred';
+
+    const status = error.response?.status ?? 0;
+    const type = status >= 500 ? 'error' : status === 409 ? 'warning' : 'error';
+
+    if (type === 'error') {
+      console.error('[api call - error]', message);
+    } else if (type === 'warning') {
+      console.warn('[api call - warning]', message);
+    } else {
+      console.log('[api call - info]', message);
+    }
 
     return Promise.reject(error);
   }
