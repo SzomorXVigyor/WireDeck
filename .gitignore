@@ -2,4 +2,13 @@
 /database/
 /nginx/sites/
 .env
-/apps/webvnc/backend/public
+
+# Sub-apps build files
+**/node_modules/
+**/dist/
+**/.vite/
+
+# Sub-apps environment files
+**/.development.env
+**/.production.env
+**/.env
