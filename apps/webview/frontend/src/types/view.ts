@@ -140,12 +140,6 @@ export interface Layout {
    *           Excess cards wrap to the next row.
    */
   type: LayoutType;
-  /**
-   * Polling interval for `GET /api/view/:id/data` in **seconds**.
-   * When set, the UI automatically re-fetches register data at this interval.
-   * Omit (or set to `0`) to disable automatic polling.
-   */
-  updateInterval?: number;
 }
 
 // ── View ───────────────────────────────────────────────────────────────────
@@ -161,5 +155,7 @@ export interface ViewDetail {
   id: number;
   name: string;
   layout: Layout;
+  updateInterval: number;
+  allowedUsernames: string[];
   components: Card[];
 }

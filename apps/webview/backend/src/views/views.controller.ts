@@ -21,6 +21,8 @@ import { QueryRegistersDto } from './dto/query-registers.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles, Role } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { UserEntity } from '../users/entities/user.entity';
 
 @ApiTags('views')
 @ApiBearerAuth()
@@ -33,8 +35,8 @@ export class ViewsController {
   @ApiOperation({ summary: 'List all views (id + name)' })
   @ApiResponse({ status: 200, description: 'Array of view summaries', type: [ViewSummaryDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
-  async findAll(): Promise<ViewSummaryDto[]> {
-    return this.viewsService.findAll();
+  async findAll(@CurrentUser() user: UserEntity): Promise<ViewSummaryDto[]> {
+    return this.viewsService.findAll(user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -44,8 +46,8 @@ export class ViewsController {
   @ApiResponse({ status: 200, description: 'Full view with cards', type: ViewDto })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 404, description: 'View not found' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<ViewDto> {
-    return this.viewsService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: UserEntity): Promise<ViewDto> {
+    return this.viewsService.findOne(id, user);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -100,8 +102,12 @@ export class ViewsController {
   @ApiResponse({ status: 200, description: 'Current value of each requested register', type: [RegisterValueDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 404, description: 'View not found' })
-  async getData(@Param('id', ParseIntPipe) id: number, @Body() dto: QueryRegistersDto): Promise<RegisterValueDto[]> {
-    return this.viewsService.getData(id, dto);
+  async getData(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: QueryRegistersDto,
+    @CurrentUser() user: UserEntity
+  ): Promise<RegisterValueDto[]> {
+    return this.viewsService.getData(id, dto, user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -115,7 +121,11 @@ export class ViewsController {
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
   @ApiResponse({ status: 404, description: 'View not found' })
   @ApiResponse({ status: 500, description: 'Internal server error - unexpected database error' })
-  async writeData(@Param('id', ParseIntPipe) id: number, @Body() dto: WriteRegisterDto): Promise<RegisterValueDto> {
-    return this.viewsService.writeData(id, dto);
+  async writeData(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: WriteRegisterDto,
+    @CurrentUser() user: UserEntity
+  ): Promise<RegisterValueDto> {
+    return this.viewsService.writeData(id, dto, user);
   }
 }

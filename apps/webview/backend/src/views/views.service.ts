@@ -9,12 +9,15 @@ import { RegisterValueDto } from './dto/register-value.dto';
 import { QueryRegistersDto } from './dto/query-registers.dto';
 import { RegisterCacheService } from '../connection/register-cache.service';
 import { ConnectionManagerService } from '../connection/connection-manager.service';
+import { UserEntity, UserRole } from '../users/entities/user.entity';
 
 /** Prisma select shape for a full view with its ordered cards. */
 const VIEW_WITH_CARDS_SELECT = {
   id: true,
   name: true,
   layout: true,
+  updateInterval: true,
+  allowedUsernames: true,
   components: {
     orderBy: { order: 'asc' as const },
     select: {
@@ -37,6 +40,8 @@ function mapViewRow(row: ViewRow): ViewDto {
     id: row.id,
     name: row.name,
     layout: row.layout as unknown as ViewLayoutDto,
+    updateInterval: row.updateInterval,
+    allowedUsernames: row.allowedUsernames as string[],
     components: row.components.map(
       (c): CardDto => ({
         id: c.id,
@@ -61,16 +66,23 @@ export class ViewsService {
     private readonly connectionManager: ConnectionManagerService
   ) {}
 
-  async findAll(): Promise<ViewSummaryDto[]> {
-    return this.prisma.view.findMany({ select: { id: true, name: true } });
+  async findAll(user: UserEntity): Promise<ViewSummaryDto[]> {
+    const where: Prisma.ViewWhereInput =
+      user.role === UserRole.ADMIN ? {} : { allowedUsernames: { has: user.username } };
+    return this.prisma.view.findMany({ where, select: { id: true, name: true } });
   }
 
-  async findOne(id: number): Promise<ViewDto> {
-    const row = await this.prisma.view.findUniqueOrThrow({
-      where: { id },
+  async findOne(id: number, user: UserEntity): Promise<ViewDto> {
+    const where: Prisma.ViewWhereInput = { id };
+    if (user.role !== UserRole.ADMIN) {
+      where.allowedUsernames = { has: user.username };
+    }
+
+    const row = await this.prisma.view.findFirstOrThrow({
+      where,
       select: VIEW_WITH_CARDS_SELECT,
     });
-    return mapViewRow(row);
+    return mapViewRow(row as ViewRow);
   }
 
   async create(): Promise<ViewDto> {
@@ -78,7 +90,9 @@ export class ViewsService {
     const row = await this.prisma.view.create({
       data: {
         name: `New View ${count + 1}`,
-        layout: { type: 'fill', updateInterval: 5 } as Prisma.InputJsonValue,
+        layout: { type: 'fill' } as Prisma.InputJsonValue,
+        updateInterval: 5,
+        allowedUsernames: [],
       },
       select: VIEW_WITH_CARDS_SELECT,
     });
@@ -92,6 +106,8 @@ export class ViewsService {
       data: {
         name: dto.name,
         layout: dto.layout as unknown as Prisma.InputJsonValue,
+        updateInterval: dto.updateInterval,
+        allowedUsernames: dto.allowedUsernames,
         components: {
           deleteMany: {},
           create: dto.components.map((card) => ({
@@ -115,9 +131,13 @@ export class ViewsService {
     this.logger.debug(`View deleted: id=${id}`);
   }
 
-  async getData(id: number, dto: QueryRegistersDto): Promise<RegisterValueDto[]> {
-    // Verify view exists (throws 404 via Prisma filter if not).
-    await this.prisma.view.findUniqueOrThrow({ where: { id }, select: { id: true } });
+  async getData(id: number, dto: QueryRegistersDto, user: UserEntity): Promise<RegisterValueDto[]> {
+    // Verify view exists and the user has access.
+    const where: Prisma.ViewWhereInput = { id };
+    if (user.role !== UserRole.ADMIN) {
+      where.allowedUsernames = { has: user.username };
+    }
+    await this.prisma.view.findFirstOrThrow({ where, select: { id: true } });
 
     // Return cached values only - the scheduler is the sole driver of device reads.
     // Any register not yet polled (or not tracked) returns 0.
@@ -127,7 +147,14 @@ export class ViewsService {
     }));
   }
 
-  async writeData(id: number, dto: WriteRegisterDto): Promise<RegisterValueDto> {
+  async writeData(id: number, dto: WriteRegisterDto, user: UserEntity): Promise<RegisterValueDto> {
+    // Verify the view exists and the user has access.
+    const where: Prisma.ViewWhereInput = { id };
+    if (user.role !== UserRole.ADMIN) {
+      where.allowedUsernames = { has: user.username };
+    }
+    await this.prisma.view.findFirstOrThrow({ where, select: { id: true } });
+
     // Verify the register belongs to this view (security: prevent writing
     // arbitrary registers via a view the caller has access to).
     const card = await this.prisma.card.findFirst({

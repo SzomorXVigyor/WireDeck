@@ -177,6 +177,8 @@
       v-model="showOptionsModal"
       :view-name="editDraft?.name ?? ''"
       :layout="editDraft?.layout ?? { type: 'fill' }"
+      :update-interval="editDraft?.updateInterval ?? 0"
+      :allowed-usernames="editDraft?.allowedUsernames ?? []"
       @set="handleOptionsSet"
     />
 
@@ -294,7 +296,7 @@ const cancelEdit = () => {
   orderedDraftCards.value = [];
   draggedId.value = null;
   // Resume data updates
-  const interval = viewsStore.currentView?.layout.updateInterval ?? 0;
+  const interval = viewsStore.currentView?.updateInterval ?? 0;
   if (interval > 0) {
     viewsStore.startPolling(currentViewId.value, interval);
   } else {
@@ -318,7 +320,7 @@ const saveEdit = async () => {
     editDraft.value = null;
     orderedDraftCards.value = [];
     // Restart polling with the (possibly updated) interval
-    const interval = viewsStore.currentView?.layout.updateInterval ?? 0;
+    const interval = viewsStore.currentView?.updateInterval ?? 0;
     if (interval > 0) {
       viewsStore.startPolling(currentViewId.value, interval);
     } else {
@@ -340,10 +342,12 @@ const handleDelete = async () => {
   }
 };
 
-const handleOptionsSet = (name: string, layout: Layout) => {
+const handleOptionsSet = (name: string, layout: Layout, updateInterval: number, allowedUsernames: string[]) => {
   if (!editDraft.value) return;
   editDraft.value.name = name;
   editDraft.value.layout = layout;
+  editDraft.value.updateInterval = updateInterval;
+  editDraft.value.allowedUsernames = allowedUsernames;
 };
 
 // ── Card-modal actions ──────────────────────────────────────────────────────

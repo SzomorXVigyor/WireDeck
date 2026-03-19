@@ -8,10 +8,6 @@ export class ViewLayoutEntity {
   @IsString()
   @IsNotEmpty()
   type: string;
-
-  @ApiProperty({ example: 5, description: 'Polling interval in seconds (0 = no polling)' })
-  @IsNumber()
-  updateInterval: number;
 }
 
 export class ViewEntity {
@@ -35,4 +31,14 @@ export class ViewEntity {
   @ValidateNested({ each: true })
   @Type(() => CardEntity)
   components: CardEntity[];
+
+  @ApiProperty({ example: 5, description: 'Polling interval in seconds (0 = no polling)' })
+  @IsNumber()
+  updateInterval: number;
+
+  @ApiProperty({ example: ['user1', 'user2'] })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  allowedUsernames?: string[];
 }
