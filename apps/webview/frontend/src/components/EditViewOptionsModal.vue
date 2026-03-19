@@ -56,6 +56,48 @@
             </div>
           </div>
 
+          <div
+            class="px-6 pb-4 space-y-4 border-t pt-4"
+            :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'"
+          >
+            <h3 class="text-sm font-semibold" :class="labelClass">Access Control</h3>
+
+            <div class="space-y-2">
+              <div
+                v-for="username in draftAllowedUsernames"
+                :key="username"
+                class="flex items-center justify-between px-3 py-2 rounded-lg border text-sm"
+                :class="inputClass"
+              >
+                <span>{{ username }}</span>
+                <button type="button" class="text-red-500 hover:text-red-600 font-medium" @click="removeUser(username)">
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <select
+                v-model="selectedUserToAdd"
+                class="flex-1 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                :class="inputClass"
+              >
+                <option value="" disabled>Add user...</option>
+                <option v-for="user in availableUsers" :key="user" :value="user">
+                  {{ user }}
+                </option>
+              </select>
+              <button
+                type="button"
+                class="px-3 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                :disabled="!selectedUserToAdd"
+                @click="addUser"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
           <!-- Footer -->
           <div
             class="flex justify-end gap-2 px-6 py-4 border-t"
@@ -91,16 +133,19 @@
 import { ref, computed, watch } from 'vue';
 import { useThemeStore } from '../stores/theme';
 import type { Layout, LayoutType } from '../types/view';
+import api from '../services/api';
 
 const props = defineProps<{
   modelValue: boolean;
   viewName: string;
   layout: Layout;
+  updateInterval: number;
+  allowedUsernames: string[];
 }>();
 
 const emit = defineEmits<{
   (e: 'update:modelValue', val: boolean): void;
-  (e: 'set', name: string, layout: Layout): void;
+  (e: 'set', name: string, layout: Layout, updateInterval: number, allowedUsernames: string[]): void;
 }>();
 
 const themeStore = useThemeStore();
@@ -108,6 +153,34 @@ const themeStore = useThemeStore();
 const draftName = ref('');
 const draftLayoutType = ref<LayoutType>('fill');
 const draftInterval = ref(0);
+const draftAllowedUsernames = ref<string[]>([]);
+
+const allUsernames = ref<string[]>([]);
+const selectedUserToAdd = ref('');
+
+const fetchUsers = async () => {
+  try {
+    const res = await api.get('/users');
+    allUsernames.value = res.data.usernames || [];
+  } catch (err) {
+    console.error('Failed to fetch usernames:', err);
+  }
+};
+
+const availableUsers = computed(() => {
+  return allUsernames.value.filter((u) => !draftAllowedUsernames.value.includes(u));
+});
+
+const addUser = () => {
+  if (selectedUserToAdd.value && !draftAllowedUsernames.value.includes(selectedUserToAdd.value)) {
+    draftAllowedUsernames.value.push(selectedUserToAdd.value);
+    selectedUserToAdd.value = '';
+  }
+};
+
+const removeUser = (username: string) => {
+  draftAllowedUsernames.value = draftAllowedUsernames.value.filter((u) => u !== username);
+};
 
 watch(
   () => props.modelValue,
@@ -115,7 +188,9 @@ watch(
     if (open) {
       draftName.value = props.viewName;
       draftLayoutType.value = props.layout.type;
-      draftInterval.value = props.layout.updateInterval ?? 0;
+      draftInterval.value = props.updateInterval ?? 0;
+      draftAllowedUsernames.value = [...props.allowedUsernames];
+      fetchUsers();
     }
   }
 );
@@ -123,10 +198,15 @@ watch(
 const cancel = () => emit('update:modelValue', false);
 
 const handleSet = () => {
-  emit('set', draftName.value, {
-    type: draftLayoutType.value,
-    updateInterval: draftInterval.value,
-  });
+  emit(
+    'set',
+    draftName.value,
+    {
+      type: draftLayoutType.value,
+    },
+    draftInterval.value,
+    draftAllowedUsernames.value
+  );
   emit('update:modelValue', false);
 };
 

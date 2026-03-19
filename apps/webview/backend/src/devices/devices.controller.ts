@@ -25,11 +25,13 @@ import { Roles, Role } from '../auth/decorators/roles.decorator';
 export class DevicesController {
   constructor(private readonly devicesService: DevicesService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Get('devices')
-  @ApiOperation({ summary: 'List all devices' })
+  @ApiOperation({ summary: 'List all devices (admin)' })
   @ApiResponse({ status: 200, description: 'Array of all registered devices', type: [DeviceDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   async findAll(): Promise<DeviceDto[]> {
     return this.devicesService.findAll();
   }

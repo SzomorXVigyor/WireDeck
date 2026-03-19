@@ -25,11 +25,13 @@ import { Roles, Role } from '../auth/decorators/roles.decorator';
 export class RegistersController {
   constructor(private readonly registersService: RegistersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Get('registers')
-  @ApiOperation({ summary: 'List all register dictionary entries' })
+  @ApiOperation({ summary: 'List all register dictionary entries (admin)' })
   @ApiResponse({ status: 200, description: 'Array of all register entries', type: [RegisterDictEntryDto] })
   @ApiResponse({ status: 401, description: 'Unauthorized - valid JWT required' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   async findAll(): Promise<RegisterDictEntryDto[]> {
     return this.registersService.findAll();
   }

@@ -9,6 +9,8 @@ CREATE TABLE "views" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "layout" JSONB NOT NULL,
+    "updateInterval" INTEGER NOT NULL,
+    "allowedUsernames" TEXT[],
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

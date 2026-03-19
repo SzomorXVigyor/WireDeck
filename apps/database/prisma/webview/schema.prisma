@@ -38,7 +38,14 @@ model View {
   // Stored as ViewLayoutDto { type, updateInterval }
   layout Json
 
+  // Cards in the view
   components Card[]
+
+  // View data update interval in seconds
+  updateInterval Int
+
+  // Access control
+  allowedUsernames String[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

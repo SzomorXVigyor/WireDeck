@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserEntity } from './entities/user.entity';
+import { UsernameListDto } from './dto/usernames-response.dto';
 
 @Injectable()
 export class UsersService {
@@ -26,5 +27,10 @@ export class UsersService {
 
   async getAllUsers(): Promise<Omit<UserEntity, 'password'>[]> {
     return this.users.map(({ password: _, ...rest }) => rest);
+  }
+
+  async getAllUsernames(): Promise<UsernameListDto> {
+    const usernames = this.users.map((user) => user.username);
+    return { usernames };
   }
 }
