@@ -66,20 +66,20 @@ export async function createWebVncModule(instanceId: string, dto: CreateInstance
   return res.data;
 }
 
-/** Update a WebView module. Sends to POST /instance/module/update?id=<id>&type=webview */
+/** Update a WebView module. Sends to PUT /instance/module/update?id=<id>&type=webview */
 export async function updateWebViewModule(
   instanceId: string,
   dto: UpdateInstanceModuleWebViewDto
 ): Promise<ApiResponse> {
-  const res = await api.post<ApiResponse>('/instance/module/update', dto, {
+  const res = await api.put<ApiResponse>('/instance/module/update', dto, {
     params: { id: instanceId, type: 'webview' },
   });
   return res.data;
 }
 
-/** Update a WebVNC module. Sends to POST /instance/module/update?id=<id>&type=webvnc */
+/** Update a WebVNC module. Sends to PUT /instance/module/update?id=<id>&type=webvnc */
 export async function updateWebVncModule(instanceId: string, dto: UpdateInstanceModuleWebVncDto): Promise<ApiResponse> {
-  const res = await api.post<ApiResponse>('/instance/module/update', dto, {
+  const res = await api.put<ApiResponse>('/instance/module/update', dto, {
     params: { id: instanceId, type: 'webvnc' },
   });
   return res.data;
@@ -103,12 +103,8 @@ export async function moduleAction(
 
 /** Delete a module from an instance. */
 export async function deleteModule(instanceId: string, moduleType: ModuleType): Promise<ApiResponse> {
-  const res = await api.post<ApiResponse>(
-    '/instance/module/delete',
-    {},
-    {
-      params: { id: instanceId, type: moduleType === 'webVNC' ? 'webvnc' : 'webview' },
-    }
-  );
+  const res = await api.delete<ApiResponse>('/instance/module/delete', {
+    params: { id: instanceId, type: moduleType === 'webVNC' ? 'webvnc' : 'webview' },
+  });
   return res.data;
 }

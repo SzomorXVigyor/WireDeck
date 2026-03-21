@@ -14,6 +14,8 @@ import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { DATABASE_URL, SERVICE_NAME } from './utils/env';
 import { join } from 'path';
+import { InstancesModule } from './instances/instances.module';
+import { ModulesModule } from './modules/modules.module';
 
 @Module({
   imports: [
@@ -48,6 +50,8 @@ import { join } from 'path';
         fallthrough: true,
       },
     }),
+    InstancesModule,
+    ModulesModule,
   ],
   controllers: [HealthController],
   providers: [

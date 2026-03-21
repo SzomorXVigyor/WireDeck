@@ -32,8 +32,8 @@ export interface Instance {
 export interface CreateInstanceDto {
   name: string;
   cidr?: string;
-  adminUsername: string;
-  adminPassword: string;
+  username: string;
+  password: string;
 }
 
 // ---------------------------------------------------------------------------

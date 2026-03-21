@@ -58,7 +58,7 @@
               ]"
             />
             <p v-if="form.cidr && !validCidr" class="mt-1 text-xs text-red-400">
-              Invalid subnet format (e.g. 10.8.0.0/24)
+              Invalid subnet format (e.g. 172.21.0.0/24)
             </p>
             <p v-else class="mt-1 text-xs" :class="dark ? 'text-amber-500/80' : 'text-amber-600'">
               Leave empty to use default (172.21.0.0/24). Only change if necessary.
@@ -73,7 +73,7 @@
                   Admin Username <span class="text-red-400">*</span>
                 </label>
                 <input
-                  v-model="form.adminUsername"
+                  v-model="form.username"
                   type="text"
                   required
                   placeholder="admin"
@@ -86,19 +86,17 @@
                   Admin Password <span class="text-red-400">*</span>
                 </label>
                 <input
-                  v-model="form.adminPassword"
+                  v-model="form.password"
                   type="password"
                   required
                   placeholder="••••••••••••"
                   class="w-full rounded-lg px-3 py-2 text-sm border focus:ring-2 outline-none transition-shadow"
                   :class="[
                     inputCls,
-                    form.adminPassword && !validPassword
-                      ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500'
-                      : '',
+                    form.password && !validPassword ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : '',
                   ]"
                 />
-                <p v-if="form.adminPassword && !validPassword" class="mt-0.5 text-xs text-red-400">
+                <p v-if="form.password && !validPassword" class="mt-0.5 text-xs text-red-400">
                   Must be 12-64 characters
                 </p>
               </div>
@@ -178,8 +176,8 @@ const inputCls = computed(() =>
 const form = ref<CreateInstanceDto>({
   name: '',
   cidr: '',
-  adminUsername: '',
-  adminPassword: '',
+  username: '',
+  password: '',
 });
 
 const busy = ref(false);
@@ -194,26 +192,25 @@ function sanitizeName(name: string): string {
 
 const validCidr = computed(() => {
   const v = form.value.cidr;
-  if (!v) return true; // optional
+  if (!v) return true;
+  const [ip, prefix] = v.split('/');
+
   return (
-    /^\d{1,3}(\.\d{1,3}){3}\/\d{1,2}$/.test(v) &&
-    v
-      .split('/')[0]
-      .split('.')
-      .every((n) => Number(n) >= 0 && Number(n) <= 255) &&
-    Number(v.split('/')[1]) >= 0 &&
-    Number(v.split('/')[1]) <= 32
+    v.split('/').length === 2 &&
+    /^(\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/.test(ip) &&
+    /^\d+$/.test(prefix) &&
+    Number(prefix) >= 0 &&
+    Number(prefix) <= 32
   );
 });
 
 const validPassword = computed(() => {
-  const p = form.value.adminPassword;
+  const p = form.value.password;
   return p.length >= 12 && p.length <= 64;
 });
 
 const isValid = computed(
-  () =>
-    form.value.name.trim() !== '' && form.value.adminUsername.trim() !== '' && validPassword.value && validCidr.value
+  () => form.value.name.trim() !== '' && form.value.username.trim() !== '' && validPassword.value && validCidr.value
 );
 
 async function submit() {
@@ -222,8 +219,8 @@ async function submit() {
   try {
     const payload: CreateInstanceDto = {
       name: form.value.name,
-      adminUsername: form.value.adminUsername,
-      adminPassword: form.value.adminPassword,
+      username: form.value.username,
+      password: form.value.password,
       ...(form.value.cidr ? { cidr: form.value.cidr } : {}),
     };
     const data = await createInstance(payload);
