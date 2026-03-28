@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInstanceDto } from './dto/create-instance.dto';
-import { mapInstanceToResponse, instanceInclude } from './instance.mapper';
+import { mapInstanceToResponse, instanceInclude, PrismaInstanceWithModules } from './instance.mapper';
 import { ResponseInstanceDto } from './dto/response-instance.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { sanitizeServiceName } from 'src/utils/common';
-import { INSTANCE_START_IP, INSTANCE_START_PORT, ROOT_DOMAIN } from 'src/utils/env';
+import { INSTANCE_START_IP, INSTANCE_START_PORT, INSTANCE_INTERNAL_SUBNET, ROOT_DOMAIN } from 'src/utils/env';
 
 @Injectable()
 export class InstancesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createInstanceDto: CreateInstanceDto) {
+  async create(createInstanceDto: CreateInstanceDto) : Promise<ResponseInstanceDto> {
     // On first get all instance name to check it is unique
     const instances = await this.prisma.instance.findMany();
     if (instances.some((instance) => instance.name === createInstanceDto.name)) {
@@ -41,7 +41,7 @@ export class InstancesService {
           name: serviceName,
           ipv4: nextAvailableIp,
           publicPort: nextAvailablePort,
-          internal_ipv4Cidr: createInstanceDto.internal_ipv4Cidr,
+          internal_ipv4Cidr: createInstanceDto.internal_ipv4Cidr || INSTANCE_INTERNAL_SUBNET,
           username: createInstanceDto.username,
           password: createInstanceDto.password,
           subdomainValue: subdomain,
@@ -58,7 +58,8 @@ export class InstancesService {
       return newInstance;
     });
 
-    return instance;
+    return mapInstanceToResponse(instance as PrismaInstanceWithModules);
+    
   }
 
   async findOne(id: string): Promise<ResponseInstanceDto> {
@@ -71,7 +72,7 @@ export class InstancesService {
       throw new NotFoundException(`Instance with id "${id}" not found`);
     }
 
-    return mapInstanceToResponse(instance as any);
+    return mapInstanceToResponse(instance as PrismaInstanceWithModules);
   }
 
   async findAll(): Promise<ResponseInstanceDto[]> {
@@ -79,7 +80,7 @@ export class InstancesService {
       include: instanceInclude,
     });
 
-    return instances.map((instance) => mapInstanceToResponse(instance as any));
+    return instances.map((instance) => mapInstanceToResponse(instance as PrismaInstanceWithModules));
   }
 
   delete(id: string) {

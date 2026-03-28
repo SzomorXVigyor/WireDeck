@@ -21,7 +21,7 @@ export class ResponseInstanceModulesDto {
  * Instance response DTO.
  * Omitted: username, password, modules (redefined with typed module response DTOs)
  */
-export class ResponseInstanceDto extends OmitType(InstanceEntity, ['username', 'password', 'status', 'modules']) {
+export class ResponseInstanceDto extends OmitType(InstanceEntity, ['username', 'password', 'modules']) {
   @ApiProperty({ type: ResponseInstanceModulesDto })
   @ValidateNested()
   @Type(() => ResponseInstanceModulesDto)

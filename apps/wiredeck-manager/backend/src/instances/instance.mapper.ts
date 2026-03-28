@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, ModuleVnc, ModuleWebView } from '@prisma/client';
 import { ResponseModuleUserDto } from 'src/modules/dto/response-module-user.dto';
 import { ResponseModuleWebviewDto } from 'src/modules/dto/response-module-webview.dto';
 import { ResponseModuleWebvncDto, ResponseVncDeviceDto } from 'src/modules/dto/response-module-webvnc.dto';
@@ -23,8 +23,6 @@ export type PrismaInstanceWithModules = Prisma.InstanceGetPayload<{
 }>;
 
 type PrismaModuleList = NonNullable<PrismaInstanceWithModules['modules']>;
-type PrismaModuleWebView = NonNullable<PrismaModuleList['webView']>;
-type PrismaModuleVnc = NonNullable<PrismaModuleList['webVnc']>;
 
 // ---------------------------------------------------------------------------
 // Raw JSON shapes stored in the Json Prisma columns
@@ -65,10 +63,11 @@ function mapVncDevices(raw: Prisma.JsonValue): ResponseVncDeviceDto[] {
   }));
 }
 
-function mapWebView(model: PrismaModuleWebView): ResponseModuleWebviewDto {
+function mapWebView(model: ModuleWebView): ResponseModuleWebviewDto {
   return {
     ipv4: model.ipv4,
     subdomain: model.subdomainValue,
+    status: "unknown",
     version: model.version,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,
@@ -76,10 +75,11 @@ function mapWebView(model: PrismaModuleWebView): ResponseModuleWebviewDto {
   };
 }
 
-function mapWebVnc(model: PrismaModuleVnc): ResponseModuleWebvncDto {
+function mapWebVnc(model: ModuleVnc): ResponseModuleWebvncDto {
   return {
     ipv4: model.ipv4,
     subdomain: model.subdomainValue,
+    status: "unknown",
     version: model.version,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,
@@ -106,6 +106,7 @@ export function mapInstanceToResponse(model: PrismaInstanceWithModules): Respons
     ipv4: model.ipv4,
     publicPort: model.publicPort,
     internal_ipv4Cidr: model.internal_ipv4Cidr,
+    status: "unknown",
     subdomain: model.subdomainValue,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,

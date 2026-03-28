@@ -18,6 +18,8 @@ export const VERSION = env.get('npm_package_version').default('0.0.0').asString(
 export const INSTANCE_START_IP = env.get('INSTANCE_START_IP').required().asString();
 // The first available port for instance, also open the next 255 ports on host for later instances
 export const INSTANCE_START_PORT = env.get('INSTANCE_START_PORT').required().asPortNumber();
+//Default internal subnet for instances
+export const INSTANCE_INTERNAL_SUBNET = env.get('INSTANCE_INTERNAL_SUBNET').default('172.21.0.0/24').asString();
 // Root domain for the application
 export const ROOT_DOMAIN = env.get('ROOT_DOMAIN').required().asString();
 // Email for certification obtain and renewal
