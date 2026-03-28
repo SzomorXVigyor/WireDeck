@@ -1,6 +1,6 @@
-// Prisma schema for WebView
+// Prisma schema for wiredeck-manager
 // PostgreSQL
-// Run from apps/webview/backend:
+// Run from apps/wiredeck-manager/backend:
 //   yarn prisma generate
 //   yarn prisma migrate dev
 
@@ -10,4 +10,63 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model Domain {
+  domain              String         @unique
+  instance            Instance?
+  moduleWebView       ModuleWebView?
+  moduleVnc           ModuleVnc?
+}
+
+model Instance {
+  id                String      @id @default(uuid())
+  name              String      @unique
+  ipv4              String      @unique
+  publicPort        Int         @unique
+  internal_ipv4Cidr String
+  username          String
+  password          String
+  subdomainValue    String      @unique
+  subdomain         Domain      @relation(fields: [subdomainValue], references: [domain])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  modules           ModuleList?
+}
+
+model ModuleList {
+  id         String         @id @default(uuid())
+  instanceId String         @unique
+  instance   Instance       @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  webView    ModuleWebView?
+  webVnc     ModuleVnc?
+}
+
+model ModuleWebView {
+  id              String     @id @default(uuid())
+  moduleListId    String     @unique
+  moduleList      ModuleList @relation(fields: [moduleListId], references: [id], onDelete: Cascade)
+  ipv4            String     @unique
+  wireguardConfig String
+  subdomainValue  String     @unique
+  subdomain       Domain     @relation(fields: [subdomainValue], references: [domain])
+  version         String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  loginUsers      Json
+}
+
+model ModuleVnc {
+  id              String     @id @default(uuid())
+  moduleListId    String     @unique
+  moduleList      ModuleList @relation(fields: [moduleListId], references: [id], onDelete: Cascade)
+  ipv4            String     @unique
+  wireguardConfig String
+  subdomainValue  String     @unique
+  subdomain       Domain     @relation(fields: [subdomainValue], references: [domain])
+  version         String
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  loginUsers      Json
+  vncDevices      Json
 }
