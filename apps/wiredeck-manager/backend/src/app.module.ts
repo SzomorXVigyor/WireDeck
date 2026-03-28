@@ -6,9 +6,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { PrismaFallbackExceptionFilter } from './utils/prisma-exception.filter';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { ConfigurationModule } from './config/config.module';
 import { HealthController } from './health/health.controller';
-import { configValidation } from './config/config.validation';
 import { PrismaModule, providePrismaClientExceptionFilter } from 'nestjs-prisma';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -21,8 +19,6 @@ import { ModulesModule } from './modules/modules.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: configValidation,
-      envFilePath: '.development.env',
     }),
     // API modules first
     PrismaModule.forRootAsync({
@@ -38,7 +34,6 @@ import { ModulesModule } from './modules/modules.module';
     }),
     AuthModule,
     UsersModule,
-    ConfigurationModule,
     ScheduleModule.forRoot(),
     // Frontend static files
     ServeStaticModule.forRoot({

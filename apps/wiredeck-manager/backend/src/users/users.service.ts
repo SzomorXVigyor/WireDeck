@@ -1,14 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { UserEntity } from './entities/user.entity';
+import { USERS } from '../utils/env';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
   private users: UserEntity[];
 
-  constructor(private configService: ConfigService) {
-    this.users = this.configService.get<UserEntity[]>('USERS') || [];
+  constructor() {
+    this.users = USERS as UserEntity[];
     this.logger.log(`Loaded ${this.users.length} user(s) from configuration`);
   }
 
