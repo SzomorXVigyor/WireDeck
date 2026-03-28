@@ -1,61 +1,131 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInstanceDto } from './dto/create-instance.dto';
+import { mapInstanceToResponse, instanceInclude } from './instance.mapper';
+import { ResponseInstanceDto } from './dto/response-instance.dto';
+import { PrismaService } from 'nestjs-prisma';
+import { sanitizeServiceName } from 'src/utils/common';
+import { INSTANCE_START_IP, INSTANCE_START_PORT, ROOT_DOMAIN } from 'src/utils/env';
 
 @Injectable()
 export class InstancesService {
-  create(createInstanceDto: CreateInstanceDto) {
-    throw new Error('Method not implemented.');
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createInstanceDto: CreateInstanceDto) {
+    // On first get all instance name to check it is unique
+    const instances = await this.prisma.instance.findMany();
+    if (instances.some((instance) => instance.name === createInstanceDto.name)) {
+      throw new BadRequestException('Instance name already exists');
+    }
+
+    // get a array of instances ports
+    const instanceIps = instances.map((instance) => instance.ipv4);
+    const instancePorts = instances.map((instance) => instance.publicPort);
+
+    const serviceName = sanitizeServiceName(createInstanceDto.name);
+    const nextAvailableIp = this.getNextAvailableIp(instanceIps);
+    const nextAvailablePort = this.getNextAvailablePort(instancePorts);
+    const subdomain = `${serviceName}.${ROOT_DOMAIN}`;
+
+    // Use a transaction to atomically create the Domain + Instance + ModuleList
+    const instance = await this.prisma.$transaction(async (tx) => {
+      // 1. Ensure the Domain record exists (required by Instance FK)
+      await tx.domain.upsert({
+        where: { domain: subdomain },
+        update: {},
+        create: { domain: subdomain },
+      });
+
+      // 2. Create the Instance (linked to the Domain)
+      const newInstance = await tx.instance.create({
+        data: {
+          name: serviceName,
+          ipv4: nextAvailableIp,
+          publicPort: nextAvailablePort,
+          internal_ipv4Cidr: createInstanceDto.internal_ipv4Cidr,
+          username: createInstanceDto.username,
+          password: createInstanceDto.password,
+          subdomainValue: subdomain,
+        },
+      });
+
+      // 3. Create the ModuleList for this instance
+      await tx.moduleList.create({
+        data: {
+          instanceId: newInstance.id,
+        },
+      });
+
+      return newInstance;
+    });
+
+    return instance;
   }
 
-  findAll() {
-    const instances = [
-      {
-        id: '0',
-        name: '0-name',
-        ipv4: '93.12.33.1',
-        publicPort: 51820,
-        internal_ipv4Cidr: '10.0.0.1/24',
-        createdAt: '2026-03-10T10:00:00Z',
-        status: 'running',
-        subdomain: 'wg0.wiredeck.local',
-        modules: {
-          webVNC: {
-            ipv4: '10.0.0.2',
-            loginUsers: [{ username: 'vnc_admin', changeToken: 'token123' }],
-            vncDevices: [{ name: 'server1', ip: '10.0.0.10', port: 5900 }],
-            updatedAt: '2026-03-11T12:00:00Z',
-            createdAt: '2026-03-11T12:00:00Z',
-            status: 'running',
-            subdomain: 'vnc.wg0.wiredeck.local',
-            version: '1.0.0',
-          },
-          webView: {
-            ipv4: '10.0.0.3',
-            loginUsers: [{ username: 'view_admin', changeToken: 'token456', role: 'admin' }],
-            updatedAt: '2026-03-11T12:00:00Z',
-            createdAt: '2026-03-11T12:00:00Z',
-            status: 'running',
-            subdomain: 'view.wg0.wiredeck.local',
-            version: '1.0.0',
-          },
-        },
-      },
-      {
-        id: '1',
-        name: '1-name',
-        ipv4: '93.12.33.1',
-        publicPort: 51821,
-        internal_ipv4Cidr: '10.0.1.1/24',
-        createdAt: '2026-03-12T10:00:00Z',
-        status: 'offline',
-        subdomain: 'wg1.wiredeck.local',
-        modules: {},
-      },
-    ];
-    return instances;
+  async findOne(id: string): Promise<ResponseInstanceDto> {
+    const instance = await this.prisma.instance.findUnique({
+      where: { id },
+      include: instanceInclude,
+    });
+
+    if (!instance) {
+      throw new NotFoundException(`Instance with id "${id}" not found`);
+    }
+
+    return mapInstanceToResponse(instance as any);
+  }
+
+  async findAll(): Promise<ResponseInstanceDto[]> {
+    const instances = await this.prisma.instance.findMany({
+      include: instanceInclude,
+    });
+
+    return instances.map((instance) => mapInstanceToResponse(instance as any));
   }
 
   delete(id: string) {
     throw new Error('Method not implemented.');
+  }
+
+  // Get the next available ip address from the INSTANCE_START_IP check the /24 subnet (last octet)
+  private getNextAvailableIp(instanceIps: string[]): string {
+    const baseOctet = parseInt(INSTANCE_START_IP.split('.')[3]);
+    const ipPrefix = INSTANCE_START_IP.split('.').slice(0, 3).join('.');
+
+    let nextOctet = baseOctet;
+
+    for (const ip of instanceIps) {
+      const lastOctet = parseInt(ip.split('.')[3]);
+
+      if (lastOctet === nextOctet) {
+        nextOctet++;
+      } else if (lastOctet > nextOctet) {
+        break;
+      }
+
+      if (nextOctet >= 254) {
+        throw new BadRequestException('No more available ip addresses');
+      }
+    }
+
+    return `${ipPrefix}.${nextOctet}`;
+  }
+
+  // Get the next available port from the INSTANCE_START_PORT check the next practically 255 ports
+  private getNextAvailablePort(instancePorts: number[]): number {
+    let nextPort = INSTANCE_START_PORT;
+
+    for (const port of instancePorts) {
+      if (port === nextPort) {
+        nextPort++;
+      } else if (port > nextPort) {
+        break;
+      }
+
+      if (nextPort >= 65535) {
+        throw new BadRequestException('No more available ports');
+      }
+    }
+
+    return nextPort;
   }
 }

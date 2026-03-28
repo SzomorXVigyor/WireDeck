@@ -7,17 +7,17 @@ export class InstancesController {
   constructor(private readonly instancesService: InstancesService) {}
 
   @Post('instance/create')
-  create(@Body() createInstanceDto: CreateInstanceDto) {
+  async create(@Body() createInstanceDto: CreateInstanceDto) {
     return this.instancesService.create(createInstanceDto);
   }
 
   @Get('instances')
-  list() {
+  async list() {
     return this.instancesService.findAll();
   }
 
   @Delete('instance/delete')
-  delete(@Param('id') id: string) {
+  async delete(@Param('id') id: string) {
     return this.instancesService.delete(id);
   }
 }

@@ -1,19 +1,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsDate, IsIP, IsNotEmpty, IsOptional, IsPort, IsString, MinLength, ValidateNested } from 'class-validator';
-import { ModuleBaseEntity } from 'src/modules/entities/module-base.entity';
+import { ModuleVNCEntity } from 'src/modules/entities/module-webvnc.entity';
+import { ModuleWebViewEntity } from 'src/modules/entities/module-webview.entity';
 import { IsIPv4Cidr } from 'src/utils/is-ipv4-cidr.decorator';
 
 export class InstanceModulesEntity {
-  @ApiProperty({ type: ModuleBaseEntity })
+  @ApiProperty({ type: ModuleVNCEntity })
   @ValidateNested({ each: true })
-  @Type(() => ModuleBaseEntity)
-  webVNC: ModuleBaseEntity;
+  @Type(() => ModuleVNCEntity)
+  webVNC: ModuleVNCEntity;
 
-  @ApiProperty({ type: ModuleBaseEntity })
+  @ApiProperty({ type: ModuleWebViewEntity })
   @ValidateNested({ each: true })
-  @Type(() => ModuleBaseEntity)
-  webView: ModuleBaseEntity;
+  @Type(() => ModuleWebViewEntity)
+  webView: ModuleWebViewEntity;
 }
 
 export class InstanceEntity {

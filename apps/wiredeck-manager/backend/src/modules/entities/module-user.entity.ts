@@ -21,4 +21,9 @@ export class ModuleUserEntity {
   @IsEnum(ModuleUserRole)
   @IsOptional()
   role?: ModuleUserRole;
+
+  @ApiProperty({ example: 'token' })
+  @IsString()
+  @IsOptional()
+  changeToken?: string;
 }
