@@ -1,10 +1,4 @@
-import { config } from 'dotenv';
-import { existsSync } from 'fs';
 import { from } from 'env-var';
-
-if (existsSync('.development.env')) {
-  config({ path: '.development.env' });
-}
 
 const env = from(process.env, {});
 
