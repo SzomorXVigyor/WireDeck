@@ -10,7 +10,7 @@ import { INSTANCE_START_IP, INSTANCE_START_PORT, INSTANCE_INTERNAL_SUBNET, ROOT_
 export class InstancesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createInstanceDto: CreateInstanceDto) : Promise<ResponseInstanceDto> {
+  async create(createInstanceDto: CreateInstanceDto): Promise<ResponseInstanceDto> {
     // On first get all instance name to check it is unique
     const instances = await this.prisma.instance.findMany();
     if (instances.some((instance) => instance.name === createInstanceDto.name)) {
@@ -59,7 +59,6 @@ export class InstancesService {
     });
 
     return mapInstanceToResponse(instance as PrismaInstanceWithModules);
-    
   }
 
   async findOne(id: string): Promise<ResponseInstanceDto> {
@@ -83,8 +82,25 @@ export class InstancesService {
     return instances.map((instance) => mapInstanceToResponse(instance as PrismaInstanceWithModules));
   }
 
-  delete(id: string) {
-    throw new Error('Method not implemented.');
+  async remove(id: string) {
+    const instance = await this.prisma.instance.findUnique({
+      where: { id },
+      include: instanceInclude,
+    });
+
+    if (!instance) {
+      throw new NotFoundException(`Instance with id "${id}" not found`);
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.moduleList.delete({
+        where: { instanceId: id },
+      });
+
+      await tx.instance.delete({
+        where: { id },
+      });
+    });
   }
 
   // Get the next available ip address from the INSTANCE_START_IP check the /24 subnet (last octet)

@@ -2,10 +2,7 @@ import { ModuleVnc, ModuleWebView, Prisma } from '@prisma/client';
 import { ResponseModuleWebvncDto, ResponseVncDeviceDto } from './dto/response-module-webvnc.dto';
 import { ResponseModuleWebviewDto } from './dto/response-module-webview.dto';
 import { ModuleUserRole } from './entities/module-user.entity';
-import {
-  MODULE_WEBVNC_PREFERED_NETWORK_ID,
-  MODULE_WEBVIEW_PREFERED_NETWORK_ID,
-} from 'src/utils/env';
+import { MODULE_WEBVNC_PREFERED_NETWORK_ID, MODULE_WEBVIEW_PREFERED_NETWORK_ID } from 'src/utils/env';
 
 // ---------------------------------------------------------------------------
 // Raw JSON shapes stored in the Json Prisma columns

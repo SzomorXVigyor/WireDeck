@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Query } from '@nestjs/common';
 import { InstancesService } from './instances.service';
 import { CreateInstanceDto } from './dto/create-instance.dto';
 import { ResponseInstanceDto } from './dto/response-instance.dto';
@@ -8,17 +8,17 @@ export class InstancesController {
   constructor(private readonly instancesService: InstancesService) {}
 
   @Post('instance/create')
-  async create(@Body() createInstanceDto: CreateInstanceDto) : Promise<ResponseInstanceDto> {
+  async create(@Body() createInstanceDto: CreateInstanceDto): Promise<ResponseInstanceDto> {
     return this.instancesService.create(createInstanceDto);
   }
 
   @Get('instances')
-  async list() : Promise<ResponseInstanceDto[]> {
+  async list(): Promise<ResponseInstanceDto[]> {
     return this.instancesService.findAll();
   }
 
   @Delete('instance/delete')
-  async delete(@Param('id') id: string) {
-    return this.instancesService.delete(id);
+  async remove(@Query('id') id: string) {
+    return this.instancesService.remove(id);
   }
 }

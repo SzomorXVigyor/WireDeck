@@ -9,10 +9,7 @@ import { ResponseModuleUserDto } from './response-module-user.dto';
  * Omitted from base entity: wireguardConfig
  * loginUsers items: password and changeToken are omitted (via ResponseModuleUserDto)
  */
-export class ResponseModuleWebviewDto extends OmitType(ModuleWebViewEntity, [
-  'wireguardConfig',
-  'loginUsers',
-]) {
+export class ResponseModuleWebviewDto extends OmitType(ModuleWebViewEntity, ['wireguardConfig', 'loginUsers']) {
   @ApiProperty({ type: [ResponseModuleUserDto] })
   @ValidateNested({ each: true })
   @Type(() => ResponseModuleUserDto)

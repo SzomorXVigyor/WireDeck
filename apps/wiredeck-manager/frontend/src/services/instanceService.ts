@@ -33,7 +33,7 @@ export async function createInstance(payload: CreateInstanceDto): Promise<ApiRes
 
 /** Delete an instance by id. */
 export async function deleteInstance(instanceId: string): Promise<ApiResponse> {
-  const res = await api.post<ApiResponse>('/instance/delete', {}, { params: { id: instanceId } });
+  const res = await api.delete<ApiResponse>('/instance/delete', { params: { id: instanceId } });
   return res.data;
 }
 

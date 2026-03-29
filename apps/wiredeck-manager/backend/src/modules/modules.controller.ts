@@ -36,4 +36,3 @@ export class ModulesController {
     return this.modulesService.remove(id, type);
   }
 }
-

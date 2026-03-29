@@ -1,4 +1,4 @@
-import { Prisma} from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { ResponseInstanceDto, ResponseInstanceModulesDto } from './dto/response-instance.dto';
 import { mapWebVnc, mapWebView } from 'src/modules/module.mapper';
 
@@ -43,7 +43,7 @@ export function mapInstanceToResponse(model: PrismaInstanceWithModules): Respons
     ipv4: model.ipv4,
     publicPort: model.publicPort,
     internal_ipv4Cidr: model.internal_ipv4Cidr,
-    status: "unknown",
+    status: 'unknown',
     subdomain: model.subdomainValue,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,
