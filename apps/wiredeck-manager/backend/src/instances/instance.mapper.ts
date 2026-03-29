@@ -1,9 +1,6 @@
-import { Prisma, ModuleVnc, ModuleWebView } from '@prisma/client';
-import { ResponseModuleUserDto } from 'src/modules/dto/response-module-user.dto';
-import { ResponseModuleWebviewDto } from 'src/modules/dto/response-module-webview.dto';
-import { ResponseModuleWebvncDto, ResponseVncDeviceDto } from 'src/modules/dto/response-module-webvnc.dto';
-import { ModuleUserRole } from 'src/modules/entities/module-user.entity';
+import { Prisma} from '@prisma/client';
 import { ResponseInstanceDto, ResponseInstanceModulesDto } from './dto/response-instance.dto';
+import { mapWebVnc, mapWebView } from 'src/modules/module.mapper';
 
 // ---------------------------------------------------------------------------
 // Prisma payload types — derived from the exact include shape used in queries
@@ -25,68 +22,8 @@ export type PrismaInstanceWithModules = Prisma.InstanceGetPayload<{
 type PrismaModuleList = NonNullable<PrismaInstanceWithModules['modules']>;
 
 // ---------------------------------------------------------------------------
-// Raw JSON shapes stored in the Json Prisma columns
-// ---------------------------------------------------------------------------
-
-interface RawModuleUser {
-  username: string;
-  password?: string;
-  changeToken?: string;
-  role?: string;
-}
-
-interface RawVncDevice {
-  name: string;
-  ip: string;
-  port: number;
-  password?: string;
-}
-
-// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-function mapLoginUsers(raw: Prisma.JsonValue): ResponseModuleUserDto[] {
-  const users = raw as unknown as RawModuleUser[];
-  return (users ?? []).map((u) => ({
-    username: u.username,
-    ...(u.role !== undefined && { role: u.role as ModuleUserRole }),
-  }));
-}
-
-function mapVncDevices(raw: Prisma.JsonValue): ResponseVncDeviceDto[] {
-  const devices = raw as unknown as RawVncDevice[];
-  return (devices ?? []).map((d) => ({
-    name: d.name,
-    ip: d.ip,
-    port: d.port,
-  }));
-}
-
-function mapWebView(model: ModuleWebView): ResponseModuleWebviewDto {
-  return {
-    ipv4: model.ipv4,
-    subdomain: model.subdomainValue,
-    status: "unknown",
-    version: model.version,
-    createdAt: model.createdAt,
-    updatedAt: model.updatedAt,
-    loginUsers: mapLoginUsers(model.loginUsers),
-  };
-}
-
-function mapWebVnc(model: ModuleVnc): ResponseModuleWebvncDto {
-  return {
-    ipv4: model.ipv4,
-    subdomain: model.subdomainValue,
-    status: "unknown",
-    version: model.version,
-    createdAt: model.createdAt,
-    updatedAt: model.updatedAt,
-    loginUsers: mapLoginUsers(model.loginUsers),
-    vncDevices: mapVncDevices(model.vncDevices),
-  };
-}
 
 function mapModules(modules: PrismaModuleList | null | undefined): ResponseInstanceModulesDto {
   return {

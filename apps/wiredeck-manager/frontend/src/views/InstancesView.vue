@@ -162,14 +162,23 @@
                       >WebVNC</span
                     >
                     <span
-                      class="text-xs px-1.5 py-0.5 rounded-full"
+                      class="text-xs font-medium px-1.5 py-0.5 rounded flex items-center w-max gap-1"
                       :class="
-                        instance.modules.webVNC.status === 'running'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                        instance.modules.webVNC.status === 'running' || instance.modules.webVNC.status === 'online'
+                          ? themeStore.isDark
+                            ? 'bg-green-900/50 text-green-300'
+                            : 'bg-green-100 text-green-700'
+                          : themeStore.isDark
+                            ? 'bg-red-900/50 text-red-300'
+                            : 'bg-red-100 text-red-700'
                       "
-                      >{{ instance.modules.webVNC.status }}</span
                     >
+                      <div
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="instance.modules.webVNC.status === 'running' || instance.modules.webVNC.status === 'online' ? 'bg-green-500' : 'bg-red-500'"
+                      ></div>
+                      {{ instance.modules.webVNC.status === 'running' || instance.modules.webVNC.status === 'online' ? 'Online' : 'Offline' }}
+                    </span>
                   </div>
                   <button
                     @click.stop="openEditModule(instance, 'webVNC')"
@@ -229,14 +238,23 @@
                       >WebView</span
                     >
                     <span
-                      class="text-xs px-1.5 py-0.5 rounded-full"
+                      class="text-xs font-medium px-1.5 py-0.5 rounded flex items-center w-max gap-1"
                       :class="
-                        instance.modules.webView.status === 'running'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                        instance.modules.webView.status === 'running' || instance.modules.webView.status === 'online'
+                          ? themeStore.isDark
+                            ? 'bg-green-900/50 text-green-300'
+                            : 'bg-green-100 text-green-700'
+                          : themeStore.isDark
+                            ? 'bg-red-900/50 text-red-300'
+                            : 'bg-red-100 text-red-700'
                       "
-                      >{{ instance.modules.webView.status }}</span
                     >
+                      <div
+                        class="w-1.5 h-1.5 rounded-full"
+                        :class="instance.modules.webView.status === 'running' || instance.modules.webView.status === 'online' ? 'bg-green-500' : 'bg-red-500'"
+                      ></div>
+                      {{ instance.modules.webView.status === 'running' || instance.modules.webView.status === 'online' ? 'Online' : 'Offline' }}
+                    </span>
                   </div>
                   <button
                     @click.stop="openEditModule(instance, 'webView')"

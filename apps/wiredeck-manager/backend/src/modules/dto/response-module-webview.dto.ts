@@ -11,7 +11,6 @@ import { ResponseModuleUserDto } from './response-module-user.dto';
  */
 export class ResponseModuleWebviewDto extends OmitType(ModuleWebViewEntity, [
   'wireguardConfig',
-  'status',
   'loginUsers',
 ]) {
   @ApiProperty({ type: [ResponseModuleUserDto] })

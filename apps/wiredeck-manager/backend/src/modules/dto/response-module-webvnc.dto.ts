@@ -17,7 +17,6 @@ export class ResponseVncDeviceDto extends OmitType(VNCServerEntity, ['password']
  */
 export class ResponseModuleWebvncDto extends OmitType(ModuleVNCEntity, [
   'wireguardConfig',
-  'status',
   'loginUsers',
   'vncDevices',
 ]) {

@@ -12,9 +12,9 @@ export const IN_DEVELOPMENT = NODE_ENV === 'development';
 export const SERVICE_NAME = env.get('SERVICE_NAME').required().asString();
 export const VERSION = env.get('npm_package_version').default('0.0.0').asString();
 
-// The application will use /24 subnets for instances
+// The application will use /24 subnets for instances but on docker network use a /20 or /16 (for modules)
 // Each module will use the same last octet as the instance's internal IP, but each submodules has a dedicated subnet (3th octet)
-// Example: instance ip = 10.0.0.1, then webVNC will be 10.0.1.1, webView will be 10.0.2.1
+// Example: instance ip = 10.0.0.1, then webVNC will be 10.0.1.1, webView will be 10.0.2.1 (use PREFERED_NETWORK_ID)
 export const INSTANCE_START_IP = env.get('INSTANCE_START_IP').required().asString();
 // The first available port for instance, also open the next 255 ports on host for later instances
 export const INSTANCE_START_PORT = env.get('INSTANCE_START_PORT').required().asPortNumber();
@@ -26,3 +26,6 @@ export const ROOT_DOMAIN = env.get('ROOT_DOMAIN').required().asString();
 export const CERTBOT_EMAIL = env.get('CERTBOT_EMAIL').required().asString();
 // Users for the application
 export const USERS = env.get('USERS').required().asJson();
+// The 3th octet of the internal IP for modules
+export const MODULE_WEBVNC_PREFERED_NETWORK_ID = env.get('MODULE_WEBVNC_PREFERED_NETWORK_ID').default('1').asString();
+export const MODULE_WEBVIEW_PREFERED_NETWORK_ID = env.get('MODULE_WEBVIEW_PREFERED_NETWORK_ID').default('2').asString();
