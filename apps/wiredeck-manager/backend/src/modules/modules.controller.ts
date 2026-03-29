@@ -15,24 +15,24 @@ export class ModulesController {
 
   @Post('create')
   async create(
-    @Query('id') id: string,
+    @Query('id') instanceId: string,
     @Query('type') type: string,
     @Body() createModuleDto: CreateModuleWebvncDto | CreateModuleWebviewDto
   ): Promise<ResponseModuleWebvncDto | ResponseModuleWebviewDto> {
-    return this.modulesService.create(id, type, createModuleDto);
+    return this.modulesService.create(instanceId, type, createModuleDto);
   }
 
   @Put('update')
   async update(
-    @Query('id') id: string,
+    @Query('id') instanceId: string,
     @Query('type') type: string,
     @Body() updateModuleDto: UpdateModuleWebvncDto | UpdateModuleWebviewDto
   ): Promise<ResponseModuleWebvncDto | ResponseModuleWebviewDto> {
-    return this.modulesService.update(id, type, updateModuleDto);
+    return this.modulesService.update(instanceId, type, updateModuleDto);
   }
 
   @Delete('delete')
-  async remove(@Query('id') id: string, @Query('type') type: string): Promise<void> {
-    return this.modulesService.remove(id, type);
+  async remove(@Query('id') instanceId: string, @Query('type') type: string): Promise<void> {
+    return this.modulesService.remove(instanceId, type);
   }
 }

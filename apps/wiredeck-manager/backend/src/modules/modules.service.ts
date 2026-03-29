@@ -23,26 +23,26 @@ export class ModulesService {
 
   /**
    * Create a module (webvnc | webview) for the given instance.
-   * @param id    instance id
+   * @param instanceId    instanceId
    * @param type  "webvnc" | "webview"
    */
   async create(
-    id: string,
+    instanceId: string,
     type: string,
     createModuleDto: CreateModuleWebvncDto | CreateModuleWebviewDto
   ): Promise<ResponseModuleWebvncDto | ResponseModuleWebviewDto> {
     // Fetch instance to derive ip and subdomain
     const instance = await this.prisma.instance.findUnique({
-      where: { id },
+      where: { id: instanceId },
       include: { modules: true },
     });
 
     if (!instance) {
-      throw new NotFoundException(`Instance "${id}" not found`);
+      throw new NotFoundException(`Instance "${instanceId}" not found`);
     }
 
     if (!instance.modules) {
-      throw new NotFoundException(`No ModuleList found for instance "${id}"`);
+      throw new NotFoundException(`No ModuleList found for instance "${instanceId}"`);
     }
 
     const moduleList = instance.modules;
@@ -55,7 +55,7 @@ export class ModulesService {
         where: { moduleListId: moduleList.id },
       });
       if (existing) {
-        throw new BadRequestException(`A webVnc module already exists for instance "${id}"`);
+        throw new BadRequestException(`A webVnc module already exists for instance "${instanceId}"`);
       }
 
       // Derive server-side fields
@@ -92,7 +92,7 @@ export class ModulesService {
         where: { moduleListId: moduleList.id },
       });
       if (existing) {
-        throw new BadRequestException(`A webView module already exists for instance "${id}"`);
+        throw new BadRequestException(`A webView module already exists for instance "${instanceId}"`);
       }
 
       // Derive server-side fields
@@ -125,20 +125,20 @@ export class ModulesService {
 
   /**
    * Update a module (webvnc | webview) for the given instance.
-   * @param id    instanceId
+   * @param instanceId    instanceId
    * @param type  "webvnc" | "webview"
    */
   async update(
-    id: string,
+    instanceId: string,
     type: string,
     updateModuleDto: UpdateModuleWebvncDto | UpdateModuleWebviewDto
   ): Promise<ResponseModuleWebvncDto | ResponseModuleWebviewDto> {
     const moduleList = await this.prisma.moduleList.findUnique({
-      where: { instanceId: id },
+      where: { instanceId: instanceId },
     });
 
     if (!moduleList) {
-      throw new NotFoundException(`No ModuleList found for instance "${id}"`);
+      throw new NotFoundException(`No ModuleList found for instance "${instanceId}"`);
     }
 
     if (type === 'webvnc') {
@@ -148,7 +148,7 @@ export class ModulesService {
         where: { moduleListId: moduleList.id },
       });
       if (!existing) {
-        throw new NotFoundException(`No webVnc module found for instance "${id}"`);
+        throw new NotFoundException(`No webVnc module found for instance "${instanceId}"`);
       }
 
       const updated = await this.prisma.moduleVnc.update({
@@ -169,7 +169,7 @@ export class ModulesService {
         where: { moduleListId: moduleList.id },
       });
       if (!existing) {
-        throw new NotFoundException(`No webView module found for instance "${id}"`);
+        throw new NotFoundException(`No webView module found for instance "${instanceId}"`);
       }
 
       const updated = await this.prisma.moduleWebView.update({
@@ -187,16 +187,16 @@ export class ModulesService {
 
   /**
    * Remove a module by its own record id (ModuleVnc.id or ModuleWebView.id).
-   * @param id    instanceId
+   * @param instanceId    instanceId
    * @param type  "webvnc" | "webview"
    */
-  async remove(id: string, type: string): Promise<void> {
+  async remove(instanceId: string, type: string): Promise<void> {
     const moduleList = await this.prisma.moduleList.findUnique({
-      where: { instanceId: id },
+      where: { instanceId: instanceId },
     });
 
     if (!moduleList) {
-      throw new NotFoundException(`No ModuleList found for instance "${id}"`);
+      throw new NotFoundException(`No ModuleList found for instance "${instanceId}"`);
     }
 
     if (type === 'webvnc') {
@@ -204,7 +204,7 @@ export class ModulesService {
         where: { moduleListId: moduleList.id },
       });
       if (!existing) {
-        throw new NotFoundException(`No webVnc module found for instance "${id}"`);
+        throw new NotFoundException(`No webVnc module found for instance "${instanceId}"`);
       }
       await this.prisma.moduleVnc.delete({ where: { moduleListId: moduleList.id } });
       return;
@@ -215,7 +215,7 @@ export class ModulesService {
         where: { moduleListId: moduleList.id },
       });
       if (!existing) {
-        throw new NotFoundException(`No webView module found for instance "${id}"`);
+        throw new NotFoundException(`No webView module found for instance "${instanceId}"`);
       }
       await this.prisma.moduleWebView.delete({ where: { moduleListId: moduleList.id } });
       return;
