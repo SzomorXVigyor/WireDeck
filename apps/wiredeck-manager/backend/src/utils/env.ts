@@ -29,3 +29,5 @@ export const USERS = env.get('USERS').required().asJson();
 // The 3th octet of the internal IP for modules
 export const MODULE_WEBVNC_PREFERED_NETWORK_ID = env.get('MODULE_WEBVNC_PREFERED_NETWORK_ID').default('1').asString();
 export const MODULE_WEBVIEW_PREFERED_NETWORK_ID = env.get('MODULE_WEBVIEW_PREFERED_NETWORK_ID').default('2').asString();
+// Docker socket path
+export const DOCKER_SOCKET = env.get('DOCKER_SOCKET').default('/var/run/docker.sock').asString();

@@ -14,6 +14,7 @@ import { DATABASE_URL, SERVICE_NAME } from './utils/env';
 import { join } from 'path';
 import { InstancesModule } from './instances/instances.module';
 import { ModulesModule } from './modules/modules.module';
+import { ContainerManagerModule } from './container-manager/container-manager.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ModulesModule } from './modules/modules.module';
     }),
     InstancesModule,
     ModulesModule,
+    ContainerManagerModule,
   ],
   controllers: [HealthController],
   providers: [
