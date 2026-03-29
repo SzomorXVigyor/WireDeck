@@ -53,21 +53,36 @@ export class ContainerManagerService {
 
   /** List all containers (running + stopped). */
   async listContainers(): Promise<DockerContainerDto[]> {
-    const containers = await this.docker.listContainers({ all: true });
-    return containers.map((c) => this.mapContainer(c));
+    try {
+      const containers = await this.docker.listContainers({ all: true });
+      return containers.map((c) => this.mapContainer(c));
+    } catch (error) {
+      this.logger.error('Failed to list containers', error);
+      return [];
+    }
   }
 
   /** List only running containers. */
   async listRunningContainers(): Promise<DockerContainerDto[]> {
-    const containers = await this.docker.listContainers({ all: false });
-    return containers.map((c) => this.mapContainer(c));
+    try {
+      const containers = await this.docker.listContainers({ all: false });
+      return containers.map((c) => this.mapContainer(c));
+    } catch (error) {
+      this.logger.error('Failed to list running containers', error);
+      return [];
+    }
   }
 
   /** Get a specific container status by name */
   async getContainerStatus(nameOrId: string): Promise<DockerContainerDto> {
-    const container = this.docker.getContainer(nameOrId);
-    const info = await container.inspect();
-    return this.mapContainerInfo(info);
+    try {
+      const container = this.docker.getContainer(nameOrId);
+      const info = await container.inspect();
+      return this.mapContainerInfo(info);
+    } catch (error) {
+      this.logger.error(`Failed to get container status for ${nameOrId}`, error);
+      return null;
+    }
   }
 
   // Images and Volumes
@@ -127,29 +142,50 @@ export class ContainerManagerService {
 
   /** Start a stopped container by name or id. */
   async startContainer(nameOrId: string): Promise<void> {
-    const container = this.docker.getContainer(nameOrId);
-    await container.start();
-    this.logger.log(`Started container: ${nameOrId}`);
+    try {
+      const container = this.docker.getContainer(nameOrId);
+      await container.start();
+      this.logger.log(`Started container: ${nameOrId}`);
+    } catch (error) {
+      this.logger.error(`Failed to start container ${nameOrId}`, error);
+      throw error;
+    }
   }
 
   /** Stop a running container by name or id. */
   async stopContainer(nameOrId: string): Promise<void> {
-    const container = this.docker.getContainer(nameOrId);
-    await container.stop();
-    this.logger.log(`Stopped container: ${nameOrId}`);
+    try {
+      const container = this.docker.getContainer(nameOrId);
+      await container.stop();
+      this.logger.log(`Stopped container: ${nameOrId}`);
+    } catch (error) {
+      this.logger.error(`Failed to stop container ${nameOrId}`, error);
+      throw error;
+    }
   }
 
   /** Restart a container by name or id. */
   async restartContainer(nameOrId: string): Promise<void> {
-    const container = this.docker.getContainer(nameOrId);
-    await container.restart();
-    this.logger.log(`Restarted container: ${nameOrId}`);
+    try {
+      const container = this.docker.getContainer(nameOrId);
+      await container.restart();
+      this.logger.log(`Restarted container: ${nameOrId}`);
+    } catch (error) {
+      this.logger.error(`Failed to restart container ${nameOrId}`, error);
+      throw error;
+    }
   }
 
-  /** Pull a docker compose service by recreating it (pull + up -d --force-recreate). */
-  async recreateContainer(nameOrId: string): Promise<void> {
-    // Placeholder — full compose integration will be added with the gateway reload logic.
-    this.logger.log(`Recreate requested for container: ${nameOrId}`);
+  /** Remove a container by name or id. */
+  async removeContainer(nameOrId: string): Promise<void> {
+    try {
+      const container = this.docker.getContainer(nameOrId);
+      await container.remove();
+      this.logger.log(`Removed container: ${nameOrId}`);
+    } catch (error) {
+      this.logger.error(`Failed to remove container ${nameOrId}`, error);
+      throw error;
+    }
   }
 
   // Private helpers
