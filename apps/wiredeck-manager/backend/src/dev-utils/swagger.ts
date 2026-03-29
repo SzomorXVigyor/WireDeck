@@ -18,7 +18,9 @@ export function loadSwagger(app) {
     .addBearerAuth()
     .addTag('auth')
     .addTag('health')
-    .addTag('config')
+    .addTag('docker')
+    .addTag('instance')
+    .addTag('instance/module')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document, {

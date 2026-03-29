@@ -22,12 +22,7 @@ export class IsIPv4CidrConstraint implements ValidatorConstraintInterface {
 
     // Validate prefix length (0–32, no leading zeros)
     const prefixNum = Number(prefix);
-    if (
-      !/^\d+$/.test(prefix) ||
-      prefixNum < 0 ||
-      prefixNum > 32
-    )
-      return false;
+    if (!/^\d+$/.test(prefix) || prefixNum < 0 || prefixNum > 32) return false;
 
     return true;
   }
