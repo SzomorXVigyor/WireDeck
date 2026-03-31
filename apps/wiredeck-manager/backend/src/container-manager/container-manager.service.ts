@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as Dockerode from 'dockerode';
+import { ContainerCreateOptions } from 'dockerode';
 import { DockerStatusDto } from './dto/docker-status.dto';
 import { DockerContainerDto } from './dto/docker-container.dto';
 import { DOCKER_SOCKET } from '../utils/env';
@@ -184,6 +185,40 @@ export class ContainerManagerService {
       this.logger.log(`Removed container: ${nameOrId}`);
     } catch (error) {
       this.logger.error(`Failed to remove container ${nameOrId}`, error);
+      throw error;
+    }
+  }
+
+  // Container creation
+
+  /** Create and start a persistent container from a ContainerSpec. Returns the container id. */
+  async createContainer(options: ContainerCreateOptions): Promise<string> {
+    try {
+      await this.acquireImage(options.Image as string);
+      const container = await this.docker.createContainer(options);
+      await container.start();
+      this.logger.log(`Created and started container: ${options.name}`);
+      return container.id;
+    } catch (error) {
+      this.logger.error(`Failed to create container ${options.name}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Run a one-shot (ephemeral) container and wait for it to exit.
+   * Useful for certbot — container is expected to have AutoRemove: true.
+   */
+  async runEphemeralContainer(options: ContainerCreateOptions): Promise<void> {
+    try {
+      await this.acquireImage(options.Image as string);
+      const container = await this.docker.createContainer(options);
+      await container.start();
+      this.logger.log(`Running ephemeral container: ${options.name}`);
+      await container.wait();
+      this.logger.log(`Ephemeral container finished: ${options.name}`);
+    } catch (error) {
+      this.logger.error(`Ephemeral container failed ${options.name}`, error);
       throw error;
     }
   }
