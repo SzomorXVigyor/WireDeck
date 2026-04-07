@@ -8,6 +8,9 @@
 # Build stage
 FROM node:lts-alpine AS builder
 
+# Enable pnpm via corepack
+RUN corepack enable
+
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
