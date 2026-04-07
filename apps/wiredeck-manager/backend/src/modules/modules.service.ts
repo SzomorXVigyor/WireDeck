@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { Prisma } from '@prisma/client';
+import { Prisma, ModuleList } from '@prisma/client';
 
 import { CreateModuleWebvncDto } from './dto/create-module-webvnc.dto';
 import { CreateModuleWebviewDto } from './dto/create-module-webview.dto';
@@ -17,21 +17,25 @@ import {
   MODULE_VERSION,
 } from './module.mapper';
 
+/** Supported module types. */
+export enum ModuleType {
+  WEBVNC = 'webvnc',
+  WEBVIEW = 'webview',
+}
+
 @Injectable()
 export class ModulesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Create a module (webvnc | webview) for the given instance.
-   * @param instanceId    instanceId
-   * @param type  "webvnc" | "webview"
-   */
+  // ---------------------------------------------------------------------------
+  // Public API
+  // ---------------------------------------------------------------------------
+
   async create(
     instanceId: string,
-    type: string,
+    type: ModuleType,
     createModuleDto: CreateModuleWebvncDto | CreateModuleWebviewDto
   ): Promise<ResponseModuleWebvncDto | ResponseModuleWebviewDto> {
-    // Fetch instance to derive ip and subdomain
     const instance = await this.prisma.instance.findUnique({
       where: { id: instanceId },
       include: { modules: true },
@@ -47,180 +51,166 @@ export class ModulesService {
 
     const moduleList = instance.modules;
 
-    if (type === 'webvnc') {
-      const dto = createModuleDto as CreateModuleWebvncDto;
-
-      // Guard: only one webVnc per instance
-      const existing = await this.prisma.moduleVnc.findUnique({
-        where: { moduleListId: moduleList.id },
-      });
-      if (existing) {
-        throw new BadRequestException(`A webVnc module already exists for instance "${instanceId}"`);
-      }
-
-      // Derive server-side fields
-      const ipv4 = deriveWebVncIpv4(instance.ipv4);
-      const subdomain = deriveModuleSubdomain(instance.subdomainValue, 'webvnc');
-
-      // Ensure Domain record exists for the subdomain FK
-      await this.prisma.domain.upsert({
-        where: { domain: subdomain },
-        update: {},
-        create: { domain: subdomain },
-      });
-
-      const created = await this.prisma.moduleVnc.create({
-        data: {
-          moduleListId: moduleList.id,
-          ipv4,
-          wireguardConfig: dto.wireguardConfig,
-          subdomainValue: subdomain,
-          version: MODULE_VERSION,
-          loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
-          vncDevices: dto.vncDevices as unknown as Prisma.JsonArray,
-        },
-      });
-
-      return mapWebVnc(created);
+    switch (type) {
+      case ModuleType.WEBVNC:
+        return this.createWebVnc(moduleList, instance, createModuleDto as CreateModuleWebvncDto);
+      case ModuleType.WEBVIEW:
+        return this.createWebView(moduleList, instance, createModuleDto as CreateModuleWebviewDto);
+      default:
+        throw new BadRequestException(
+          `Unknown module type "${type}". Expected "${ModuleType.WEBVNC}" or "${ModuleType.WEBVIEW}".`
+        );
     }
-
-    if (type === 'webview') {
-      const dto = createModuleDto as CreateModuleWebviewDto;
-
-      // Guard: only one webView per instance
-      const existing = await this.prisma.moduleWebView.findUnique({
-        where: { moduleListId: moduleList.id },
-      });
-      if (existing) {
-        throw new BadRequestException(`A webView module already exists for instance "${instanceId}"`);
-      }
-
-      // Derive server-side fields
-      const ipv4 = deriveWebViewIpv4(instance.ipv4);
-      const subdomain = deriveModuleSubdomain(instance.subdomainValue, 'webview');
-
-      // Ensure Domain record exists for the subdomain FK
-      await this.prisma.domain.upsert({
-        where: { domain: subdomain },
-        update: {},
-        create: { domain: subdomain },
-      });
-
-      const created = await this.prisma.moduleWebView.create({
-        data: {
-          moduleListId: moduleList.id,
-          ipv4,
-          wireguardConfig: dto.wireguardConfig,
-          subdomainValue: subdomain,
-          version: MODULE_VERSION,
-          loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
-        },
-      });
-
-      return mapWebView(created);
-    }
-
-    throw new BadRequestException(`Unknown module type "${type}". Expected "webvnc" or "webview".`);
   }
 
-  /**
-   * Update a module (webvnc | webview) for the given instance.
-   * @param instanceId    instanceId
-   * @param type  "webvnc" | "webview"
-   */
   async update(
     instanceId: string,
-    type: string,
+    type: ModuleType,
     updateModuleDto: UpdateModuleWebvncDto | UpdateModuleWebviewDto
   ): Promise<ResponseModuleWebvncDto | ResponseModuleWebviewDto> {
-    const moduleList = await this.prisma.moduleList.findUnique({
-      where: { instanceId: instanceId },
-    });
+    const moduleList = await this.getModuleList(instanceId);
 
-    if (!moduleList) {
-      throw new NotFoundException(`No ModuleList found for instance "${instanceId}"`);
-    }
+    switch (type) {
+      case ModuleType.WEBVNC: {
+        const dto = updateModuleDto as UpdateModuleWebvncDto;
+        const existing = await this.prisma.moduleVnc.findUnique({ where: { moduleListId: moduleList.id } });
+        if (!existing) throw new NotFoundException(`No webVnc module found for instance "${instanceId}"`);
 
-    if (type === 'webvnc') {
-      const dto = updateModuleDto as UpdateModuleWebvncDto;
-
-      const existing = await this.prisma.moduleVnc.findUnique({
-        where: { moduleListId: moduleList.id },
-      });
-      if (!existing) {
-        throw new NotFoundException(`No webVnc module found for instance "${instanceId}"`);
+        const updated = await this.prisma.moduleVnc.update({
+          where: { moduleListId: moduleList.id },
+          data: {
+            loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
+            vncDevices: dto.vncDevices as unknown as Prisma.JsonArray,
+          },
+        });
+        return mapWebVnc(updated);
       }
 
-      const updated = await this.prisma.moduleVnc.update({
-        where: { moduleListId: moduleList.id },
-        data: {
-          loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
-          vncDevices: dto.vncDevices as unknown as Prisma.JsonArray,
-        },
-      });
+      case ModuleType.WEBVIEW: {
+        const dto = updateModuleDto as UpdateModuleWebviewDto;
+        const existing = await this.prisma.moduleWebView.findUnique({ where: { moduleListId: moduleList.id } });
+        if (!existing) throw new NotFoundException(`No webView module found for instance "${instanceId}"`);
 
-      return mapWebVnc(updated);
-    }
-
-    if (type === 'webview') {
-      const dto = updateModuleDto as UpdateModuleWebviewDto;
-
-      const existing = await this.prisma.moduleWebView.findUnique({
-        where: { moduleListId: moduleList.id },
-      });
-      if (!existing) {
-        throw new NotFoundException(`No webView module found for instance "${instanceId}"`);
+        const updated = await this.prisma.moduleWebView.update({
+          where: { moduleListId: moduleList.id },
+          data: {
+            loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
+          },
+        });
+        return mapWebView(updated);
       }
 
-      const updated = await this.prisma.moduleWebView.update({
-        where: { moduleListId: moduleList.id },
-        data: {
-          loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
-        },
-      });
-
-      return mapWebView(updated);
+      default:
+        throw new BadRequestException(
+          `Unknown module type "${type}". Expected "${ModuleType.WEBVNC}" or "${ModuleType.WEBVIEW}".`
+        );
     }
-
-    throw new BadRequestException(`Unknown module type "${type}". Expected "webvnc" or "webview".`);
   }
 
-  /**
-   * Remove a module by its own record id (ModuleVnc.id or ModuleWebView.id).
-   * @param instanceId    instanceId
-   * @param type  "webvnc" | "webview"
-   */
-  async remove(instanceId: string, type: string): Promise<void> {
-    const moduleList = await this.prisma.moduleList.findUnique({
-      where: { instanceId: instanceId },
-    });
+  async remove(instanceId: string, type: ModuleType): Promise<void> {
+    const moduleList = await this.getModuleList(instanceId);
 
+    switch (type) {
+      case ModuleType.WEBVNC: {
+        const existing = await this.prisma.moduleVnc.findUnique({ where: { moduleListId: moduleList.id } });
+        if (!existing) throw new NotFoundException(`No webVnc module found for instance "${instanceId}"`);
+        await this.prisma.moduleVnc.delete({ where: { moduleListId: moduleList.id } });
+        return;
+      }
+
+      case ModuleType.WEBVIEW: {
+        const existing = await this.prisma.moduleWebView.findUnique({ where: { moduleListId: moduleList.id } });
+        if (!existing) throw new NotFoundException(`No webView module found for instance "${instanceId}"`);
+        await this.prisma.moduleWebView.delete({ where: { moduleListId: moduleList.id } });
+        return;
+      }
+
+      default:
+        throw new BadRequestException(
+          `Unknown module type "${type}". Expected "${ModuleType.WEBVNC}" or "${ModuleType.WEBVIEW}".`
+        );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  /** Resolve ModuleList or throw 404 — shared by update() and remove(). */
+  private async getModuleList(instanceId: string): Promise<ModuleList> {
+    const moduleList = await this.prisma.moduleList.findUnique({
+      where: { instanceId },
+    });
     if (!moduleList) {
       throw new NotFoundException(`No ModuleList found for instance "${instanceId}"`);
     }
+    return moduleList;
+  }
 
-    if (type === 'webvnc') {
-      const existing = await this.prisma.moduleVnc.findUnique({
-        where: { moduleListId: moduleList.id },
-      });
-      if (!existing) {
-        throw new NotFoundException(`No webVnc module found for instance "${instanceId}"`);
-      }
-      await this.prisma.moduleVnc.delete({ where: { moduleListId: moduleList.id } });
-      return;
+  private async createWebVnc(
+    moduleList: ModuleList,
+    instance: { ipv4: string; subdomainValue: string; id: string },
+    dto: CreateModuleWebvncDto
+  ): Promise<ResponseModuleWebvncDto> {
+    const existing = await this.prisma.moduleVnc.findUnique({ where: { moduleListId: moduleList.id } });
+    if (existing) {
+      throw new BadRequestException(`A webVnc module already exists for instance "${instance.id}"`);
     }
 
-    if (type === 'webview') {
-      const existing = await this.prisma.moduleWebView.findUnique({
-        where: { moduleListId: moduleList.id },
-      });
-      if (!existing) {
-        throw new NotFoundException(`No webView module found for instance "${instanceId}"`);
-      }
-      await this.prisma.moduleWebView.delete({ where: { moduleListId: moduleList.id } });
-      return;
+    const ipv4 = deriveWebVncIpv4(instance.ipv4);
+    const subdomain = deriveModuleSubdomain(instance.subdomainValue, 'webvnc');
+
+    await this.prisma.domain.upsert({
+      where: { domain: subdomain },
+      update: {},
+      create: { domain: subdomain },
+    });
+
+    const created = await this.prisma.moduleVnc.create({
+      data: {
+        moduleListId: moduleList.id,
+        ipv4,
+        wireguardConfig: dto.wireguardConfig,
+        subdomainValue: subdomain,
+        version: MODULE_VERSION,
+        loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
+        vncDevices: dto.vncDevices as unknown as Prisma.JsonArray,
+      },
+    });
+
+    return mapWebVnc(created);
+  }
+
+  private async createWebView(
+    moduleList: ModuleList,
+    instance: { ipv4: string; subdomainValue: string; id: string },
+    dto: CreateModuleWebviewDto
+  ): Promise<ResponseModuleWebviewDto> {
+    const existing = await this.prisma.moduleWebView.findUnique({ where: { moduleListId: moduleList.id } });
+    if (existing) {
+      throw new BadRequestException(`A webView module already exists for instance "${instance.id}"`);
     }
 
-    throw new BadRequestException(`Unknown module type "${type}". Expected "webvnc" or "webview".`);
+    const ipv4 = deriveWebViewIpv4(instance.ipv4);
+    const subdomain = deriveModuleSubdomain(instance.subdomainValue, 'webview');
+
+    await this.prisma.domain.upsert({
+      where: { domain: subdomain },
+      update: {},
+      create: { domain: subdomain },
+    });
+
+    const created = await this.prisma.moduleWebView.create({
+      data: {
+        moduleListId: moduleList.id,
+        ipv4,
+        wireguardConfig: dto.wireguardConfig,
+        subdomainValue: subdomain,
+        version: MODULE_VERSION,
+        loginUsers: dto.loginUsers as unknown as Prisma.JsonArray,
+      },
+    });
+
+    return mapWebView(created);
   }
 }

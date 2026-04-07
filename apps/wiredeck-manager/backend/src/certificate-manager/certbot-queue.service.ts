@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { CertbotCreator } from '../container-manager/container-creators/certbot.creator';
+import { CertbotCreator } from './certbot.creator';
 import { ContainerManagerService } from '../container-manager/container-manager.service';
 import { CreateContainerCertbotDto } from './dto/create-container-certbot.dto';
 

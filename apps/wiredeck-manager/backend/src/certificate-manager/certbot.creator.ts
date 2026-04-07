@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CERTBOT_EMAIL } from 'src/utils/env';
+import { CERTBOT_EMAIL } from '../utils/env';
 import { ContainerCreateOptions } from 'dockerode';
-import { sanitizeServiceName } from 'src/utils/common';
-import { CreateContainerCertbotDto } from 'src/certificate-manager/dto/create-container-certbot.dto';
+import { sanitizeServiceName } from '../utils/common';
+import { CreateContainerCertbotDto } from './dto/create-container-certbot.dto';
 
 const CERTBOT_IMAGE = 'certbot/certbot:latest';
 

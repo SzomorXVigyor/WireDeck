@@ -11,31 +11,31 @@ export class InstancesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createInstanceDto: CreateInstanceDto): Promise<ResponseInstanceDto> {
-    // On first get all instance name to check it is unique
-    const instances = await this.prisma.instance.findMany();
-    if (instances.some((instance) => instance.name === createInstanceDto.name)) {
-      throw new BadRequestException('Instance name already exists');
-    }
-
-    // get a array of instances ports
-    const instanceIps = instances.map((instance) => instance.ipv4);
-    const instancePorts = instances.map((instance) => instance.publicPort);
-
     const serviceName = sanitizeServiceName(createInstanceDto.name);
-    const nextAvailableIp = this.getNextAvailableIp(instanceIps);
-    const nextAvailablePort = this.getNextAvailablePort(instancePorts);
     const subdomain = `${serviceName}.${ROOT_DOMAIN}`;
 
-    // Use a transaction to atomically create the Domain + Instance + ModuleList
+    // Fetch only the fields needed for IP/port allocation (sorted for gap-finding)
+    const existingIps = await this.prisma.instance.findMany({
+      select: { ipv4: true },
+      orderBy: { ipv4: 'asc' },
+    });
+    const existingPorts = await this.prisma.instance.findMany({
+      select: { publicPort: true },
+      orderBy: { publicPort: 'asc' },
+    });
+
+    const nextAvailableIp = this.getNextAvailableIp(existingIps.map((i) => i.ipv4));
+    const nextAvailablePort = this.getNextAvailablePort(existingPorts.map((i) => i.publicPort));
+
+    // Atomically create Domain + Instance + ModuleList
+    // Name uniqueness is enforced by Prisma @unique constraint → P2002 → 409 Conflict
     const instance = await this.prisma.$transaction(async (tx) => {
-      // 1. Ensure the Domain record exists (required by Instance FK)
       await tx.domain.upsert({
         where: { domain: subdomain },
         update: {},
         create: { domain: subdomain },
       });
 
-      // 2. Create the Instance (linked to the Domain)
       const newInstance = await tx.instance.create({
         data: {
           name: serviceName,
@@ -48,11 +48,8 @@ export class InstancesService {
         },
       });
 
-      // 3. Create the ModuleList for this instance
       await tx.moduleList.create({
-        data: {
-          instanceId: newInstance.id,
-        },
+        data: { instanceId: newInstance.id },
       });
 
       return newInstance;
@@ -93,24 +90,23 @@ export class InstancesService {
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.moduleList.delete({
-        where: { instanceId: id },
-      });
-
-      await tx.instance.delete({
-        where: { id },
-      });
+      await tx.moduleList.delete({ where: { instanceId: id } });
+      await tx.instance.delete({ where: { id } });
     });
   }
 
-  // Get the next available ip address from the INSTANCE_START_IP check the /24 subnet (last octet)
-  private getNextAvailableIp(instanceIps: string[]): string {
+  // ---------------------------------------------------------------------------
+  // IP / Port allocation helpers
+  // ---------------------------------------------------------------------------
+
+  /** Find the next available last-octet in the /24 range starting from INSTANCE_START_IP. */
+  private getNextAvailableIp(sortedIps: string[]): string {
     const baseOctet = parseInt(INSTANCE_START_IP.split('.')[3]);
     const ipPrefix = INSTANCE_START_IP.split('.').slice(0, 3).join('.');
 
     let nextOctet = baseOctet;
 
-    for (const ip of instanceIps) {
+    for (const ip of sortedIps) {
       const lastOctet = parseInt(ip.split('.')[3]);
 
       if (lastOctet === nextOctet) {
@@ -127,11 +123,11 @@ export class InstancesService {
     return `${ipPrefix}.${nextOctet}`;
   }
 
-  // Get the next available port from the INSTANCE_START_PORT check the next practically 255 ports
-  private getNextAvailablePort(instancePorts: number[]): number {
+  /** Find the next available port starting from INSTANCE_START_PORT. */
+  private getNextAvailablePort(sortedPorts: number[]): number {
     let nextPort = INSTANCE_START_PORT;
 
-    for (const port of instancePorts) {
+    for (const port of sortedPorts) {
       if (port === nextPort) {
         nextPort++;
       } else if (port > nextPort) {

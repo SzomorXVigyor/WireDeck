@@ -98,16 +98,17 @@ export class ContainerManagerService {
         await new Promise((resolve, reject) => {
           this.docker.pull(imageName, (err, stream) => {
             if (err) return reject(err);
-            this.docker.modem.followProgress(stream, onFinished, onProgress);
 
-            function onFinished(err, output) {
+            const onProgress = (event) => {
+              this.logger.debug(`Pull progress for ${imageName}: ${JSON.stringify(event)}`);
+            };
+
+            const onFinished = (err, output) => {
               if (err) reject(err);
               else resolve(output);
-            }
+            };
 
-            function onProgress(event) {
-              this.logger.debug(`Pull progress for ${imageName}: ${JSON.stringify(event)}`);
-            }
+            this.docker.modem.followProgress(stream, onFinished, onProgress);
           });
         });
         return imageName;
