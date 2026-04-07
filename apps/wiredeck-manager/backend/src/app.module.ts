@@ -1,5 +1,4 @@
 import { HttpStatus, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_FILTER } from '@nestjs/core';
@@ -18,9 +17,6 @@ import { ContainerManagerModule } from './container-manager/container-manager.mo
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
     // API modules first
     PrismaModule.forRootAsync({
       isGlobal: true,
