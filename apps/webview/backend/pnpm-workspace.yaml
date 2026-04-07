@@ -1,0 +1,7 @@
+allowBuilds:
+  '@nestjs/core': true
+  '@prisma/engines': true
+  '@scarf/scarf': true
+  '@serialport/bindings-cpp': true
+  bcrypt: true
+  prisma: true

@@ -3,40 +3,40 @@
 # --------------------
 FROM node:24-alpine AS frontend-builder
 
-# Enable yarn via corepack
+# Enable pnpm via corepack
 RUN corepack enable
 
 # Set working directory for frontend
 WORKDIR /app/frontend
 
 # Copy frontend package files
-COPY frontend/package.json frontend/yarn.lock ./
+COPY frontend/package.json frontend/pnpm-workspace.yaml frontend/pnpm-lock.yaml ./
 
 # Install frontend dependencies
-RUN yarn install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # Copy frontend source code
 COPY frontend/ ./
 
 # Build frontend for production
-RUN yarn build
+RUN pnpm build
 
 # --------------------
 # Backend build stage
 # --------------------
 FROM node:24-alpine AS backend-builder
 
-# Enable yarn
+# Enable pnpm
 RUN corepack enable
 
 # Set working directory for backend
 WORKDIR /app/backend
 
 # Copy backend package files
-COPY backend/package.json backend/yarn.lock ./
+COPY backend/package.json backend/pnpm-lock.yaml ./
 
 # Install backend dependencies
-RUN yarn install
+RUN pnpm install
 
 # Copy backend source code
 COPY backend/ ./
@@ -45,23 +45,23 @@ COPY backend/ ./
 COPY backend/prisma/ ./prisma/
 
 # Generate Prisma Client
-RUN yarn prisma generate --generator client
+RUN pnpm prisma generate --generator client
 
 # Build backend for production
-RUN yarn build
+RUN pnpm build
 
 # Remove dev dependencies to reduce image size
-RUN yarn install --production --ignore-scripts --offline --frozen-lockfile
+RUN pnpm install --prod --ignore-scripts --offline --frozen-lockfile
 
 # Re-Generate Prisma Client
-RUN yarn prisma generate --generator client
+RUN pnpm prisma generate --generator client
 
 # --------------------
 # Production stage
 # --------------------
 FROM node:24-alpine AS production
 
-# Install dependencies: yarn, dumb-init, supervisord, wireguard-tools, bash, iptables
+# Install dependencies: pnpm, dumb-init, supervisord, wireguard-tools, bash, iptables
 RUN corepack enable && \
     apk add --no-cache dumb-init supervisor wireguard-tools iptables bash
 
@@ -72,7 +72,7 @@ WORKDIR /app
 COPY --from=backend-builder /app/backend/dist ./dist
 COPY --from=backend-builder /app/backend/node_modules ./node_modules
 COPY --from=backend-builder /app/backend/package.json ./package.json
-COPY --from=backend-builder /app/backend/yarn.lock ./yarn.lock
+COPY --from=backend-builder /app/backend/pnpm-lock.yaml ./pnpm-lock.yaml
 
 # Copy frontend build output to backend's public directory
 COPY --from=frontend-builder /app/frontend/dist ./public/frontend
