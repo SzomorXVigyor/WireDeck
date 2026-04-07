@@ -6,16 +6,16 @@
 # SERVICE_NAME: the name of the service, used to determine the schema
 
 # Build stage
-FROM node:24-alpine AS builder
+FROM node:lts-alpine AS builder
 
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --non-interactive --silent && \
-    pnpm cache clean
+RUN pnpm install --frozen-lockfile && \
+    pnpm cache delete
 
 # Runtime stage
-FROM node:24-alpine AS production
+FROM node:lts-alpine AS production
 
 WORKDIR /app
 

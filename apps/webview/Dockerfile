@@ -1,7 +1,7 @@
 # --------------------
 # Frontend build stage
 # --------------------
-FROM node:24-alpine AS frontend-builder
+FROM node:lts-alpine AS frontend-builder
 
 # Enable pnpm via corepack
 RUN corepack enable
@@ -24,7 +24,7 @@ RUN pnpm build
 # --------------------
 # Backend build stage
 # --------------------
-FROM node:24-alpine AS backend-builder
+FROM node:lts-alpine AS backend-builder
 
 # Enable pnpm
 RUN corepack enable
@@ -36,7 +36,7 @@ WORKDIR /app/backend
 COPY backend/package.json backend/pnpm-lock.yaml ./
 
 # Install backend dependencies
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy backend source code
 COPY backend/ ./
@@ -50,13 +50,13 @@ RUN pnpm prisma generate --generator client
 # Build backend for production
 RUN pnpm build
 
-# Remove dev dependencies to reduce image size
-RUN pnpm install --prod --ignore-scripts --offline --frozen-lockfile
+# Prune dev dependencies
+RUN pnpm cache delete && pnpm prune --prod
 
 # --------------------
 # Production stage
 # --------------------
-FROM node:24-alpine AS production
+FROM node:lts-alpine AS production
 
 # Install dependencies: pnpm, dumb-init, supervisord, wireguard-tools, bash, iptables
 RUN corepack enable && \
