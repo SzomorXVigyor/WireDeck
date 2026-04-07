@@ -27,7 +27,7 @@ async function bootstrap() {
   //Global pipes and filters
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  await await app.listen(PORT);
+  await app.listen(PORT);
 
   Logger.log(`Application listening on port ${PORT}`);
 }
