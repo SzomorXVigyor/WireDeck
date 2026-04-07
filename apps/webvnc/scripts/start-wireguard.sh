@@ -12,6 +12,15 @@ fi
 # Write WireGuard config from environment variable
 echo "$WIREGUARD_CONF_STR" > /etc/wireguard/wg0.conf
 
+# --- FIXES FOR NODE-24 DOCKER ENVIRONMENTS ---
+# 1. Remove DNS entries to avoid resolvconf errors
+sed -i '/^DNS/d' /etc/wireguard/wg0.conf
+
+# 2. Remove IPv6 AllowedIPs if your host doesn't support it 
+# This prevents the "Error: IPv6 is disabled on nexthop device"
+sed -i 's/, ::\/0//g' /etc/wireguard/wg0.conf
+# -------------------------------------
+
 echo "?? WireGuard config written to /etc/wireguard/wg0.conf"
 echo "?? Config preview:"
 head -5 /etc/wireguard/wg0.conf
@@ -24,6 +33,7 @@ modprobe wireguard 2>/dev/null || echo "?? WireGuard module load failed (may be 
 
 # Start WireGuard
 echo "?? Starting WireGuard interface..."
+
 wg-quick up wg0
 
 if [ $? -eq 0 ]; then
