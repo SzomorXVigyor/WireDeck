@@ -396,7 +396,7 @@ watch(
     await viewsStore.fetchView(id as string);
     if (!viewsStore.currentView) return;
 
-    const interval = viewsStore.currentView.layout.updateInterval ?? 0;
+    const interval = viewsStore.currentView.updateInterval ?? 0;
     if (interval > 0) {
       viewsStore.startPolling(id as string, interval);
     } else {
