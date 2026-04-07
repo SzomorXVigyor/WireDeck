@@ -10,9 +10,9 @@ FROM node:24-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json yarn.lock* ./
-RUN yarn install --frozen-lockfile --non-interactive --silent && \
-    yarn cache clean
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --non-interactive --silent && \
+    pnpm cache clean
 
 # Runtime stage
 FROM node:24-alpine AS production
@@ -35,4 +35,4 @@ COPY prisma ./prisma/
 COPY migrations ./migrations/
 
 # Run Prisma migration on startup
-ENTRYPOINT ["yarn", "prisma", "migrate", "deploy", "--config", "prisma.config.ts"]
+ENTRYPOINT ["pnpm", "prisma", "migrate", "deploy", "--config", "prisma.config.ts"]

@@ -4,8 +4,9 @@
 	"private": true,
 	"description": "Prisma migration runner for webview database",
 	"dependencies": {
-		"@prisma/adapter-pg": "^7.5.0",
-		"pg": "^8.13.0",
-		"prisma": "^7.5.0"
-	}
+		"@prisma/adapter-pg": "^7.7.0",
+		"pg": "^8.20.0",
+		"prisma": "^7.7.0"
+	},
+	"packageManager": "pnpm@10.33.0"
 }
