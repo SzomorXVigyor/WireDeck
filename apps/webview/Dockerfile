@@ -53,9 +53,6 @@ RUN pnpm build
 # Remove dev dependencies to reduce image size
 RUN pnpm install --prod --ignore-scripts --offline --frozen-lockfile
 
-# Re-Generate Prisma Client
-RUN pnpm prisma generate --generator client
-
 # --------------------
 # Production stage
 # --------------------
