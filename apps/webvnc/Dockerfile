@@ -1,7 +1,7 @@
 # --------------------
 # Frontend build stage
 # --------------------
-FROM node:18-alpine AS frontend-builder
+FROM node:lts-alpine AS frontend-builder
 
 # Enable yarn via corepack
 RUN corepack enable
@@ -10,22 +10,22 @@ RUN corepack enable
 WORKDIR /app/frontend
 
 # Copy frontend package files
-COPY frontend/package.json ./
+COPY frontend/package.json frontend/pnpm-workspace.yaml frontend/pnpm-lock.yaml ./
 
 # Install frontend dependencies
-RUN yarn install
+RUN pnpm install --frozen-lockfile
 
 # Copy frontend source code
 COPY frontend/ ./
 
 # Build frontend for production
-RUN yarn build
+RUN pnpm build
 
 
 # --------------------
 # Backend build stage
 # --------------------
-FROM node:18-alpine AS backend-builder
+FROM node:lts-alpine AS backend-builder
 
 # Enable yarn
 RUN corepack enable
@@ -34,16 +34,19 @@ RUN corepack enable
 WORKDIR /app/backend
 
 # Copy backend package files
-COPY backend/package.json ./
+COPY backend/package.json backend/pnpm-lock.yaml ./
 
 # Install backend dependencies
-RUN yarn install
+RUN pnpm install --frozen-lockfile
 
 # Copy backend source code
 COPY backend/ ./
 
 # Build backend for production
-RUN yarn build
+RUN pnpm build
+
+# Prune dev dependencies
+RUN pnpm cache delete && pnpm prune --prod
 
 
 # --------------------
@@ -73,7 +76,7 @@ RUN rm -rf \
 # --------------------
 # Production stage
 # --------------------
-FROM node:18-alpine AS production
+FROM node:lts-alpine AS production
 
 # Install dependencies: yarn, dumb-init, supervisord, wireguard-tools, bash, iptables
 RUN corepack enable && \
@@ -86,7 +89,7 @@ WORKDIR /app
 COPY --from=backend-builder /app/backend/dist ./dist
 COPY --from=backend-builder /app/backend/node_modules ./node_modules
 COPY --from=backend-builder /app/backend/package.json ./package.json
-COPY --from=backend-builder /app/backend/yarn.lock ./yarn.lock
+COPY --from=backend-builder /app/backend/pnpm-lock.yaml ./pnpm-lock.yaml
 
 # Copy frontend build output to backend's public directory
 COPY --from=frontend-builder /app/frontend/dist ./public/frontend
