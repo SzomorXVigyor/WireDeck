@@ -8,10 +8,11 @@ import * as jwt from 'jsonwebtoken';
 export class NoVNCController {
   private readonly novncPath = join(__dirname, '..', '..', 'public', 'novnc');
 
-  @Get('*')
+  @Get('*path')
   serveFile(@Req() req: Request, @Res() res: Response) {
     // Only protect vnc.html with the short-lived token
-    const relativePath = req.params[0] || '';
+    const paramPath = req.params['path'];
+    const relativePath = Array.isArray(paramPath) ? paramPath.join('/') : paramPath || '';
     const filePath = join(this.novncPath, relativePath);
 
     if (!existsSync(filePath)) {
