@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { RequestMethod, ValidationPipe } from '@nestjs/common';
+import { Logger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { WsAdapter } from '@nestjs/platform-ws';
 import { AppModule } from './app.module';
 import { FRONTEND_URL, IN_PRODUCTION, PORT } from './utils/env';
@@ -24,17 +24,12 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   app.setGlobalPrefix('api', {
-    exclude: [{ path: 'novnc(.*)', method: RequestMethod.ALL }],
+    exclude: [{ path: 'novnc/*path', method: RequestMethod.ALL }],
   });
 
-  await await app.listen(PORT);
+  await app.listen(PORT);
 
-  console.log(`🚀 WireGuard VNC Proxy Backend listening on port ${PORT}`);
-  console.log(`📋 Available endpoints:`);
-  console.log(`   Health: http://0.0.0.0:${PORT}/api/health`);
-  console.log(`   Auth: http://0.0.0.0:${PORT}/api/auth`);
-  console.log(`   VNC: http://0.0.0.0:${PORT}/api/vnc`);
-  console.log(`   noVNC: http://0.0.0.0:${PORT}/novnc`);
+  Logger.log(`Application listening on port ${PORT}`);
 }
 
 bootstrap();

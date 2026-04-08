@@ -6,16 +6,19 @@
 # SERVICE_NAME: the name of the service, used to determine the schema
 
 # Build stage
-FROM node:24-alpine AS builder
+FROM node:lts-alpine AS builder
+
+# Enable pnpm via corepack
+RUN corepack enable
 
 WORKDIR /app
 
-COPY package.json yarn.lock* ./
-RUN yarn install --frozen-lockfile --non-interactive --silent && \
-    yarn cache clean
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile && \
+    pnpm cache delete
 
 # Runtime stage
-FROM node:24-alpine AS production
+FROM node:lts-alpine AS production
 
 WORKDIR /app
 
@@ -35,4 +38,4 @@ COPY prisma ./prisma/
 COPY migrations ./migrations/
 
 # Run Prisma migration on startup
-ENTRYPOINT ["yarn", "prisma", "migrate", "deploy", "--config", "prisma.config.ts"]
+ENTRYPOINT ["pnpm", "prisma", "migrate", "deploy", "--config", "prisma.config.ts"]
