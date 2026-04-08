@@ -28,7 +28,7 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
         </svg>
         <span class="ml-3 text-sm" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'">
-          Loading profile…
+          Loading profile...
         </span>
       </div>
 
@@ -109,7 +109,7 @@
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
             <KeyIcon v-else class="w-4 h-4" />
-            {{ changingPassword ? 'Opening…' : 'Change Password' }}
+            {{ changingPassword ? 'Opening...' : 'Change Password' }}
           </button>
         </div>
       </template>
