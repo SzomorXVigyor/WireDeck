@@ -244,7 +244,12 @@
 
         <!-- Empty state shown when no view is selected and not on an admin sub-page -->
         <div
-          v-if="route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary' && route.name !== 'Devices' && route.name !== 'Profile'"
+          v-if="
+            route.name !== 'ViewDetail' &&
+            route.name !== 'RegisterDictionary' &&
+            route.name !== 'Devices' &&
+            route.name !== 'Profile'
+          "
           class="flex flex-col items-center justify-center min-h-[60vh] gap-4"
         >
           <ViewColumnsIcon class="w-16 h-16" :class="themeStore.isDark ? 'text-gray-600' : 'text-gray-300'" />

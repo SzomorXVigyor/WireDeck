@@ -56,7 +56,10 @@
               <UserCircleIcon class="w-5 h-5" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'" />
             </div>
             <div>
-              <p class="text-xs font-medium uppercase tracking-wider" :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'">
+              <p
+                class="text-xs font-medium uppercase tracking-wider"
+                :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'"
+              >
                 Username
               </p>
               <p class="text-sm font-medium" :class="themeStore.isDark ? 'text-gray-200' : 'text-gray-800'">
@@ -73,7 +76,10 @@
               <ShieldCheckIcon class="w-5 h-5" :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'" />
             </div>
             <div>
-              <p class="text-xs font-medium uppercase tracking-wider" :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'">
+              <p
+                class="text-xs font-medium uppercase tracking-wider"
+                :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'"
+              >
                 Role
               </p>
               <p class="text-sm font-medium capitalize" :class="themeStore.isDark ? 'text-gray-200' : 'text-gray-800'">
@@ -121,12 +127,7 @@
 import { ref, onMounted } from 'vue';
 import { useThemeStore } from '../stores/theme';
 import api from '../services/api';
-import {
-  UserCircleIcon,
-  ShieldCheckIcon,
-  KeyIcon,
-  ExclamationTriangleIcon,
-} from '@heroicons/vue/24/outline';
+import { UserCircleIcon, ShieldCheckIcon, KeyIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline';
 
 interface ProfileData {
   username: string;
