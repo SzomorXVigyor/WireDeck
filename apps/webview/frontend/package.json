@@ -1,7 +1,10 @@
 {
   "name": "webview-frontend",
   "version": "1.0.0",
+  "description": "Register webview frontend",
+  "author": "SzomorXVigyor",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",

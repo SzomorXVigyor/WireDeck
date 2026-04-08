@@ -1,8 +1,10 @@
 {
-	"name": "webview-db-migrator",
+	"name": "general-db-migrator",
 	"version": "1.0.0",
+	"description": "Prisma migration runner for create schemas to the PostgreSQL database",
+	"author": "SzomorXVigyor",
 	"private": true,
-	"description": "Prisma migration runner for webview database",
+	"license": "MIT",
 	"dependencies": {
 		"@prisma/adapter-pg": "^7.7.0",
 		"pg": "^8.20.0",

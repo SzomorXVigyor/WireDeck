@@ -2,7 +2,7 @@
   "name": "webview-backend",
   "version": "1.0.0",
   "description": "Register webview backend",
-  "author": "",
+  "author": "SzomorXVigyor",
   "private": true,
   "license": "MIT",
   "scripts": {

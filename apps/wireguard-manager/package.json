@@ -1,9 +1,10 @@
 {
   "name": "wiredeck",
   "version": "1.2.1",
+  "description": "WireDeck is a self-hosted WireGuard VPN server manager. It is a web-based interface for managing WireGuard VPN servers. Able to attach extra service modules for VPN server instance.",
   "main": "./src/server.js",
   "repository": "https://github.com/SzomorXVigyor/WireDeck.git",
-  "author": "Aranyalma2 <40268481+Aranyalma2@users.noreply.github.com>",
+  "author": "SzomorXVigyor",
   "license": "MIT",
   "scripts": {
     "start": "node ./src/server.js",

@@ -1,8 +1,8 @@
 {
-  "name": "wireguard-vnc-proxy-backend",
+  "name": "webvnc-backend",
   "version": "1.0.0",
-  "description": "Production-ready VNC Proxy with Authentication",
-  "author": "",
+  "description": "Production-ready web VNC Proxy with Authentication",
+  "author": "SzomorXVigyor",
   "private": true,
   "license": "MIT",
   "scripts": {
