@@ -3,7 +3,7 @@
 # --------------------
 FROM node:lts-alpine AS frontend-builder
 
-# Enable yarn via corepack
+# Enable pnpm via corepack
 RUN corepack enable
 
 # Set working directory for frontend
@@ -27,7 +27,7 @@ RUN pnpm build
 # --------------------
 FROM node:lts-alpine AS backend-builder
 
-# Enable yarn
+# Enable pnpm
 RUN corepack enable
 
 # Set working directory for backend
@@ -78,7 +78,7 @@ RUN rm -rf \
 # --------------------
 FROM node:lts-alpine AS production
 
-# Install dependencies: yarn, dumb-init, supervisord, wireguard-tools, bash, iptables
+# Install dependencies: pnpm, dumb-init, supervisord, wireguard-tools, bash, iptables
 RUN corepack enable && \
     apk add --no-cache dumb-init supervisor wireguard-tools iptables bash
 

@@ -1,12 +1,15 @@
-FROM node:18-alpine
+FROM node:lts-alpine
+
+# Enable pnpm via corepack
+RUN corepack enable
 
 WORKDIR /app
 
-# Copy package files first for better Docker layer caching
-COPY ./package*.json ./
+# Copy frontend package files
+COPY ./package.json ./pnpm-workspace.yaml ./pnpm-lock.yaml ./
 
 # Install dependencies
-RUN yarn install --production
+RUN pnpm install --frozen-lockfile
 
 # Copy application files
 COPY ./src/ ./
@@ -19,4 +22,4 @@ RUN mkdir -p nginx
 EXPOSE 3000
 
 # Start the application
-CMD ["yarn", "start:docker"]
+CMD ["pnpm", "start:docker"]
