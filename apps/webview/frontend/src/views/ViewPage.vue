@@ -55,7 +55,7 @@
           @click="saveEdit"
         >
           <CheckIcon class="w-4 h-4" />
-          {{ saving ? 'Saving…' : 'Save' }}
+          {{ saving ? 'Saving...' : 'Save' }}
         </button>
         <button
           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border"

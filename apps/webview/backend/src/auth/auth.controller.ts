@@ -1,4 +1,4 @@
-import { Controller, Request, Post, UseGuards, Get, UnauthorizedException } from '@nestjs/common';
+import { Controller, Request, Post, UseGuards, Get, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -60,12 +60,12 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized or password change not enabled / configured' })
   async changePassword(@Request() req): Promise<ChangePasswordResponseDto> {
     if (!WIREDECK_SLAVE || !PASS_CHANGE_URL || !SERVICE_NAME) {
-      throw new UnauthorizedException('Password change is not enabled or not properly configured');
+      throw new ServiceUnavailableException('Password change is not enabled or not properly configured');
     }
 
     const user = await this.usersService.findOne(req.user.username);
-    if (!user) throw new UnauthorizedException('User not found');
-    if (!user.changeToken) throw new UnauthorizedException('User does not have a change token');
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.changeToken) throw new ServiceUnavailableException('User does not have a change token');
 
     const changeUrl = new URL(PASS_CHANGE_URL);
     changeUrl.searchParams.set('instance', SERVICE_NAME);
