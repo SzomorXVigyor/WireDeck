@@ -54,7 +54,7 @@ async function initializeDefaultUser() {
   }
 }
 
-app.get('*', (req, res) => {
+app.get('*path', (req, res) => {
   res.redirect(301, '/');
 });
 
