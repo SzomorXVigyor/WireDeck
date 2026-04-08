@@ -1,0 +1,106 @@
+name: Build All
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/database/**'
+      - 'apps/webview/**'
+      - 'apps/webvnc/**'
+      - 'apps/wireguard-manager/**'
+      - '.github/workflows/build-all.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/database/**'
+      - 'apps/webview/**'
+      - 'apps/webvnc/**'
+      - 'apps/wireguard-manager/**'
+      - '.github/workflows/build-all.yml'
+
+jobs:
+  build-database:
+    name: Build Database Schema Migrator Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/database
+          file: ./apps/database/Dockerfile
+          push: false
+          tags: wiredeck/database:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-webview:
+    name: Build Webview Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/webview
+          file: ./apps/webview/Dockerfile
+          push: false
+          tags: wiredeck/webview:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-webvnc:
+    name: Build WebVNC Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/webvnc
+          file: ./apps/webvnc/Dockerfile
+          push: false
+          tags: wiredeck/webvnc:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-wireguard-manager:
+    name: Build Wireguard Manager Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/wireguard-manager
+          file: ./apps/wireguard-manager/Dockerfile
+          push: false
+          tags: wiredeck/wireguard-manager:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
