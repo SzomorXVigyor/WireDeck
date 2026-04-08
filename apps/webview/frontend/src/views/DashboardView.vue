@@ -180,13 +180,27 @@
       <!-- User footer -->
       <div class="p-3 border-t flex-shrink-0" :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'">
         <div class="flex items-center gap-2 px-2 py-1">
-          <UserCircleIcon
-            class="w-5 h-5 flex-shrink-0"
-            :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
-          />
-          <span class="text-sm truncate flex-1" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
-            {{ authStore.user?.username ?? 'User' }}
-          </span>
+          <router-link
+            :to="{ name: 'Profile' }"
+            class="flex items-center gap-2 flex-1 min-w-0 rounded-lg px-1 py-0.5 -mx-1 transition-colors cursor-pointer"
+            :class="
+              route.name === 'Profile'
+                ? 'bg-blue-600/10'
+                : themeStore.isDark
+                  ? 'hover:bg-gray-700'
+                  : 'hover:bg-gray-100'
+            "
+            title="View profile"
+            @click="sidebarOpen = false"
+          >
+            <UserCircleIcon
+              class="w-5 h-5 flex-shrink-0"
+              :class="themeStore.isDark ? 'text-gray-400' : 'text-gray-500'"
+            />
+            <span class="text-sm truncate flex-1" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-700'">
+              {{ authStore.user?.username ?? 'User' }}
+            </span>
+          </router-link>
           <!-- Logout -->
           <button
             class="p-1.5 rounded-lg transition-colors flex-shrink-0"
@@ -230,7 +244,7 @@
 
         <!-- Empty state shown when no view is selected and not on an admin sub-page -->
         <div
-          v-if="route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary' && route.name !== 'Devices'"
+          v-if="route.name !== 'ViewDetail' && route.name !== 'RegisterDictionary' && route.name !== 'Devices' && route.name !== 'Profile'"
           class="flex flex-col items-center justify-center min-h-[60vh] gap-4"
         >
           <ViewColumnsIcon class="w-16 h-16" :class="themeStore.isDark ? 'text-gray-600' : 'text-gray-300'" />
@@ -295,6 +309,7 @@ onMounted(async () => {
     route.name !== 'ViewDetail' &&
     route.name !== 'RegisterDictionary' &&
     route.name !== 'Devices' &&
+    route.name !== 'Profile' &&
     viewsStore.views.length > 0
   ) {
     router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0]!.id } });
