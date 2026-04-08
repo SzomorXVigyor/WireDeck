@@ -33,7 +33,7 @@ RUN corepack enable
 WORKDIR /app/backend
 
 # Copy backend package files
-COPY backend/package.json backend/pnpm-lock.yaml ./
+COPY backend/package.json backend/pnpm-workspace.yaml backend/pnpm-lock.yaml ./
 
 # Install backend dependencies
 RUN pnpm install --frozen-lockfile
