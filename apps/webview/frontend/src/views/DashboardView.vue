@@ -173,6 +173,23 @@
                 <span class="truncate">Devices</span>
               </router-link>
             </li>
+            <li>
+              <router-link
+                :to="{ name: 'Notifications' }"
+                class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full"
+                :class="
+                  route.name === 'Notifications'
+                    ? 'bg-blue-600 text-white'
+                    : themeStore.isDark
+                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                "
+                @click="sidebarOpen = false"
+              >
+                <BellAlertIcon class="w-4 h-4 flex-shrink-0" />
+                <span class="truncate">Notifications</span>
+              </router-link>
+            </li>
           </ul>
         </div>
       </nav>
@@ -248,6 +265,7 @@
             route.name !== 'ViewDetail' &&
             route.name !== 'RegisterDictionary' &&
             route.name !== 'Devices' &&
+            route.name !== 'Notifications' &&
             route.name !== 'Profile'
           "
           class="flex flex-col items-center justify-center min-h-[60vh] gap-4"
@@ -279,6 +297,7 @@ import {
   PlusIcon,
   BookOpenIcon,
   ServerStackIcon,
+  BellAlertIcon,
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -314,6 +333,7 @@ onMounted(async () => {
     route.name !== 'ViewDetail' &&
     route.name !== 'RegisterDictionary' &&
     route.name !== 'Devices' &&
+    route.name !== 'Notifications' &&
     route.name !== 'Profile' &&
     viewsStore.views.length > 0
   ) {
