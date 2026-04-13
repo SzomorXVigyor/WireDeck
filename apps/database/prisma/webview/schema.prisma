@@ -15,7 +15,6 @@ datasource db {
 // Enums
 
 // Matches CardType in views/dto/card.dto.ts
-// Prisma enum values cannot contain hyphens, so we use @map for the wire values.
 enum CardType {
   button
   switch
@@ -26,6 +25,22 @@ enum CardType {
 // Matches DeviceProtocol in devices/dto/create-device.dto.ts
 enum DeviceProtocol {
   ModbusTCP
+}
+
+// Notification ConditionOperator
+enum ConditionOperator {
+  gt
+  lt
+  eq
+  gte
+  lte
+  neq
+}
+
+// Notification Mode
+enum NotificationMode {
+  immediate
+  delayed
 }
 
 // Models
@@ -104,10 +119,39 @@ model RegisterDictEntry {
   // Stored as ProtocolAttributesDto
   protocolAttributes Json
 
-  cards Card[]
+  cards         Card[]
+  notifications Notification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("register_dict_entries")
+}
+
+// Notification model
+model Notification {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  // FK to RegisterDictEntry
+  registerId Int
+  register   RegisterDictEntry @relation(fields: [registerId], references: [id])
+
+  // Condition
+  operator       ConditionOperator
+  conditionValue Float
+
+  // Notification mode
+  mode         NotificationMode
+  delaySeconds Int              @default(0)
+
+  // Email content
+  recipients String // comma-separated email addresses
+  subject    String
+  body       String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("notifications")
 }
