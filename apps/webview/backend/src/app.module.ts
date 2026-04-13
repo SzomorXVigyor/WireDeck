@@ -10,6 +10,7 @@ import { ConfigurationModule } from './config/config.module';
 import { ViewsModule } from './views/views.module';
 import { DevicesModule } from './devices/devices.module';
 import { RegistersModule } from './registers/registers.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { ConnectionModule } from './connection/connection.module';
 import { HealthController } from './health/health.controller';
 import { configValidation } from './config/config.validation';
@@ -44,6 +45,7 @@ import { join } from 'path';
     ViewsModule,
     DevicesModule,
     RegistersModule,
+    NotificationsModule,
     ConnectionModule,
     ScheduleModule.forRoot(),
     // Frontend static files

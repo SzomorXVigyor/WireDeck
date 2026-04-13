@@ -23,6 +23,7 @@ export function loadSwagger(app) {
     .addTag('devices')
     .addTag('registers')
     .addTag('views')
+    .addTag('notifications')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document, {
