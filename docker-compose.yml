@@ -1,23 +1,4 @@
 services:
-    postgres:
-        image: postgres:17-alpine
-        container_name: postgres-db
-        networks:
-            wgnet:
-                ipv4_address: 172.20.0.4
-        environment:
-            - POSTGRES_USER=${DATABASE_USER}
-            - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-            - POSTGRES_DB=db
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-        restart: unless-stopped
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
-            interval: 10s
-            timeout: 5s
-            retries: 5
-
     wireguard-manager:
         build: ./apps/wireguard-manager
         container_name: wireguard-manager
@@ -74,6 +55,41 @@ services:
             fi &&
             envsubst '$$ROOT_DOMAIN' < /etc/nginx/nginx.conf > /tmp/nginx.conf &&
             nginx -g 'daemon off;' -c /tmp/nginx.conf"
+        restart: unless-stopped
+    
+    postgres:
+        image: postgres:17-alpine
+        container_name: postgres-db
+        networks:
+            wgnet:
+                ipv4_address: 172.20.0.4
+        environment:
+            - POSTGRES_USER=${DATABASE_USER}
+            - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+            - POSTGRES_DB=db
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+    mailgopher:
+        image: ghcr.io/szomorxvigyor/mailgopher:latest
+        container_name: mailgopher
+        networks:
+            wgnet:
+                ipv4_address: 172.20.0.5
+        environment:
+            - NAME=mailgopher
+            - PORT=8080
+            - LOG_LEVEL=debug
+            - LOG_FORMAT=json
+            - MAX_RETRIES=3
+            - WORKER_QUEUE_SIZE=100
+            - SMTP_ACCOUNTS=${SMTP_ACCOUNTS}
         restart: unless-stopped
 
 networks:
