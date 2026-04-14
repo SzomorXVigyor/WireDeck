@@ -50,6 +50,7 @@ class WebViewContainer {
           `DATABASE_URL=${process.env.DATABASE_URL + 'webview'}`,
           `PORT=8080`,
           `FRONTEND_URL=view.${this.name}.${process.env.ROOT_DOMAIN}`,
+          `MAIL_GATEWAY_URL=http://${process.env.MAIL_GATEWAY_URL}`,
           `NODE_ENV=production`,
         ],
       });

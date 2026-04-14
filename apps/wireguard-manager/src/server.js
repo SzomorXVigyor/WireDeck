@@ -15,7 +15,7 @@ const webvncRoutes = require('./routes/webvncRoutes');
 const webviewRoutes = require('./routes/webviewRoutes');
 
 // Required environment variables
-const requiredEnvVars = ['ROOT_DOMAIN', 'INIT_USERNAME', 'INIT_PASSWORD', 'CERTBOT_EMAIL', 'JWT_SECRET', 'DATABASE_URL'];
+const requiredEnvVars = ['ROOT_DOMAIN', 'INIT_USERNAME', 'INIT_PASSWORD', 'CERTBOT_EMAIL', 'JWT_SECRET', 'DATABASE_URL', 'MAIL_GATEWAY_URL'];
 
 // Check required environment variables
 requiredEnvVars.forEach((envVar) => {

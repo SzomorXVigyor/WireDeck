@@ -18,6 +18,7 @@ services:
             - CERTBOT_EMAIL=${CERTBOT_EMAIL}
             - JWT_SECRET=${JWT_SECRET}
             - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/
+            - MAIL_GATEWAY_URL=${MAIL_GATEWAY_URL}
         restart: unless-stopped
         depends_on:
             postgres:
