@@ -29,8 +29,13 @@ export class RegisterCacheService {
     return result;
   }
 
-  set(registerId: number, value: number): void {
+  set(registerId: number, value: number): 0 | 1 {
+    const isFirstSet = !this.cache.has(registerId);
+    const prevValue = this.cache.get(registerId);
+
     this.cache.set(registerId, value);
+
+    return !isFirstSet && prevValue !== value ? 1 : 0;
   }
 
   delete(registerId: number): void {

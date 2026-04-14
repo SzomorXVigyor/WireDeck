@@ -5,6 +5,8 @@ import { ConnectionManagerService } from './connection-manager.service';
 import { ModbusTcpProtocolAttributesEntity } from '../registers/entities/protocol-attributes';
 import { WriteOnlyRegisterError } from './drivers/modbus-tcp.driver';
 
+export type RegisterValueChangeHandler = (regId: number, value: number) => void | Promise<void>;
+
 /**
  * DataCollectorService
  *
@@ -26,11 +28,19 @@ import { WriteOnlyRegisterError } from './drivers/modbus-tcp.driver';
 export class DataCollectorService {
   private readonly logger = new Logger(DataCollectorService.name);
   private running = false;
+  private readonly valueChangeHandlers = new Map<number, RegisterValueChangeHandler[]>();
 
   constructor(
     private readonly connectionManager: ConnectionManagerService,
     private readonly cache: RegisterCacheService
   ) {}
+
+  public addRegisterValueChangeHandler(regId: number, handler: RegisterValueChangeHandler): void {
+    if (!this.valueChangeHandlers.has(regId)) {
+      this.valueChangeHandlers.set(regId, []);
+    }
+    this.valueChangeHandlers.get(regId)!.push(handler);
+  }
 
   /** Runs every 5 seconds.  Adjust the cron expression to change the rate. */
   @Cron('*/5 * * * * *')
@@ -74,7 +84,19 @@ export class DataCollectorService {
           // Currently only ModbusTCP is supported; extend here for future protocols.
           const attrs = reg.protocolAttributes as unknown as ModbusTcpProtocolAttributesEntity;
           const value = await driver.readRegister(attrs);
-          this.cache.set(regId, value);
+          const changed = this.cache.set(regId, value);
+
+          if (changed === 1) {
+            const handlers = this.valueChangeHandlers.get(regId);
+            if (handlers) {
+              for (const handler of handlers) {
+                // Execute handler asynchronously so it doesn't block the collection cycle
+                Promise.resolve(handler(regId, value)).catch((err) => {
+                  this.logger.error(`Error in register value change handler for regId ${regId}: ${err}`);
+                });
+              }
+            }
+          }
         } catch (err) {
           if (err instanceof WriteOnlyRegisterError) {
             // Write-only register - skip silently, no cache entry produced.
