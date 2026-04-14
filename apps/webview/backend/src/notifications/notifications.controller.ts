@@ -10,9 +10,11 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
+import { NotificationSenderService } from './notification-sender.service';
 import { NotificationDto } from './dto/notification.dto';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -23,7 +25,10 @@ import { Roles, Role } from '../auth/decorators/roles.decorator';
 @ApiBearerAuth()
 @Controller()
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(
+    private readonly notificationsService: NotificationsService,
+    private readonly senderService: NotificationSenderService
+  ) {}
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -47,7 +52,9 @@ export class NotificationsController {
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Referenced register not found' })
   async create(@Body() dto: CreateNotificationDto): Promise<NotificationDto> {
-    return this.notificationsService.create(dto);
+    const result = await this.notificationsService.create(dto);
+    this.senderService.attachHandler(result.id, result.registerId);
+    return result;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -62,7 +69,19 @@ export class NotificationsController {
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Notification entry or referenced register not found' })
   async update(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateNotificationDto): Promise<NotificationDto> {
-    return this.notificationsService.update(id, dto);
+    // Get old entry to detect registerId change
+    const old = await this.notificationsService.findOne(id);
+    if (!old) throw new NotFoundException(`Notification ${id} not found`);
+
+    const result = await this.notificationsService.update(id, dto);
+
+    // Re-attach handler if the register changed
+    if (old.registerId !== result.registerId) {
+      this.senderService.detachHandler(id, old.registerId);
+    }
+    this.senderService.attachHandler(result.id, result.registerId);
+
+    return result;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -76,6 +95,11 @@ export class NotificationsController {
   @ApiResponse({ status: 403, description: 'Forbidden - admin role required' })
   @ApiResponse({ status: 404, description: 'Notification entry not found' })
   async remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    // Get registerId before deletion so we can detach the handler
+    const entry = await this.notificationsService.findOne(id);
+    if (!entry) throw new NotFoundException(`Notification ${id} not found`);
+
+    this.senderService.detachHandler(id, entry.registerId);
     return this.notificationsService.remove(id);
   }
 }

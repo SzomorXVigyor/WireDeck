@@ -146,7 +146,7 @@ model Notification {
   delaySeconds Int              @default(0)
 
   // Email content
-  recipients String // comma-separated email addresses
+  recipients String[] // array of email addresses
   subject    String
   body       String @default("")
 

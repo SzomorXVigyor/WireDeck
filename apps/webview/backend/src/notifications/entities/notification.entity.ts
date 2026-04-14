@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsEmail, IsEnum, IsInt, IsNumber, IsString, IsNotEmpty, Min } from 'class-validator';
 import { ConditionOperator, NotificationMode } from '@prisma/client';
 
 /**
@@ -37,10 +37,16 @@ export class NotificationEntity {
   @Min(0)
   delaySeconds: number;
 
-  @ApiProperty({ example: 'admin@example.com, ops@example.com', description: 'Comma-separated email addresses' })
-  @IsString()
-  @IsNotEmpty()
-  recipients: string;
+  @ApiProperty({
+    example: ['admin@example.com', 'ops@example.com'],
+    description: 'List of recipient email addresses',
+    isArray: true,
+    type: String,
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEmail({}, { each: true })
+  recipients: string[];
 
   @ApiProperty({ example: 'System Alert', description: 'Email subject line' })
   @IsString()

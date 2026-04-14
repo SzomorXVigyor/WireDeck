@@ -26,8 +26,8 @@ export interface NotificationEntry {
   delaySeconds: number;
 
   /* ── Email content ─────────────────────────────────────────────────────── */
-  /** Comma-separated destination email addresses. */
-  recipients: string;
+  /** Array of destination email addresses. */
+  recipients: string[];
   /** Email subject line (supports template syntax). */
   subject: string;
   /** Email body (supports template syntax). */

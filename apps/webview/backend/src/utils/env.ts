@@ -20,6 +20,8 @@ export const PASS_CHANGE_URL = env.get('PASS_CHANGE_URL').default('').asString()
 export const SERVICE_NAME = env.get('SERVICE_NAME').required().asString();
 export const VERSION = env.get('npm_package_version').default('0.0.0').asString();
 
+export const MAIL_GATEWAY_URL = env.get('MAIL_GATEWAY_URL').asString();
+
 if (WIREDECK_SLAVE && (!PASS_CHANGE_URL || !SERVICE_NAME)) {
   throw new EnvVarError('WIREDECK_SLAVE is enabled, but PASS_CHANGE_URL and SERVICE_NAME must be defined');
 }

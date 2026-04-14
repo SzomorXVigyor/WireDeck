@@ -13,7 +13,7 @@ CREATE TABLE "notifications" (
     "conditionValue" DOUBLE PRECISION NOT NULL,
     "mode" "NotificationMode" NOT NULL,
     "delaySeconds" INTEGER NOT NULL DEFAULT 0,
-    "recipients" TEXT NOT NULL,
+    "recipients" TEXT[],
     "subject" TEXT NOT NULL,
     "body" TEXT NOT NULL DEFAULT '',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -48,6 +48,14 @@ export class NotificationsService {
     return rows.map(mapRow);
   }
 
+  async findOne(id: number): Promise<NotificationDto | null> {
+    const row = await this.prisma.notification.findUnique({
+      where: { id },
+      select: NOTIFICATION_SELECT,
+    });
+    return row ? mapRow(row) : null;
+  }
+
   async create(dto: CreateNotificationDto): Promise<NotificationDto> {
     const row = await this.prisma.notification.create({
       data: {

@@ -344,7 +344,7 @@ function makeDraft(): DraftEntry {
       conditionValue: String(props.entry.conditionValue),
       mode: props.entry.mode,
       delaySeconds: String(props.entry.delaySeconds),
-      recipients: props.entry.recipients,
+      recipients: props.entry.recipients.join(', '),
       subject: props.entry.subject,
       body: props.entry.body,
     };
@@ -456,7 +456,10 @@ const handleSet = () => {
     conditionValue: Number(draft.value.conditionValue),
     mode: draft.value.mode,
     delaySeconds: draft.value.mode === 'delayed' ? Number(draft.value.delaySeconds) : 0,
-    recipients: draft.value.recipients.trim(),
+    recipients: draft.value.recipients
+      .split(',')
+      .map((a) => a.trim())
+      .filter(Boolean),
     subject: draft.value.subject.trim(),
     body: draft.value.body,
   };

@@ -5,7 +5,23 @@ import { ConnectionManagerService } from './connection-manager.service';
 import { ModbusTcpProtocolAttributesEntity } from '../registers/entities/protocol-attributes';
 import { WriteOnlyRegisterError } from './drivers/modbus-tcp.driver';
 
-export type RegisterValueChangeHandler = (regId: number, value: number) => void | Promise<void>;
+/**
+ * Handler function called when a register value changes.
+ *
+ * @param regId  - The register ID whose value changed.
+ * @param value  - The new register value.
+ * @param self   - The context object supplied when the handler was registered.
+ */
+export type RegisterValueChangeHandler<T = unknown> = (regId: number, value: number, self: T) => void | Promise<void>;
+
+/** Internal storage entry for a single registered handler. */
+interface HandlerEntry {
+  /** Unique key within the regId bucket (e.g. "notification:42"). */
+  key: string;
+  /** Caller-supplied context object, passed back as `self` to the handler. */
+  selfAttr: unknown;
+  handler: RegisterValueChangeHandler<unknown>;
+}
 
 /**
  * DataCollectorService
@@ -28,18 +44,51 @@ export type RegisterValueChangeHandler = (regId: number, value: number) => void 
 export class DataCollectorService {
   private readonly logger = new Logger(DataCollectorService.name);
   private running = false;
-  private readonly valueChangeHandlers = new Map<number, RegisterValueChangeHandler[]>();
+  private readonly valueChangeHandlers = new Map<number, HandlerEntry[]>();
 
   constructor(
     private readonly connectionManager: ConnectionManagerService,
     private readonly cache: RegisterCacheService
   ) {}
 
-  public addRegisterValueChangeHandler(regId: number, handler: RegisterValueChangeHandler): void {
+  /**
+   * Register a value-change handler for a specific register.
+   *
+   * @param regId    - Register ID to watch.
+   * @param key      - Unique identifier within this regId bucket (e.g. "notification:42").
+   *                   Adding a handler with an already-existing key replaces the previous one.
+   * @param selfAttr - Arbitrary context object forwarded to `handler` as the `self` param.
+   * @param fn       - Callback invoked whenever the register value changes.
+   */
+  addRegisterValueChangeHandler<T>(regId: number, key: string, selfAttr: T, fn: RegisterValueChangeHandler<T>): void {
     if (!this.valueChangeHandlers.has(regId)) {
       this.valueChangeHandlers.set(regId, []);
     }
-    this.valueChangeHandlers.get(regId)!.push(handler);
+    const bucket = this.valueChangeHandlers.get(regId)!;
+
+    // Replace if same key already exists
+    const existingIdx = bucket.findIndex((e) => e.key === key);
+    const entry: HandlerEntry = { key, selfAttr, handler: fn as RegisterValueChangeHandler<unknown> };
+    if (existingIdx !== -1) {
+      bucket[existingIdx] = entry;
+    } else {
+      bucket.push(entry);
+    }
+  }
+
+  /**
+   * Remove a previously registered handler by its key.
+   * No-op if the regId or key is not found.
+   */
+  removeRegisterValueChangeHandler(regId: number, key: string): void {
+    const bucket = this.valueChangeHandlers.get(regId);
+    if (!bucket) return;
+    const filtered = bucket.filter((e) => e.key !== key);
+    if (filtered.length === 0) {
+      this.valueChangeHandlers.delete(regId);
+    } else {
+      this.valueChangeHandlers.set(regId, filtered);
+    }
   }
 
   /** Runs every 5 seconds.  Adjust the cron expression to change the rate. */
@@ -87,12 +136,14 @@ export class DataCollectorService {
           const changed = this.cache.set(regId, value);
 
           if (changed === 1) {
-            const handlers = this.valueChangeHandlers.get(regId);
-            if (handlers) {
-              for (const handler of handlers) {
+            const bucket = this.valueChangeHandlers.get(regId);
+            if (bucket) {
+              for (const entry of bucket) {
                 // Execute handler asynchronously so it doesn't block the collection cycle
-                Promise.resolve(handler(regId, value)).catch((err) => {
-                  this.logger.error(`Error in register value change handler for regId ${regId}: ${err}`);
+                Promise.resolve(entry.handler(regId, value, entry.selfAttr)).catch((err) => {
+                  this.logger.error(
+                    `Error in register value change handler (key="${entry.key}") for regId ${regId}: ${err}`
+                  );
                 });
               }
             }

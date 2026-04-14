@@ -21,6 +21,6 @@ import { DataCollectorService } from './data-collector.service';
  */
 @Module({
   providers: [RegisterCacheService, ConnectionManagerService, DataCollectorService],
-  exports: [RegisterCacheService, ConnectionManagerService],
+  exports: [RegisterCacheService, ConnectionManagerService, DataCollectorService],
 })
 export class ConnectionModule {}
