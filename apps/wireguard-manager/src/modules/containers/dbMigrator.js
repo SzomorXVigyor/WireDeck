@@ -12,6 +12,9 @@ class DBMigratorContainer {
   }
 
   async #runMigratorContainer() {
+    
+    await containerManager.ensureImage(usedImage);
+
     try {
       const container = await docker.createContainer({
         name: this.containerName,
