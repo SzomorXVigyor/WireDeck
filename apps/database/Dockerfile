@@ -20,6 +20,9 @@ RUN pnpm install --frozen-lockfile && \
 # Runtime stage
 FROM node:lts-alpine AS production
 
+# Enable pnpm via corepack
+RUN corepack enable
+
 WORKDIR /app
 
 # Copy dependencies and strip unnecessary files
