@@ -1,6 +1,6 @@
 {
   "name": "webvnc-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Production-ready web VNC Proxy with Authentication",
   "author": "SzomorXVigyor",
   "private": true,

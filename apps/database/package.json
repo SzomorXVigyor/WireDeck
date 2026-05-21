@@ -1,6 +1,6 @@
 {
 	"name": "general-db-migrator",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Prisma migration runner for create schemas to the PostgreSQL database",
 	"author": "SzomorXVigyor",
 	"private": true,
