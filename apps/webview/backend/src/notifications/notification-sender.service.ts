@@ -4,6 +4,7 @@ import { ConditionOperator } from '@prisma/client';
 import { RegisterCacheService } from '../connection/register-cache.service';
 import { DataCollectorService, RegisterValueChangeHandler } from '../connection/data-collector.service';
 import { MAIL_GATEWAY_URL } from '../utils/env';
+import { NotificationTemplateEngine } from './template/notification-template.engine';
 
 // ---------------------------------------------------------------------------
 // Self-attribute type carried by every notification handler.
@@ -14,16 +15,7 @@ export interface NotificationHandlerSelf {
   notificationId: number;
 }
 
-// ---------------------------------------------------------------------------
-// Template injector definition - easily extendable.
-// ---------------------------------------------------------------------------
 
-type Injector = {
-  /** Pattern to search for in the email body. */
-  pattern: RegExp;
-  /** Returns the replacement string. Receives the full match and capture groups. */
-  resolve: (match: string, ...groups: string[]) => string;
-};
 
 // ---------------------------------------------------------------------------
 // Service
@@ -36,7 +28,8 @@ export class NotificationSenderService implements OnModuleInit {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cache: RegisterCacheService,
-    private readonly dataCollector: DataCollectorService
+    private readonly dataCollector: DataCollectorService,
+    private readonly templateEngine: NotificationTemplateEngine
   ) {}
 
   // ---------------------------------------------------------------------------
@@ -132,55 +125,11 @@ export class NotificationSenderService implements OnModuleInit {
   }
 
   // ---------------------------------------------------------------------------
-  // Template engine
+  // Template rendering (delegated to NotificationTemplateEngine)
   // ---------------------------------------------------------------------------
 
-  /**
-   * Fill template variables in `rawBody` using `triggerValue` and the
-   * register cache for cross-register references.
-   *
-   * Supported syntax:
-   *   #REG           → the value that triggered the notification
-   *   #REG:<id>      → cached value of register <id>
-   *   #TIME          → current date-time in "YYYY. MM. DD. hh. mm. ss." format
-   *   /#             → escaped literal "#" (output: "#")
-   */
   fillContent(rawBody: string, triggerValue: number): string {
-    const injectors: Injector[] = [
-      {
-        // #REG:<id> - must be checked before plain #REG
-        pattern: /#REG:(\d+)/g,
-        resolve: (_match, id) => String(this.cache.get(parseInt(id, 10))),
-      },
-      {
-        pattern: /#REG/g,
-        resolve: () => String(triggerValue),
-      },
-      {
-        pattern: /#TIME/g,
-        resolve: () => this.formatDateTime(new Date()),
-      },
-    ];
-
-    // Temporarily protect escaped sequences so injectors don't touch them
-    let result = rawBody.replace(/\/#/g, '\x00ESC_HASH\x00');
-
-    for (const { pattern, resolve } of injectors) {
-      result = result.replace(pattern, resolve);
-    }
-
-    // Restore escaped "#"
-    result = result.replace(/\x00ESC_HASH\x00/g, '#');
-
-    return result;
-  }
-
-  private formatDateTime(date: Date): string {
-    const p = (n: number, len = 2) => String(n).padStart(len, '0');
-    return (
-      `${date.getFullYear()}. ${p(date.getMonth() + 1)}. ${p(date.getDate())}. ` +
-      `${p(date.getHours())}. ${p(date.getMinutes())}. ${p(date.getSeconds())}.`
-    );
+    return this.templateEngine.fillContent(rawBody, triggerValue);
   }
 
   // ---------------------------------------------------------------------------
