@@ -5,7 +5,7 @@ const utils = require('../utils');
 const logger = require('../logger');
 
 const ROOT_DOMAIN = process.env.ROOT_DOMAIN;
-const usedImage = 'ghcr.io/wg-easy/wg-easy:15.2.1';
+const usedImage = 'ghcr.io/wg-easy/wg-easy:15.3.0';
 
 class WireguardServerContainer {
   constructor(name, options = {}) {

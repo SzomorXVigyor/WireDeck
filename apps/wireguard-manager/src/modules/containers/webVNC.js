@@ -4,7 +4,7 @@ const containerManager = require('./containerManager');
 const utils = require('../utils');
 const logger = require('../logger');
 
-const usedImage = 'webvnc:latest';
+const usedImage = 'ghcr.io/szomorxvigyor/wiredeck/webvnc:v1.0.1';
 
 class WebVNCContainer {
   constructor(name, options = {}) {

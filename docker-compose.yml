@@ -19,7 +19,7 @@ services:
             retries: 5
 
     wireguard-manager:
-        build: ./apps/wireguard-manager
+        image: ghcr.io/szomorxvigyor/wiredeck/wireguard-manager:latest
         container_name: wireguard-manager
         networks:
             wgnet:

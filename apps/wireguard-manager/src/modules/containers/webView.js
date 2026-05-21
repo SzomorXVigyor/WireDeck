@@ -4,7 +4,7 @@ const containerManager = require('./containerManager');
 const utils = require('../utils');
 const logger = require('../logger');
 
-const usedImage = 'webview:latest';
+const usedImage = 'ghcr.io/szomorxvigyor/wiredeck/webview:v1.0.0';
 
 class WebViewContainer {
   constructor(name, options = {}) {

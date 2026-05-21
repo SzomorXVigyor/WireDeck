@@ -18,7 +18,7 @@ It leverages:
 - **NGINX** for SSL and Proxy
 - **Certbot** for automatic HTTPS certificate issuance and renewal
 
-The platform makes deploying and managing multiple [wg-easy](https://github.com/wg-easy/wg-easy) (v15.2.1) instances secure, scalable, and centralized.
+The platform makes deploying and managing multiple [wg-easy](https://github.com/wg-easy/wg-easy) (v15.3.0) instances secure, scalable, and centralized.
 
 
 ## 📦 Deploy
@@ -84,17 +84,7 @@ It will automaticly renew by cert manager module.
 docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot -p 80:80 certbot/certbot certonly --standalone --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
 ```
 
-#### 6. Build the app containers
-
-```sh
-cd apps/webvnc && docker build -t webvnc .
-
-cd apps/webview && docker build -t webview .
-
-cd apps/database && docker build -t dbmigrator .
-```
-
-#### 7. Start the app (from root)
+#### 6. Start the app (from root)
 
 ```sh
 docker compose --env-file .env up -d
