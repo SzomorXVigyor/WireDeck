@@ -2,7 +2,7 @@ const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
 const logger = require('../logger');
 
-const usedImage = 'ghcr.io/szomorxvigyor/wiredeck/database-migrator/v1.0.1';
+const usedImage = 'ghcr.io/szomorxvigyor/wiredeck/database-migrator:v1.0.1';
 
 class DBMigratorContainer {
   constructor(serviceIdentifier, serviceName) {
