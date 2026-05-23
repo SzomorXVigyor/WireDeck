@@ -25,18 +25,15 @@ The platform makes deploying and managing multiple [wg-easy](https://github.com/
 > [!NOTE]
 > The project require **docker** and **docker compose** on host to containerize the entire solution, allowing for easy setup and scalability.
 
-#### 0. Clone the repo
-```
-git clone https://github.com/SzomorXVigyor/WireDeck.git
+#### 0. Download Setup Files
+Use the install script to grab all necessary configuration files automatically.
+
+```sh
+curl -sSL https://raw.githubusercontent.com/szomorxvigyor/wiredeck/main/install.sh | bash
 ```
 
 #### 1. Configuration
-Create .env configuration from .env.example
-
-```sh
-cp .env.example .env
-nano .env
-```
+Edit the `.env` file that was automatically created.
 
 ```sh
 # Domain of the application
@@ -66,25 +63,19 @@ DATABASE_PASSWORD=your-db-password
 docker network create --driver bridge --subnet=172.20.0.0/20 --ipv6=false wgnet
 ```
 
-#### 3. Create work directories
-
-```sh
-mkdir -p database nginx/sites
-```
-
-#### 4. DNS Configuration
+#### 3. DNS Configuration
 
 * Set A record for root domain points to server IP
 * Set wildcard DNS (*.example.com) for subdomains
 
-#### 5. Obtain root certificate
+#### 4. Obtain root certificate
 It will automaticly renew by cert manager module.
 
 ```sh
 docker run --rm -v /etc/letsencrypt:/etc/letsencrypt -v /var/www/certbot:/var/www/certbot -p 80:80 certbot/certbot certonly --standalone --email your-email@domain.com --agree-tos --no-eff-email -d your-domain.com
 ```
 
-#### 6. Start the app (from root)
+#### 5. Start the app
 
 ```sh
 docker compose --env-file .env up -d
