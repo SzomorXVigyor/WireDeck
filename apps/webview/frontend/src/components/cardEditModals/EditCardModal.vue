@@ -7,75 +7,72 @@
         @click.self="cancel"
       >
         <div
-          class="w-full max-w-md rounded-xl shadow-2xl flex flex-col max-h-[90vh]"
+          class="w-full max-w-2xl rounded-xl shadow-2xl flex flex-col max-h-[90vh]"
           :class="themeStore.isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'"
         >
           <!-- Header -->
-          <div class="flex items-center justify-between px-6 pt-6 pb-3 flex-shrink-0">
+          <div
+            class="flex items-center justify-between px-6 pt-5 pb-4 flex-shrink-0 border-b"
+            :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'"
+          >
             <h2 class="text-lg font-semibold">{{ isNew ? 'Add Card' : 'Edit Card' }}</h2>
             <button
-              v-if="!isNew"
-              class="px-3 py-1.5 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
-              @click="handleDelete"
+              class="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+              :class="themeStore.isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'"
+              @click="cancel"
             >
-              Delete
+              <XMarkIcon class="w-4 h-4" />
             </button>
           </div>
 
           <!-- Scrollable form body -->
-          <div class="overflow-y-auto px-6 pb-2 space-y-3 flex-1">
-            <!-- Name -->
-            <div>
-              <label class="block text-sm font-medium mb-1" :class="labelClass">Name</label>
-              <input
-                v-model="draft.name"
-                type="text"
-                class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                :class="inputClass"
-                placeholder="Card name"
-              />
-            </div>
+          <div class="overflow-y-auto px-6 py-5 space-y-6 flex-1">
+            <!-- CARD -->
+            <section class="space-y-3">
+              <div class="flex items-center gap-3">
+                <span
+                  class="text-xs font-semibold uppercase tracking-widest"
+                  :class="themeStore.isDark ? 'text-gray-500' : 'text-gray-400'"
+                  >Card</span
+                >
+                <div class="flex-1 h-px" :class="themeStore.isDark ? 'bg-gray-700' : 'bg-gray-200'" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Name -->
+                <div>
+                  <label class="block text-sm font-medium mb-1" :class="labelClass">Name</label>
+                  <input
+                    v-model="draft.name"
+                    type="text"
+                    class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    :class="inputClass"
+                    placeholder="Card name"
+                  />
+                </div>
+                <!-- Type -->
+                <div>
+                  <label class="block text-sm font-medium mb-1" :class="labelClass">Type</label>
+                  <select
+                    v-model="draft.type"
+                    class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    :class="inputClass"
+                    @change="onTypeChange"
+                  >
+                    <option value="button">Button</option>
+                    <option value="switch">Switch</option>
+                    <option value="display">Display</option>
+                    <option value="number_input">Number Input</option>
+                  </select>
+                </div>
+              </div>
+            </section>
 
-            <!-- Type -->
-            <div>
-              <label class="block text-sm font-medium mb-1" :class="labelClass">Type</label>
-              <select
-                v-model="draft.type"
-                class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                :class="inputClass"
-                @change="onTypeChange"
-              >
-                <option value="button">Button</option>
-                <option value="switch">Switch</option>
-                <option value="display">Display</option>
-                <option value="number_input">Number Input</option>
-              </select>
-            </div>
-
-            <!-- Register -->
-            <div>
-              <label class="block text-sm font-medium mb-1" :class="labelClass">Register</label>
-              <select
-                v-model.number="draft.register"
-                class="w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                :class="registerSelectClass"
-                @blur="registerTouched = true"
-                @change="registerTouched = true"
-              >
-                <option :value="0" disabled>- Select a register -</option>
-                <option v-if="registerOptions.length === 0" :value="-1" disabled>No registers defined</option>
-                <option v-for="r in registerOptions" :key="r.id" :value="r.id">{{ r.id }} - {{ r.name }}</option>
-              </select>
-              <p v-if="registerError" class="mt-1 text-xs text-red-500">A register must be selected</p>
-            </div>
-
-            <hr :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'" />
-
-            <!-- Type-specific fields -->
+            <!-- TYPE-SPECIFIC FIELDS -->
             <EditButtonFields
               v-if="draft.type === 'button'"
               v-model:style="draft.style"
               v-model:extra="draft.extra"
+              v-model:register="draft.register"
               :input-class="inputClass"
               :label-class="labelClass"
             />
@@ -83,6 +80,7 @@
               v-else-if="draft.type === 'switch'"
               v-model:style="draft.style"
               v-model:extra="draft.extra"
+              v-model:register="draft.register"
               :input-class="inputClass"
               :label-class="labelClass"
             />
@@ -90,25 +88,38 @@
               v-else-if="draft.type === 'display'"
               v-model:style="draft.style"
               v-model:extra="draft.extra"
+              v-model:register="draft.register"
               :input-class="inputClass"
               :label-class="labelClass"
-              @update:valid="fieldValid = $event"
             />
             <EditNumberInputFields
               v-else-if="draft.type === 'number_input'"
               v-model:style="draft.style"
               v-model:extra="draft.extra"
+              v-model:register="draft.register"
               :input-class="inputClass"
               :label-class="labelClass"
-              @update:valid="fieldValid = $event"
             />
           </div>
 
           <!-- Footer -->
           <div
-            class="flex justify-end gap-2 px-6 py-4 border-t flex-shrink-0"
+            class="flex items-center gap-2 px-6 py-4 border-t flex-shrink-0"
             :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'"
           >
+            <!-- Delete — bottom-left, only on existing cards -->
+            <button
+              v-if="!isNew"
+              type="button"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-600 text-white hover:bg-red-700"
+              @click="handleDelete"
+            >
+              Delete
+            </button>
+
+            <!-- Spacer pushes Cancel + Set to the right -->
+            <div class="flex-1" />
+
             <button
               type="button"
               class="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -144,8 +155,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { useThemeStore } from '../../stores/theme';
-import { useRegistersStore } from '../../stores/registers';
 import { validateNumericInput } from '../../utils/numericInput';
+import { XMarkIcon } from '@heroicons/vue/24/outline';
 import type { Card, CardType } from '../../types/view';
 import EditButtonFields from './EditButtonFields.vue';
 import EditSwitchFields from './EditSwitchFields.vue';
@@ -187,9 +198,7 @@ const emit = defineEmits<{
 }>();
 
 const themeStore = useThemeStore();
-const registersStore = useRegistersStore();
 
-const registerOptions = computed(() => registersStore.registers);
 const isNew = computed(() => !props.card);
 const draft = ref<DraftCard>(makeDraft());
 
@@ -227,21 +236,8 @@ function makeDraft(): DraftCard {
 
 watch(
   () => props.modelValue,
-  async (open) => {
-    if (open) {
-      draft.value = makeDraft();
-      registerTouched.value = false;
-      if (registersStore.registers.length === 0) {
-        await registersStore.fetchRegisters();
-      }
-    }
-  }
-);
-
-watch(
-  () => draft.value.register,
-  () => {
-    registerTouched.value = true;
+  (open) => {
+    if (open) draft.value = makeDraft();
   }
 );
 
@@ -252,7 +248,6 @@ const onTypeChange = () => {
 };
 
 const canSubmit = computed(() => draft.value.register > 0 && fieldValid.value);
-const registerTouched = ref(false);
 
 /** True when all numeric extra fields in the current draft pass their constraints. */
 const fieldValid = computed(() => {
@@ -275,23 +270,10 @@ const fieldValid = computed(() => {
 
   return true;
 });
-const registerError = computed(() => registerTouched.value && draft.value.register <= 0);
-
-const registerSelectClass = computed(() => {
-  const base = themeStore.isDark
-    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
-    : 'bg-white border-gray-300 text-gray-900';
-  if (registerError.value) return `${base} border-red-500 focus:ring-red-500`;
-  return `${base} focus:ring-blue-500`;
-});
-
 const cancel = () => emit('update:modelValue', false);
 
 const handleSet = () => {
-  if (!canSubmit.value) {
-    registerTouched.value = true;
-    return;
-  }
+  if (!canSubmit.value) return;
   const card: Card = {
     id: draft.value.id === 0 ? Date.now() : draft.value.id,
     name: draft.value.name,
