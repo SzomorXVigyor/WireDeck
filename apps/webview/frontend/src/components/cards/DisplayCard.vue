@@ -20,8 +20,8 @@
       <span :class="valueSizeClass" class="font-bold tabular-nums text-gray-900 dark:text-white leading-none">
         {{ displayValue }}
       </span>
-      <span v-if="style.unit" class="text-sm text-gray-500 dark:text-gray-400 ml-0.5">
-        {{ style.unit }}
+      <span v-if="extra.unit" class="text-sm text-gray-500 dark:text-gray-400 ml-0.5">
+        {{ extra.unit }}
       </span>
     </div>
   </div>
@@ -31,6 +31,7 @@
 import { computed } from 'vue';
 import type { Card, DisplayStyle, DisplayExtra } from '../../types/view';
 import { useViewsStore } from '../../stores/views';
+import { formatValue } from '../../utils/precision';
 
 const props = defineProps<{ card: Card }>();
 
@@ -38,21 +39,15 @@ const viewsStore = useViewsStore();
 const style = computed(() => props.card.style as DisplayStyle);
 const extra = computed(() => props.card.extra as DisplayExtra);
 
-/** Live value from register data, falls back to a seed value when not yet loaded */
+/** Live value from register data, falls back to NaN until first poll arrives */
 const rawValue = computed<number>(() => {
   const v = viewsStore.registerData.get(props.card.register);
-  if (v !== undefined) return v;
-  // Seed fallback until first poll arrives
-  return NaN;
+  return v !== undefined ? v : NaN;
 });
 
-const displayValue = computed(() => {
-  const precision = extra.value.precision ?? 0;
-  const factor = Math.pow(10, -precision);
-  const shiftedValue = rawValue.value * factor;
-  const decimalPlaces = Math.max(0, precision);
-  return shiftedValue.toFixed(decimalPlaces);
-});
+const displayValue = computed(() =>
+  formatValue(rawValue.value, extra.value.precision ?? 0, extra.value.signed ?? false)
+);
 
 const fontSizeMap: Record<string, string> = {
   sm: 'text-xl',
