@@ -1,4 +1,4 @@
-// ── ModbusTCP protocol attributes ─────────────────────────────────────────
+// --- ModbusTCP protocol attributes ---
 // Note: IP and port live on the Device entry, not here.
 export type ModbusRegisterType = 'coil' | 'discrete-input' | 'holding-register' | 'input-register';
 export type ModbusOperation = 'R' | 'W' | 'RW';
@@ -14,10 +14,10 @@ export interface ModbusTCPAttributes {
   operation: ModbusOperation;
 }
 
-// ── Union of all possible protocol attributes ─────────────────────────────
+// --- Union of all possible protocol attributes ---
 export type ProtocolAttributes = ModbusTCPAttributes;
 
-// ── Register dictionary entry ─────────────────────────────────────────────
+// --- Register dictionary entry ---
 export interface RegisterDictEntry {
   /** Unique identifier assigned by the backend. */
   id: number;

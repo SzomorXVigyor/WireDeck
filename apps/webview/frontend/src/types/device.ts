@@ -1,7 +1,7 @@
-// ── Protocol types ─────────────────────────────────────────────────────────
+// --- Protocol types ---
 export type Protocol = 'ModbusTCP';
 
-// ── Device entry ───────────────────────────────────────────────────────────
+// --- Device entry ---
 export interface Device {
   /** Unique identifier assigned by the backend. */
   id: number;

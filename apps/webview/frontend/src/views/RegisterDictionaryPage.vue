@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 md:p-6">
-    <!-- ── Page header ──────────────────────────────────────────────────── -->
+    <!-- Page header -->
     <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
       <h1 class="text-2xl font-bold leading-tight" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
         Register Dictionary
@@ -14,7 +14,7 @@
       </button>
     </div>
 
-    <!-- ── Loading skeleton ─────────────────────────────────────────────── -->
+    <!-- Loading skeleton -->
     <div v-if="registersStore.loading" class="space-y-2">
       <div
         v-for="i in 5"
@@ -24,7 +24,7 @@
       />
     </div>
 
-    <!-- ── Error ─────────────────────────────────────────────────────────── -->
+    <!-- Error -->
     <div
       v-else-if="registersStore.error"
       class="rounded-xl border p-4 text-sm"
@@ -33,7 +33,7 @@
       {{ registersStore.error }}
     </div>
 
-    <!-- ── Empty state ───────────────────────────────────────────────────── -->
+    <!-- Empty state -->
     <div
       v-else-if="registersStore.registers.length === 0"
       class="flex flex-col items-center justify-center min-h-[40vh] gap-3"
@@ -44,7 +44,7 @@
       </p>
     </div>
 
-    <!-- ── Register list ─────────────────────────────────────────────────── -->
+    <!-- Register list -->
     <div
       v-else
       class="rounded-xl border overflow-hidden"
@@ -121,7 +121,7 @@
       </div>
     </div>
 
-    <!-- ── Modal ─────────────────────────────────────────────────────────── -->
+    <!-- Modal -->
     <EditRegisterModal v-model="showModal" :entry="editingEntry" @set="handleSet" />
   </div>
 </template>
@@ -139,16 +139,16 @@ const themeStore = useThemeStore();
 const registersStore = useRegistersStore();
 const devicesStore = useDevicesStore();
 
-// ── Modal state ─────────────────────────────────────────────────────────────
+// --- Modal state ---
 
 const showModal = ref(false);
 const editingEntry = ref<RegisterDictEntry | null>(null);
 
-// ── Layout ──────────────────────────────────────────────────────────────────
+// --- Layout ---
 
 const tableGridClass = 'grid-cols-[4rem_1fr_1fr_6rem]';
 
-// ── Handlers ────────────────────────────────────────────────────────────────
+// --- Handlers ---
 
 const openCreateModal = () => {
   editingEntry.value = null;
@@ -184,7 +184,7 @@ const handleDelete = async (entry: RegisterDictEntry) => {
   }
 };
 
-// ── Lifecycle ────────────────────────────────────────────────────────────────
+// --- Lifecycle ---
 
 onMounted(async () => {
   await Promise.all([

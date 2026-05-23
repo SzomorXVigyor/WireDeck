@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex" :class="themeStore.isDark ? 'bg-gray-900' : 'bg-gray-100'">
-    <!-- ───────────── Mobile overlay backdrop ───────────── -->
+    <!-- Mobile overlay backdrop -->
     <transition name="fade">
       <div
         v-if="sidebarOpen"
@@ -10,7 +10,7 @@
       />
     </transition>
 
-    <!-- ───────────────── Sidebar ───────────────── -->
+    <!-- Sidebar -->
     <aside
       class="fixed md:sticky top-0 z-30 md:z-auto h-screen flex-shrink-0 flex flex-col border-r transition-transform duration-300 ease-in-out md:translate-x-0 w-64 md:w-60"
       :class="[
@@ -212,13 +212,13 @@
             title="Logout"
             @click="handleLogout"
           >
-            <ArrowRightOnRectangleIcon class="w-4 h-4" />
+            <ArrowRightStartOnRectangleIcon class="w-4 h-4" />
           </button>
         </div>
       </div>
     </aside>
 
-    <!-- ───────────────── Main content ───────────────── -->
+    <!-- Main content -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Mobile top bar -->
       <header
@@ -271,7 +271,7 @@ import { useViewsStore } from '../stores/views';
 import {
   SunIcon,
   MoonIcon,
-  ArrowRightOnRectangleIcon,
+  ArrowRightStartOnRectangleIcon,
   ViewColumnsIcon,
   UserCircleIcon,
   Bars3Icon,

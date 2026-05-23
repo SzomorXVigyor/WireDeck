@@ -53,7 +53,7 @@
 
             <hr :class="themeStore.isDark ? 'border-gray-700' : 'border-gray-200'" />
 
-            <!-- ── Protocol attributes (shown once a device is selected) ─── -->
+            <!-- Protocol attributes (shown once a device is selected) -->
             <template v-if="selectedDevice">
               <p
                 class="text-xs font-semibold uppercase tracking-wider"
@@ -68,7 +68,7 @@
                 </span>
               </p>
 
-              <!-- ── ModbusTCP ───────────────────────────────────────────── -->
+              <!-- ModbusTCP -->
               <template v-if="selectedDevice.protocol === 'ModbusTCP'">
                 <!-- Slave address -->
                 <div>
@@ -182,7 +182,7 @@ import { useThemeStore } from '../stores/theme';
 import { useDevicesStore } from '../stores/devices';
 import type { RegisterDictEntry, ModbusTCPAttributes, ModbusRegisterType, ModbusOperation } from '../types/register';
 
-// ── Draft types ───────────────────────────────────────────────────────────────
+// --- Draft types ---
 
 interface DraftEntry {
   id: number;
@@ -198,7 +198,7 @@ interface ModbusAttrsDraft {
   operation: ModbusOperation;
 }
 
-// ── Props / emits ─────────────────────────────────────────────────────────────
+// --- Props / emits ---
 
 const props = defineProps<{
   modelValue: boolean;
@@ -211,7 +211,7 @@ const emit = defineEmits<{
   (e: 'set', entry: RegisterDictEntry): void;
 }>();
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// --- State ---
 
 const themeStore = useThemeStore();
 const devicesStore = useDevicesStore();
@@ -222,7 +222,7 @@ const draft = ref<DraftEntry>(makeDraft());
 const modbusAttrs = ref<ModbusAttrsDraft>(defaultModbus());
 const touched = reactive(new Set<string>());
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// --- Helpers ---
 
 function makeDraft(): DraftEntry {
   if (props.entry) {
@@ -246,7 +246,7 @@ function makeAttrs(): ModbusAttrsDraft {
   };
 }
 
-// ── Watchers ──────────────────────────────────────────────────────────────────
+// --- Watchers ---
 
 watch(
   () => props.modelValue,
@@ -262,11 +262,11 @@ watch(
   }
 );
 
-// ── Derived ───────────────────────────────────────────────────────────────────
+// --- Derived ---
 
 const selectedDevice = computed(() => devicesStore.devices.find((d) => d.id === draft.value.deviceId) ?? null);
 
-// ── Validation ────────────────────────────────────────────────────────────────
+// --- Validation ---
 
 const isValidInt = (val: string, min: number, max: number): boolean => {
   const s = val.trim();
@@ -289,7 +289,7 @@ const errors = computed<Record<string, string>>(() => {
 
 const canSubmit = computed(() => Object.keys(errors.value).length === 0);
 
-// ── Style helpers ─────────────────────────────────────────────────────────────
+// --- Style helpers ---
 
 const touch = (field: string) => touched.add(field);
 
@@ -307,7 +307,7 @@ const fieldClass = (field: string): string => {
   return `${base} ${themeStore.isDark ? 'border-gray-600' : 'border-gray-300'} focus:ring-blue-500`;
 };
 
-// ── Handlers ──────────────────────────────────────────────────────────────────
+// --- Handlers ---
 
 const cancel = () => emit('update:modelValue', false);
 
