@@ -37,6 +37,10 @@ services:
             - CERTBOT_EMAIL=${CERTBOT_EMAIL}
             - JWT_SECRET=${JWT_SECRET}
             - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/
+            - DATABASE_MIGRATOR_IMAGE_URL=${DATABASE_MIGRATOR_IMAGE_URL}
+            - WIREGUARD_SERVER_IMAGE_URL=${WIREGUARD_SERVER_IMAGE_URL}
+            - WEBVNC_IMAGE_URL=${WEBVNC_IMAGE_URL}
+            - WEBVIEW_IMAGE_URL=${WEBVIEW_IMAGE_URL}
         restart: unless-stopped
         depends_on:
             postgres:
