@@ -1,8 +1,9 @@
 const Docker = require('dockerode');
 const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+const containerManager = require('./containerManager');
 const logger = require('../logger');
 
-const usedImage = 'ghcr.io/szomorxvigyor/wiredeck/database-migrator:v1.0.1';
+const usedImage = process.env.DATABASE_MIGRATOR_IMAGE_URL;
 
 class DBMigratorContainer {
   constructor(serviceIdentifier, serviceName) {
@@ -12,7 +13,6 @@ class DBMigratorContainer {
   }
 
   async #runMigratorContainer() {
-    
     await containerManager.ensureImage(usedImage);
 
     try {

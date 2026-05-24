@@ -16,9 +16,17 @@ const webviewRoutes = require('./routes/webviewRoutes');
 
 // Required environment variables
 const requiredEnvVars = ['ROOT_DOMAIN', 'INIT_USERNAME', 'INIT_PASSWORD', 'CERTBOT_EMAIL', 'JWT_SECRET', 'DATABASE_URL'];
+const requiredImageURLEnvVars = ['DATABASE_MIGRATOR_IMAGE_URL', 'WIREGUARD_SERVER_IMAGE_URL', 'WEBVNC_IMAGE_URL', 'WEBVIEW_IMAGE_URL'];
 
 // Check required environment variables
 requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    logger.error(`Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+});
+
+requiredImageURLEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
     logger.error(`Missing required environment variable: ${envVar}`);
     process.exit(1);
