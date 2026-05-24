@@ -121,8 +121,15 @@
       </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modals -->
     <EditRegisterModal v-model="showModal" :entry="editingEntry" @set="handleSet" />
+
+    <DeleteConfirmModal
+      v-model="showDeleteModal"
+      title="Delete Register"
+      :item-name="deletingEntry?.name ?? ''"
+      @confirm="doDeleteRegister"
+    />
   </div>
 </template>
 
@@ -132,6 +139,7 @@ import { useThemeStore } from '../stores/theme';
 import { useRegistersStore } from '../stores/registers';
 import { useDevicesStore } from '../stores/devices';
 import EditRegisterModal from '../components/EditRegisterModal.vue';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import { PlusIcon, PencilIcon, TrashIcon, BookOpenIcon } from '@heroicons/vue/24/outline';
 import type { RegisterDictEntry } from '../types/register';
 
@@ -143,6 +151,8 @@ const devicesStore = useDevicesStore();
 
 const showModal = ref(false);
 const editingEntry = ref<RegisterDictEntry | null>(null);
+const showDeleteModal = ref(false);
+const deletingEntry = ref<RegisterDictEntry | null>(null);
 
 // --- Layout ---
 
@@ -175,10 +185,15 @@ const handleSet = async (entry: RegisterDictEntry) => {
   }
 };
 
-const handleDelete = async (entry: RegisterDictEntry) => {
-  if (!confirm(`Delete register "${entry.name}"?\nThis cannot be undone.`)) return;
+const handleDelete = (entry: RegisterDictEntry) => {
+  deletingEntry.value = entry;
+  showDeleteModal.value = true;
+};
+
+const doDeleteRegister = async () => {
+  if (!deletingEntry.value) return;
   try {
-    await registersStore.deleteRegister(entry.id);
+    await registersStore.deleteRegister(deletingEntry.value.id);
   } catch {
     // error already surfaced in store
   }

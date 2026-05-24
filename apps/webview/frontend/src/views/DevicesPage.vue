@@ -144,8 +144,15 @@
       </div>
     </div>
 
-    <!-- Modal -->
+    <!-- Modals -->
     <EditDeviceModal v-model="showModal" :device="editingDevice" @set="handleSet" />
+
+    <DeleteConfirmModal
+      v-model="showDeleteModal"
+      title="Delete Device"
+      :item-name="deletingDevice?.name ?? ''"
+      @confirm="doDeleteDevice"
+    />
   </div>
 </template>
 
@@ -154,6 +161,7 @@ import { onMounted, ref } from 'vue';
 import { useThemeStore } from '../stores/theme';
 import { useDevicesStore } from '../stores/devices';
 import EditDeviceModal from '../components/EditDeviceModal.vue';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import { PlusIcon, PencilIcon, TrashIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
 import type { Device } from '../types/device';
 
@@ -164,6 +172,8 @@ const devicesStore = useDevicesStore();
 
 const showModal = ref(false);
 const editingDevice = ref<Device | null>(null);
+const showDeleteModal = ref(false);
+const deletingDevice = ref<Device | null>(null);
 
 // --- Layout ---
 
@@ -197,10 +207,15 @@ const handleSet = async (device: Device) => {
   }
 };
 
-const handleDelete = async (device: Device) => {
-  if (!confirm(`Delete device "${device.name}"?\nThis cannot be undone.`)) return;
+const handleDelete = (device: Device) => {
+  deletingDevice.value = device;
+  showDeleteModal.value = true;
+};
+
+const doDeleteDevice = async () => {
+  if (!deletingDevice.value) return;
   try {
-    await devicesStore.deleteDevice(device.id);
+    await devicesStore.deleteDevice(deletingDevice.value.id);
   } catch {
     // error already surfaced in store
   }

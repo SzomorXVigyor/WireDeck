@@ -189,6 +189,13 @@
       @set="handleCardSet"
       @delete="handleCardDelete"
     />
+
+    <DeleteConfirmModal
+      v-model="showDeleteModal"
+      title="Delete View"
+      :item-name="viewsStore.currentView?.name ?? ''"
+      @confirm="doDeleteView"
+    />
   </div>
 </template>
 
@@ -201,6 +208,7 @@ import { useAuthStore } from '../stores/auth';
 import CardWrapper from '../components/cards/CardWrapper.vue';
 import EditViewOptionsModal from '../components/EditViewOptionsModal.vue';
 import EditCardModal from '../components/cardEditModals/EditCardModal.vue';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import {
   PencilIcon,
   TrashIcon,
@@ -231,6 +239,7 @@ const saving = ref(false);
 const showOptionsModal = ref(false);
 const editingCard = ref<Card | null>(null);
 const showCardModal = ref(false);
+const showDeleteModal = ref(false);
 
 // --- Sorted card lists ---
 
@@ -331,9 +340,13 @@ const saveEdit = async () => {
   }
 };
 
-const handleDelete = async () => {
+const handleDelete = () => {
   if (!viewsStore.currentView) return;
-  if (!confirm(`Delete view "${viewsStore.currentView.name}"?\nThis cannot be undone.`)) return;
+  showDeleteModal.value = true;
+};
+
+const doDeleteView = async () => {
+  if (!viewsStore.currentView) return;
   await viewsStore.deleteView(currentViewId.value);
   if (viewsStore.views.length > 0) {
     router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0]!.id } });
