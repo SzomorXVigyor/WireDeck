@@ -8,7 +8,7 @@ export const useDevicesStore = defineStore('devices', () => {
   const loading: Ref<boolean> = ref(false);
   const error: Ref<string | null> = ref(null);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  // --- Fetch ---
 
   /** Fetch all device entries (`GET /api/devices`). */
   const fetchDevices = async (): Promise<void> => {
@@ -26,7 +26,7 @@ export const useDevicesStore = defineStore('devices', () => {
     }
   };
 
-  // ── Create ────────────────────────────────────────────────────────────────
+  // --- Create ---
 
   /** Create a new device entry (`POST /api/device/new`). */
   const createDevice = async (data: Omit<Device, 'id'>): Promise<Device> => {
@@ -35,7 +35,7 @@ export const useDevicesStore = defineStore('devices', () => {
     return response.data;
   };
 
-  // ── Update ────────────────────────────────────────────────────────────────
+  // --- Update ---
 
   /** Update an existing device entry (`PUT /api/device/:id`). */
   const updateDevice = async (id: number, data: Omit<Device, 'id'>): Promise<void> => {
@@ -44,7 +44,7 @@ export const useDevicesStore = defineStore('devices', () => {
     if (idx !== -1) devices.value[idx] = response.data;
   };
 
-  // ── Delete ────────────────────────────────────────────────────────────────
+  // --- Delete ---
 
   /** Delete a device entry (`DELETE /api/device/:id`). */
   const deleteDevice = async (id: number): Promise<void> => {

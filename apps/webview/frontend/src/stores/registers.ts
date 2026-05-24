@@ -8,7 +8,7 @@ export const useRegistersStore = defineStore('registers', () => {
   const loading: Ref<boolean> = ref(false);
   const error: Ref<string | null> = ref(null);
 
-  // ── Fetch ─────────────────────────────────────────────────────────────────
+  // --- Fetch ---
 
   /** Fetch all register dictionary entries (`GET /api/registers`). */
   const fetchRegisters = async (): Promise<void> => {
@@ -25,7 +25,7 @@ export const useRegistersStore = defineStore('registers', () => {
     }
   };
 
-  // ── Create ────────────────────────────────────────────────────────────────
+  // --- Create ---
 
   /** Create a new register entry (`POST /api/register/new`). */
   const createRegister = async (data: Omit<RegisterDictEntry, 'id'>): Promise<RegisterDictEntry> => {
@@ -34,7 +34,7 @@ export const useRegistersStore = defineStore('registers', () => {
     return response.data;
   };
 
-  // ── Update ────────────────────────────────────────────────────────────────
+  // --- Update ---
 
   /** Update an existing register entry (`PUT /api/register/:id`). */
   const updateRegister = async (id: number, data: Omit<RegisterDictEntry, 'id'>): Promise<void> => {
@@ -43,7 +43,7 @@ export const useRegistersStore = defineStore('registers', () => {
     if (idx !== -1) registers.value[idx] = response.data;
   };
 
-  // ── Delete ────────────────────────────────────────────────────────────────
+  // --- Delete ---
 
   /** Delete a register entry (`DELETE /api/register/:id`). */
   const deleteRegister = async (id: number): Promise<void> => {

@@ -122,7 +122,7 @@ import { ref, reactive, computed, watch } from 'vue';
 import { useThemeStore } from '../stores/theme';
 import type { Device, Protocol } from '../types/device';
 
-// ── Draft type (port kept as string for free-form input with real validation) ─
+// --- Draft type (port kept as string for free-form input with real validation) ─
 
 interface DraftDevice {
   id: number;
@@ -132,7 +132,7 @@ interface DraftDevice {
   protocol: Protocol;
 }
 
-// ── Props / emits ─────────────────────────────────────────────────────────────
+// --- Props / emits ---
 
 const props = defineProps<{
   modelValue: boolean;
@@ -144,14 +144,14 @@ const emit = defineEmits<{
   (e: 'set', device: Device): void;
 }>();
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// --- State ---
 
 const themeStore = useThemeStore();
 const isNew = computed(() => !props.device);
 const draft = ref<DraftDevice>(makeDraft());
 const touched = reactive(new Set<string>());
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// --- Helpers ---
 
 function makeDraft(): DraftDevice {
   if (props.device) {
@@ -176,7 +176,7 @@ watch(
   }
 );
 
-// ── Validation ────────────────────────────────────────────────────────────────
+// --- Validation ---
 
 const isValidIp = (ip: string): boolean => {
   const parts = ip.trim().split('.');
@@ -201,7 +201,7 @@ const errors = computed<Record<string, string>>(() => {
 
 const canSubmit = computed(() => Object.keys(errors.value).length === 0);
 
-// ── Style helpers ─────────────────────────────────────────────────────────────
+// --- Style helpers ---
 
 const touch = (field: string) => touched.add(field);
 
@@ -219,7 +219,7 @@ const fieldClass = (field: string): string => {
   return `${base} ${themeStore.isDark ? 'border-gray-600' : 'border-gray-300'} focus:ring-blue-500`;
 };
 
-// ── Handlers ──────────────────────────────────────────────────────────────────
+// --- Handlers ---
 
 const cancel = () => emit('update:modelValue', false);
 

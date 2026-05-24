@@ -16,7 +16,7 @@ export const useViewsStore = defineStore('views', () => {
   /** Internal timer handle for auto-polling. */
   let pollTimer: ReturnType<typeof setInterval> | null = null;
 
-  // ── Views list ────────────────────────────────────────────────────────────
+  // --- Views list ---
 
   /** Fetch the list of all available views (`GET /api/views`). */
   const fetchViews = async (): Promise<void> => {
@@ -33,7 +33,7 @@ export const useViewsStore = defineStore('views', () => {
     }
   };
 
-  // ── View detail ───────────────────────────────────────────────────────────
+  // --- View detail ---
 
   /** Fetch full detail for a single view (`GET /api/view/:id`). */
   const fetchView = async (id: number | string): Promise<void> => {
@@ -51,7 +51,7 @@ export const useViewsStore = defineStore('views', () => {
     }
   };
 
-  // ── Register data ─────────────────────────────────────────────────────────
+  // --- Register data ---
 
   /**
    * Fetch current register values for the active view.
@@ -88,7 +88,7 @@ export const useViewsStore = defineStore('views', () => {
     }
   };
 
-  // ── View CRUD ─────────────────────────────────────────────────────────────
+  // --- View CRUD ---
 
   /** Create a new empty view (`POST /api/view/new`). Returns the created view. */
   const createView = async (): Promise<ViewDetail> => {
@@ -126,7 +126,7 @@ export const useViewsStore = defineStore('views', () => {
     }
   };
 
-  // ── Polling ───────────────────────────────────────────────────────────────
+  // --- Polling ---
   /**
    * Start automatic polling for `viewId` at the given interval (seconds).
    * Stops any previously running timer first.

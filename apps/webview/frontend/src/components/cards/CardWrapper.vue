@@ -35,9 +35,9 @@ const props = defineProps<{
 }>();
 
 /**
- * fill  → cards share the row width equally; each grows but never shrinks
+ * fill  -> cards share the row width equally; each grows but never shrinks
  *         below 220 px, wrapping when needed.
- * fixed → each card occupies a fixed 208 px (w-52), wrapping naturally.
+ * fixed -> each card occupies a fixed 208 px (w-52), wrapping naturally.
  * self-stretch ensures the card fills the full row height in both modes.
  */
 const wrapperClass = computed(() =>

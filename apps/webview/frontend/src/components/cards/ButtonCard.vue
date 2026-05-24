@@ -5,11 +5,6 @@
       <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate leading-tight">
         {{ card.name }}
       </p>
-      <span
-        class="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 px-1.5 py-0.5 rounded flex-shrink-0"
-      >
-        R{{ card.register }}
-      </span>
     </div>
 
     <!-- Button -->
@@ -27,6 +22,9 @@
       </span>
       <span v-else>{{ label }}</span>
     </button>
+
+    <!-- Confirmation modal -->
+    <ButtonConfirmModal v-model="showConfirm" :label="label" @confirm="doFire" />
   </div>
 </template>
 
@@ -34,6 +32,7 @@
 import { computed, ref } from 'vue';
 import type { Card, ButtonStyle, ButtonExtra } from '../../types/view';
 import { useViewsStore } from '../../stores/views';
+import ButtonConfirmModal from '../cardActionModals/ButtonConfirmModal.vue';
 
 const props = defineProps<{ card: Card; viewId: string | number }>();
 
@@ -43,6 +42,7 @@ const extra = computed(() => props.card.extra as ButtonExtra);
 
 const label = computed(() => extra.value.label || props.card.name);
 const justClicked = ref(false);
+const showConfirm = ref(false);
 
 const colorMap: Record<string, string> = {
   primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
@@ -62,10 +62,15 @@ const sizeMap: Record<string, string> = {
 const colorClass = computed(() => colorMap[style.value.color ?? 'primary']);
 const sizeClass = computed(() => sizeMap[style.value.size ?? 'md']);
 
-const handleClick = async () => {
+const handleClick = () => {
   if (extra.value.confirmAction) {
-    if (!confirm(`Are you sure you want to trigger "${label.value}"?`)) return;
+    showConfirm.value = true;
+    return;
   }
+  doFire();
+};
+
+const doFire = async () => {
   justClicked.value = true;
   // Write a pulse value (1) to the register
   await viewsStore.writeRegisterData(props.viewId, props.card.register, 1);

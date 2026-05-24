@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 md:p-6">
-    <!-- ── Page header ──────────────────────────────────────────────────── -->
+    <!-- Page header -->
     <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
       <h1 class="text-2xl font-bold leading-tight" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
         Devices
@@ -14,7 +14,7 @@
       </button>
     </div>
 
-    <!-- ── Loading skeleton ─────────────────────────────────────────────── -->
+    <!-- Loading skeleton -->
     <div v-if="devicesStore.loading" class="space-y-2">
       <div
         v-for="i in 4"
@@ -24,7 +24,7 @@
       />
     </div>
 
-    <!-- ── Error ─────────────────────────────────────────────────────────── -->
+    <!-- Error -->
     <div
       v-else-if="devicesStore.error"
       class="rounded-xl border p-4 text-sm"
@@ -33,7 +33,7 @@
       {{ devicesStore.error }}
     </div>
 
-    <!-- ── Empty state ───────────────────────────────────────────────────── -->
+    <!-- Empty state -->
     <div
       v-else-if="devicesStore.devices.length === 0"
       class="flex flex-col items-center justify-center min-h-[40vh] gap-3"
@@ -44,7 +44,7 @@
       </p>
     </div>
 
-    <!-- ── Device list ───────────────────────────────────────────────────── -->
+    <!-- Device list -->
     <div
       v-else
       class="rounded-xl border overflow-hidden"
@@ -144,8 +144,15 @@
       </div>
     </div>
 
-    <!-- ── Modal ─────────────────────────────────────────────────────────── -->
+    <!-- Modals -->
     <EditDeviceModal v-model="showModal" :device="editingDevice" @set="handleSet" />
+
+    <DeleteConfirmModal
+      v-model="showDeleteModal"
+      title="Delete Device"
+      :item-name="deletingDevice?.name ?? ''"
+      @confirm="doDeleteDevice"
+    />
   </div>
 </template>
 
@@ -154,24 +161,27 @@ import { onMounted, ref } from 'vue';
 import { useThemeStore } from '../stores/theme';
 import { useDevicesStore } from '../stores/devices';
 import EditDeviceModal from '../components/EditDeviceModal.vue';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import { PlusIcon, PencilIcon, TrashIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
 import type { Device } from '../types/device';
 
 const themeStore = useThemeStore();
 const devicesStore = useDevicesStore();
 
-// ── Modal state ───────────────────────────────────────────────────────────────
+// --- Modal state ---
 
 const showModal = ref(false);
 const editingDevice = ref<Device | null>(null);
+const showDeleteModal = ref(false);
+const deletingDevice = ref<Device | null>(null);
 
-// ── Layout ────────────────────────────────────────────────────────────────────
+// --- Layout ---
 
 // Mobile: Name | IP:Port | Actions (3 cols)
 // Desktop: ID | Name | Protocol | IP | Port | Actions (6 cols)
 const tableGridClass = 'grid-cols-[1fr_9rem_5rem] md:grid-cols-[3.5rem_1fr_8rem_11rem_5rem_6rem]';
 
-// ── Handlers ──────────────────────────────────────────────────────────────────
+// --- Handlers ---
 
 const openCreateModal = () => {
   editingDevice.value = null;
@@ -197,16 +207,21 @@ const handleSet = async (device: Device) => {
   }
 };
 
-const handleDelete = async (device: Device) => {
-  if (!confirm(`Delete device "${device.name}"?\nThis cannot be undone.`)) return;
+const handleDelete = (device: Device) => {
+  deletingDevice.value = device;
+  showDeleteModal.value = true;
+};
+
+const doDeleteDevice = async () => {
+  if (!deletingDevice.value) return;
   try {
-    await devicesStore.deleteDevice(device.id);
+    await devicesStore.deleteDevice(deletingDevice.value.id);
   } catch {
     // error already surfaced in store
   }
 };
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────────
+// --- Lifecycle ---
 
 onMounted(async () => {
   await devicesStore.fetchDevices();

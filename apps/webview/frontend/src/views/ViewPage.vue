@@ -1,6 +1,6 @@
 <template>
   <div class="p-4 md:p-6">
-    <!-- ── Page header ──────────────────────────────────────────────────── -->
+    <!-- Page header -->
     <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
       <!-- View name -->
       <h1 class="text-2xl font-bold leading-tight" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
@@ -72,7 +72,7 @@
       </div>
     </div>
 
-    <!-- ── Loading skeleton ─────────────────────────────────────────────── -->
+    <!-- Loading skeleton -->
     <div v-if="viewsStore.loadingView" class="flex flex-wrap gap-4">
       <div
         v-for="i in 4"
@@ -82,7 +82,7 @@
       />
     </div>
 
-    <!-- ── Error ─────────────────────────────────────────────────────────── -->
+    <!-- Error -->
     <div
       v-else-if="viewsStore.error && !isEditing"
       class="rounded-xl border p-4 text-sm"
@@ -91,7 +91,7 @@
       {{ viewsStore.error }}
     </div>
 
-    <!-- ── Read-mode card grid ───────────────────────────────────────────── -->
+    <!-- Read-mode card grid -->
     <div v-else-if="viewsStore.currentView && !isEditing" class="flex flex-wrap items-stretch gap-4">
       <CardWrapper
         v-for="card in sortedCards"
@@ -102,7 +102,7 @@
       />
     </div>
 
-    <!-- ── Edit-mode card grid ───────────────────────────────────────────── -->
+    <!-- Edit-mode card grid -->
     <div
       v-else-if="editDraft && isEditing"
       class="flex flex-wrap items-stretch gap-4"
@@ -172,7 +172,7 @@
       </div>
     </div>
 
-    <!-- ── Modals ─────────────────────────────────────────────────────────── -->
+    <!-- Modals -->
     <EditViewOptionsModal
       v-model="showOptionsModal"
       :view-name="editDraft?.name ?? ''"
@@ -189,6 +189,13 @@
       @set="handleCardSet"
       @delete="handleCardDelete"
     />
+
+    <DeleteConfirmModal
+      v-model="showDeleteModal"
+      title="Delete View"
+      :item-name="viewsStore.currentView?.name ?? ''"
+      @confirm="doDeleteView"
+    />
   </div>
 </template>
 
@@ -200,7 +207,8 @@ import { useViewsStore } from '../stores/views';
 import { useAuthStore } from '../stores/auth';
 import CardWrapper from '../components/cards/CardWrapper.vue';
 import EditViewOptionsModal from '../components/EditViewOptionsModal.vue';
-import EditCardModal from '../components/EditCardModal.vue';
+import EditCardModal from '../components/cardEditModals/EditCardModal.vue';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import {
   PencilIcon,
   TrashIcon,
@@ -218,12 +226,12 @@ const themeStore = useThemeStore();
 const viewsStore = useViewsStore();
 const authStore = useAuthStore();
 
-// ── Basic computed ──────────────────────────────────────────────────────────
+// --- Basic computed ---
 
 const currentViewId = computed(() => route.params.id as string);
 const isAdmin = computed(() => authStore.user?.role === 'admin');
 
-// ── Edit-mode state ─────────────────────────────────────────────────────────
+// --- Edit-mode state ---
 
 const isEditing = ref(false);
 const editDraft = ref<ViewDetail | null>(null);
@@ -231,8 +239,9 @@ const saving = ref(false);
 const showOptionsModal = ref(false);
 const editingCard = ref<Card | null>(null);
 const showCardModal = ref(false);
+const showDeleteModal = ref(false);
 
-// ── Sorted card lists ───────────────────────────────────────────────────────
+// --- Sorted card lists ---
 
 const sortedCards = computed(() => {
   if (!viewsStore.currentView) return [];
@@ -244,7 +253,7 @@ const nextCardOrder = computed(() => {
   return Math.max(...editDraft.value.components.map((c) => c.order)) + 1;
 });
 
-// ── Drag-to-reorder state ───────────────────────────────────────────────────
+// --- Drag-to-reorder state ---
 
 const draggedId = ref<number | null>(null);
 const orderedDraftCards = ref<Card[]>([]);
@@ -280,7 +289,7 @@ const onDragEnd = (): void => {
   draggedId.value = null;
 };
 
-// ── Edit-mode actions ───────────────────────────────────────────────────────
+// --- Edit-mode actions ---
 
 const startEdit = () => {
   if (!viewsStore.currentView) return;
@@ -331,9 +340,13 @@ const saveEdit = async () => {
   }
 };
 
-const handleDelete = async () => {
+const handleDelete = () => {
   if (!viewsStore.currentView) return;
-  if (!confirm(`Delete view "${viewsStore.currentView.name}"?\nThis cannot be undone.`)) return;
+  showDeleteModal.value = true;
+};
+
+const doDeleteView = async () => {
+  if (!viewsStore.currentView) return;
   await viewsStore.deleteView(currentViewId.value);
   if (viewsStore.views.length > 0) {
     router.replace({ name: 'ViewDetail', params: { id: viewsStore.views[0]!.id } });
@@ -350,7 +363,7 @@ const handleOptionsSet = (name: string, layout: Layout, updateInterval: number, 
   editDraft.value.allowedUsernames = allowedUsernames;
 };
 
-// ── Card-modal actions ──────────────────────────────────────────────────────
+// --- Card-modal actions ---
 
 const openCardModal = (card: Card) => {
   editingCard.value = card;
@@ -385,7 +398,7 @@ const handleCardDelete = (cardId: number) => {
   orderedDraftCards.value = orderedDraftCards.value.filter((c) => c.id !== cardId);
 };
 
-// ── Route watcher ───────────────────────────────────────────────────────────
+// --- Route watcher ---
 
 watch(
   () => route.params.id,

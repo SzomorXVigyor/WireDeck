@@ -1,8 +1,8 @@
-// ── Primitives ─────────────────────────────────────────────────────────────
+// --- Primitives ---
 export type CardType = 'button' | 'switch' | 'display' | 'number_input';
 export type LayoutType = 'fill' | 'fixed';
 
-// ── Style schemas (keyed by CardType) ──────────────────────────────────────
+// --- Style schemas — visual/presentation only ---
 
 /** Style for `button` cards */
 export interface ButtonStyle {
@@ -29,8 +29,6 @@ export interface SwitchStyle {
 
 /** Style for `display` cards */
 export interface DisplayStyle {
-  /** Physical / logical unit rendered after the value (e.g. `"°C"`, `"V"`, `"%"`). */
-  unit?: string;
   /**
    * Text size applied to the displayed value.
    * @default "lg"
@@ -40,15 +38,14 @@ export interface DisplayStyle {
 
 /** Style for `number_input` cards */
 export interface NumberInputStyle {
-  /** Unit label shown inside / alongside the input field. */
-  unit?: string;
-  /** Minimum allowed value (mapped to the `min` attribute of the input). */
-  min?: number;
-  /** Maximum allowed value (mapped to the `max` attribute of the input). */
-  max?: number;
+  /**
+   * Text size applied to the displayed value.
+   * @default "lg"
+   */
+  fontSize?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-// ── Extra schemas (keyed by CardType) ──────────────────────────────────────
+// --- Extra schemas — data / behaviour ---
 
 /** Extra behaviour config for `button` cards */
 export interface ButtonExtra {
@@ -81,26 +78,50 @@ export interface SwitchExtra {
 /** Extra behaviour config for `display` cards */
 export interface DisplayExtra {
   /**
-   * Number of decimal places rendered.
+   * Decimal scaling exponent (10^-x).
+   * precision = 0  → raw value is displayed as-is.
+   * precision = 2  → raw 1000 displays as "10.00".
    * @default 0
    */
   precision?: number;
   /** Optional text prefix shown before the numeric value (e.g. `"≈"`). */
   prefix?: string;
+  /** Physical / logical unit rendered after the value (e.g. `"°C"`, `"V"`, `"%"`). */
+  unit?: string;
+  /**
+   * When true the value may be negative (signed register).
+   * @default false
+   */
+  signed?: boolean;
 }
 
 /** Extra behaviour config for `number_input` cards */
 export interface NumberInputExtra {
   /**
-   * Step size used for increment / decrement.
-   * @default 1
+   * Decimal scaling exponent (10^-x) — same semantics as DisplayExtra.precision.
+   * Step size is computed automatically as Math.pow(10, -precision).
+   * @default 0
    */
-  step?: number;
+  precision?: number;
+  /** Optional text prefix shown before the numeric value (e.g. `"≈"`). */
+  prefix?: string;
+  /** Physical / logical unit rendered after the value (e.g. `"rpm"`, `"W"`). */
+  unit?: string;
+  /** Minimum allowed value (in display units). */
+  min?: number;
+  /** Maximum allowed value (in display units). */
+  max?: number;
   /** Placeholder text shown inside the input when it is empty. */
   placeholder?: string;
+  /**
+   * When true the user may enter negative values (signed register).
+   * When false (default) the minus key and negative values are blocked.
+   * @default false
+   */
+  signed?: boolean;
 }
 
-// ── Card ───────────────────────────────────────────────────────────────────
+// --- Card ---
 
 export interface Card {
   /** Unique card identifier within the view. */
@@ -113,13 +134,13 @@ export interface Card {
   order: number;
   /** Device register ID used for reading / writing the card value. */
   register: number;
-  /** Style configuration. Schema is defined by `type`. */
+  /** Style configuration (visual/presentation). Schema is defined by `type`. */
   style: ButtonStyle | SwitchStyle | DisplayStyle | NumberInputStyle;
-  /** Behaviour configuration. Schema is defined by `type`. */
+  /** Behaviour configuration (data / behaviour). Schema is defined by `type`. */
   extra: ButtonExtra | SwitchExtra | DisplayExtra | NumberInputExtra;
 }
 
-// ── Register data ──────────────────────────────────────────────────────────
+// --- Register data ---
 
 /** A single register value entry as returned by `GET /api/view/:id/data`. */
 export interface RegisterEntry {
@@ -129,7 +150,7 @@ export interface RegisterEntry {
   value: number;
 }
 
-// ── Layout ─────────────────────────────────────────────────────────────────
+// --- Layout ---
 
 export interface Layout {
   /**
@@ -142,7 +163,7 @@ export interface Layout {
   type: LayoutType;
 }
 
-// ── View ───────────────────────────────────────────────────────────────────
+// --- View ---
 
 /** Lightweight view entry returned by `GET /api/views`. */
 export interface ViewSummary {
