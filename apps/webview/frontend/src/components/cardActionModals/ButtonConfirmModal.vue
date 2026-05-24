@@ -37,10 +37,11 @@
           <!-- Body -->
           <div class="px-6 py-5">
             <p class="text-sm leading-relaxed" :class="themeStore.isDark ? 'text-gray-300' : 'text-gray-600'">
-              Are you sure you want to trigger
-              <span class="font-semibold" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
-                "{{ label }}" </span
-              >?
+              Are you sure you want to trigger?
+              <br />
+              <span class="inline-block font-semibold mt-2" :class="themeStore.isDark ? 'text-white' : 'text-gray-900'">
+                "{{ label }}"</span
+              >
             </p>
           </div>
 

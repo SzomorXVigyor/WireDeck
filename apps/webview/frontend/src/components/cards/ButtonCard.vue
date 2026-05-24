@@ -5,11 +5,6 @@
       <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate leading-tight">
         {{ card.name }}
       </p>
-      <span
-        class="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 px-1.5 py-0.5 rounded flex-shrink-0"
-      >
-        R{{ card.register }}
-      </span>
     </div>
 
     <!-- Button -->

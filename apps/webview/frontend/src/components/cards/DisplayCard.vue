@@ -5,22 +5,21 @@
       <p class="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate leading-tight">
         {{ card.name }}
       </p>
-      <span
-        class="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 px-1.5 py-0.5 rounded flex-shrink-0"
-      >
-        R{{ card.register }}
-      </span>
     </div>
 
     <!-- Value display -->
     <div class="mt-auto flex items-baseline gap-1 pt-1">
-      <span v-if="extra.prefix" class="text-sm text-gray-500 dark:text-gray-400">
+      <span v-if="extra.prefix" :class="valueSizeClass" class="text-sm text-gray-900 dark:text-white leading-none">
         {{ extra.prefix }}
       </span>
       <span :class="valueSizeClass" class="font-bold tabular-nums text-gray-900 dark:text-white leading-none">
         {{ displayValue }}
       </span>
-      <span v-if="extra.unit" class="text-sm text-gray-500 dark:text-gray-400 ml-0.5">
+      <span
+        v-if="extra.unit"
+        :class="valueSizeClass"
+        class="font-bold text-gray-900 dark:text-white leading-none ml-0.5"
+      >
         {{ extra.unit }}
       </span>
     </div>
