@@ -1,5 +1,5 @@
 const CertbotContainer = require('./containers/certbot');
-const { WireguardServer: WireguardServerStorage, RemoteVNC: RemoteVNCStorage } = require('./storageManager');
+const { WireguardServer: WireguardServerStorage, RemoteVNC: RemoteVNCStorage, WebView: RemoteViewStorage } = require('./storageManager');
 const webProxyManager = require('./webProxyManager');
 const logger = require('./logger');
 
@@ -47,6 +47,9 @@ async function renewExistingCertificates() {
 
       if (await RemoteVNCStorage.exists(name)) {
         await renewCertificate(`vnc.${name}`);
+      }
+      if (await RemoteViewStorage.exists(name)) {
+        await renewCertificate(`view.${name}`);
       }
     }
 
