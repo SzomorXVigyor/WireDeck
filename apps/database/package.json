@@ -1,14 +1,14 @@
 {
 	"name": "general-db-migrator",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Prisma migration runner for create schemas to the PostgreSQL database",
 	"author": "SzomorXVigyor",
 	"private": true,
 	"license": "MIT",
 	"dependencies": {
-		"@prisma/adapter-pg": "^7.8.0",
-		"pg": "^8.21.0",
-		"prisma": "^7.8.0"
+		"@prisma/adapter-pg": "^7.10.1",
+		"pg": "^8.23.1",
+		"prisma": "^7.10.1"
 	},
 	"packageManager": "pnpm@10.33.0"
 }

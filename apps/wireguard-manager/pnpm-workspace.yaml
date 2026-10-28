@@ -3,3 +3,5 @@ allowBuilds:
   cpu-features: true
   protobufjs: true
   ssh2: true
+overrides:
+  uuid@<11.1.1: '>=11.1.1'
